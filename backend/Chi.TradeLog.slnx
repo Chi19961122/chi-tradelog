@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Chi.TradeLog.Api/Chi.TradeLog.Api.csproj" />
+    <Project Path="src/Chi.TradeLog.Common/Chi.TradeLog.Common.csproj" />
+    <Project Path="src/Chi.TradeLog.Repositories/Chi.TradeLog.Repositories.csproj" />
+    <Project Path="src/Chi.TradeLog.Services/Chi.TradeLog.Services.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Chi.TradeLog.Tests/Chi.TradeLog.Tests.csproj" />
+  </Folder>
+</Solution>

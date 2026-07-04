@@ -82,6 +82,16 @@ Client ◀── ViewModel
 - **HTTP**：用 `IHttpClientFactory` / DI 注入的 `HttpClient`，**不自行 `new HttpClient()`**。
 - **JSON**：優先 **System.Text.Json**；不新增 Newtonsoft.Json 用法。
 
+### 註解與宣告慣例（本專案，優先於通用慣例）
+- **XML `<summary>` 一律用三行格式**（即使內容只有一行），不寫成單行：
+  ```csharp
+  /// <summary>
+  /// 交易查詢請求參數（Parameter）。
+  /// </summary>
+  ```
+- **不使用 `sealed`**：類別宣告不加 `sealed` 修飾詞。
+- **使用明確建構式（explicit constructor）注入相依**：欄位以 `_camelCase` 命名（`private readonly`）；**不使用 primary constructor**（即不寫 `class Foo(IBar bar)`）。
+
 ## 資料庫規則
 - **動任何欄位 / 表 / schema 前，先讀 [`../database/DATABASE_SCHEMA.md`](../database/DATABASE_SCHEMA.md)**。所有資料相關文件集中在 repo 根目錄的 `database/` 資料夾。
 - **不得自行猜測表名／欄位名**（這類錯誤編譯不一定抓得到，執行才壞）。

@@ -1,0 +1,77 @@
+using System.Reflection;
+using Chi.TradeLog.Api.Mapping;
+using Chi.TradeLog.Api.Middleware;
+using Chi.TradeLog.Api.Validators;
+using Chi.TradeLog.Common.Options;
+using Chi.TradeLog.Repositories.DependencyInjection;
+using Chi.TradeLog.Services.DependencyInjection;
+using Chi.TradeLog.Services.Mapping;
+using FluentValidation;
+using Microsoft.OpenApi.Models;
+
+var builder = WebApplication.CreateBuilder(args);
+
+const string FrontendCorsPolicy = "frontend";
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Chi.TradeLog API", Version = "v1" });
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath);
+    }
+});
+
+// 允許前端跨來源存取。來源可由設定 Cors:AllowedOrigins 覆寫，預設涵蓋 Vite dev 與容器 nginx。
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? ["http://localhost:5173", "http://localhost:8080"];
+builder.Services.AddCors(options => options.AddPolicy(FrontendCorsPolicy, policy => policy
+    .WithOrigins(allowedOrigins)
+    .AllowAnyHeader()
+    .AllowAnyMethod()));
+
+// AutoMapper：掃描 Api 與 Services 兩個 assembly 的 Profile。
+builder.Services.AddAutoMapper(
+    _ => { },
+    typeof(ApiMappingProfile).Assembly,
+    typeof(ServiceMappingProfile).Assembly);
+
+// FluentValidation：註冊 Api assembly 內所有 Validator。
+builder.Services.AddValidatorsFromAssemblyContaining<TradeQueryParameterValidator>();
+
+// 應用層與資料層。
+builder.Services.AddApplicationServices();
+
+var connectionString = builder.Configuration
+    .GetSection(DatabaseOptions.SectionName)[nameof(DatabaseOptions.ConnectionString)] ?? string.Empty;
+builder.Services.AddDatabaseInfrastructure(connectionString);
+
+var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseCors(FrontendCorsPolicy);
+app.MapControllers();
+
+// 於啟動時套用 migration（整合測試環境略過，避免依賴真實資料庫）。
+if (app.Environment.IsEnvironment("Testing") is false)
+{
+    app.Services.RunDatabaseMigrations();
+}
+
+app.Run();
+
+/// <summary>
+/// 供整合測試（WebApplicationFactory）參考的進入點型別。
+/// </summary>
+public partial class Program;

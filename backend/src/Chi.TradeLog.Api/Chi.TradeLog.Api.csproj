@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- 產生 XML 文件註解供 Swagger 使用 -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- 1591：不強制每個 public 成員都要有 XML 註解 -->
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="15.1.3" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Chi.TradeLog.Common\Chi.TradeLog.Common.csproj" />
+    <ProjectReference Include="..\Chi.TradeLog.Services\Chi.TradeLog.Services.csproj" />
+    <ProjectReference Include="..\Chi.TradeLog.Repositories\Chi.TradeLog.Repositories.csproj" />
+  </ItemGroup>
+
+</Project>
