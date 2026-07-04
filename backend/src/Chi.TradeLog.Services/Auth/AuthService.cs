@@ -37,12 +37,26 @@ public class AuthService : IAuthService
             return null;
         }
 
-        return new AuthResultDto
-        {
-            Token = CreateToken(user.Id, user.Email, user.DisplayName),
-            User = new UserDto { Name = user.DisplayName, Email = user.Email },
-        };
+        return BuildResult(user);
     }
+
+    /// <summary>
+    /// 為既有登入的使用者重新發行 JWT（延長工作階段）；使用者不存在時回傳 <c>null</c>。
+    /// </summary>
+    public async Task<AuthResultDto?> RefreshAsync(string email, CancellationToken cancellationToken = default)
+    {
+        var user = await _userRepository.GetByEmailAsync(email.Trim().ToLowerInvariant(), cancellationToken);
+        return user is null ? null : BuildResult(user);
+    }
+
+    /// <summary>
+    /// 由使用者資料組出登入結果（含新簽發的 JWT）。
+    /// </summary>
+    private AuthResultDto BuildResult(Common.Models.DataModels.UserDataModel user) => new()
+    {
+        Token = CreateToken(user.Id, user.Email, user.DisplayName),
+        User = new UserDto { Name = user.DisplayName, Email = user.Email },
+    };
 
     /// <summary>
     /// 依使用者資訊建立簽章後的 JWT。

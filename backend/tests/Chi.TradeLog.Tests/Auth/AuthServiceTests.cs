@@ -68,6 +68,29 @@ public class AuthServiceTests
         result.Should().BeNull();
     }
 
+    [Fact]
+    public async Task RefreshAsync_IssuesNewToken_ForExistingUser()
+    {
+        var user = new UserDataModel { Id = 1, Email = "alex@chitradelog.com", DisplayName = "Alex Chen" };
+        var service = CreateService(user);
+
+        var result = await service.RefreshAsync("alex@chitradelog.com");
+
+        result.Should().NotBeNull();
+        result!.Token.Should().NotBeNullOrWhiteSpace();
+        result.User.Email.Should().Be("alex@chitradelog.com");
+    }
+
+    [Fact]
+    public async Task RefreshAsync_ReturnsNull_WhenUserMissing()
+    {
+        var service = CreateService(null);
+
+        var result = await service.RefreshAsync("gone@example.com");
+
+        result.Should().BeNull();
+    }
+
     private class FakeUserRepository : IUserRepository
     {
         private readonly UserDataModel? _user;

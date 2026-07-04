@@ -11,4 +11,9 @@ public interface IAuthService
     /// 驗證帳號密碼並發行 JWT；憑證錯誤時回傳 <c>null</c>。
     /// </summary>
     Task<AuthResultDto?> LoginAsync(string email, string password, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 為既有登入的使用者重新發行 JWT（延長工作階段）；使用者不存在時回傳 <c>null</c>。
+    /// </summary>
+    Task<AuthResultDto?> RefreshAsync(string email, CancellationToken cancellationToken = default);
 }
