@@ -11,6 +11,12 @@ const CN_NUM = ['一', '二', '三', '四', '五', '六'];
 interface Props {
   weeks: CalendarWeek[];
   onDayClick: (day: number, cell: CalendarCell) => void;
+  /** 覆寫卡片標題（預設為 Dashboard 的月曆標題）。 */
+  title?: string;
+  /** 覆寫卡片副標。 */
+  subtitle?: string;
+  /** 標題右側內容（例如整頁 Calendar 的月份切換）。 */
+  headerRight?: React.ReactNode;
 }
 
 /** 日曆格子的語意色淡填充。 */
@@ -34,7 +40,7 @@ function statStyle(stat: CalendarWeek['stat']): React.CSSProperties {
   return { background: `rgb(${rgb} / 0.18)`, border: `1px solid rgb(${rgb} / 0.38)` };
 }
 
-export function CalendarBlock({ weeks, onDayClick }: Props) {
+export function CalendarBlock({ weeks, onDayClick, title, subtitle, headerRight }: Props) {
   const { t, i18n } = useTranslation();
   const isZh = toMetricsLang(i18n.language) === 'zh';
   const weekdays = isZh ? WEEKDAYS_ZH : WEEKDAYS_EN;
@@ -43,9 +49,10 @@ export function CalendarBlock({ weeks, onDayClick }: Props) {
     <div className={styles.card}>
       <div className={styles.header}>
         <div>
-          <div className={styles.title}>{t('dashboard.calendar')}</div>
-          <div className={styles.subtitle}>{t('dashboard.calendarSubtitle')}</div>
+          <div className={styles.title}>{title ?? t('dashboard.calendar')}</div>
+          <div className={styles.subtitle}>{subtitle ?? t('dashboard.calendarSubtitle')}</div>
         </div>
+        {headerRight}
       </div>
 
       <div className={styles.grid}>

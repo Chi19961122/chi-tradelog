@@ -81,6 +81,26 @@
     "prev": "上一頁",
     "next": "下一頁"
   },
+  "reports": {
+    "title": "分析報表",
+    "subtitle": "績效分析",
+    "winrateWeekday": "各星期勝率",
+    "pnlSymbol": "各商品損益",
+    "rDistribution": "R 倍數分佈",
+    "holdingTime": "持倉時間分析",
+    "avgHolding": "平均持倉時間",
+    "monthly": "每月績效比較",
+    "strategy": "策略標籤統計",
+    "colTag": "標籤",
+    "colTrades": "交易次數",
+    "colWinRate": "勝率",
+    "colAvgPnl": "平均損益"
+  },
+  "calendar": {
+    "title": "日曆",
+    "subtitle": "每月績效總覽"
+  },
+  "weekdays": { "short": ["日", "一", "二", "三", "四", "五", "六"] },
   "tradeForm": {
     "addTitle": "新增交易",
     "editTitle": "編輯交易",

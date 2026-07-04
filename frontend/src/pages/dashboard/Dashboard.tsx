@@ -1,18 +1,12 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTrades } from '@/features/trades/useTrades';
+import { useKpiCards } from '@/features/kpi/useKpiCards';
 import { useUiStore } from '@/store/uiStore';
 import { toMetricsLang } from '@/i18n';
-import {
-  buildCalendar,
-  computeKpis,
-  deltaFor,
-  type CalendarCell,
-  type EquityRange,
-} from '@/lib/metrics';
-import { fmtMoney } from '@/lib/format';
+import { buildCalendar, computeKpis, type CalendarCell, type EquityRange } from '@/lib/metrics';
 import { CustomizePopover } from './CustomizePopover';
-import { KpiCard, type KpiCardVM } from './KpiCard';
+import { KpiCard } from './KpiCard';
 import { EquityCurveCard } from './EquityCurveCard';
 import { TradeScoreCard } from './TradeScoreCard';
 import { CalendarBlock } from './CalendarBlock';
@@ -42,20 +36,7 @@ export function Dashboard() {
   const kpis = useMemo(() => computeKpis(trades, initialCapital), [trades, initialCapital]);
   const calendar = useMemo(() => buildCalendar(monthOffset), [monthOffset]);
 
-  const kpiCards = useMemo<KpiCardVM[]>(() => {
-    const { netPnl, winRate, profitFactor, avgWin, avgLoss, avgWL, maxDrawdown, balance } = kpis;
-    const wlTotal = Math.max(0.01, avgWin + avgLoss);
-    const d1 = deltaFor(1.1, true);
-    return [
-      { key: 'netpnl', label: t('kpi.netpnl'), value: fmtMoney(netPnl), valueColor: netPnl >= 0 ? 'green' : 'red', delta: d1 },
-      { key: 'winrate', label: t('kpi.winrate'), value: winRate.toFixed(1) + '%', valueColor: 'ink', delta: deltaFor(2.2, true), ringFraction: Math.max(0, Math.min(100, winRate)) / 100 },
-      { key: 'pf', label: t('kpi.pf'), value: profitFactor.toFixed(2), valueColor: 'ink', delta: deltaFor(3.3, true) },
-      { key: 'avgwl', label: t('kpi.avgwl'), value: avgWL.toFixed(1) + 'R', valueColor: 'ink', delta: deltaFor(4.4, true), ringFraction: avgWin / wlTotal, avgWinText: '$' + avgWin.toFixed(1), avgLossText: '$' + avgLoss.toFixed(1) },
-      { key: 'maxdd', label: t('kpi.maxdd'), value: fmtMoney(maxDrawdown), valueColor: 'red', delta: deltaFor(5.5, false) },
-      { key: 'balance', label: t('kpi.balance'), value: fmtMoney(balance), valueColor: 'ink', delta: d1 },
-    ];
-  }, [kpis, t]);
-
+  const kpiCards = useKpiCards(kpis);
   const visibleKpis = kpiCards.filter((k) => kpiVisible[k.key as keyof typeof kpiVisible]);
 
   const months = toMetricsLang(i18n.language) === 'zh' ? MONTHS_ZH : MONTHS_EN;

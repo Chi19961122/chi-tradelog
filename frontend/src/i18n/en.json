@@ -81,6 +81,26 @@
     "prev": "Prev",
     "next": "Next"
   },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Performance analytics",
+    "winrateWeekday": "Win Rate by Weekday",
+    "pnlSymbol": "P&L by Symbol",
+    "rDistribution": "R-Multiple Distribution",
+    "holdingTime": "Holding Time Distribution",
+    "avgHolding": "Avg Holding Time",
+    "monthly": "Monthly Performance",
+    "strategy": "Strategy Tag Performance",
+    "colTag": "Tag",
+    "colTrades": "Trades",
+    "colWinRate": "Win Rate",
+    "colAvgPnl": "Avg P&L"
+  },
+  "calendar": {
+    "title": "Calendar",
+    "subtitle": "Monthly performance breakdown"
+  },
+  "weekdays": { "short": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] },
   "tradeForm": {
     "addTitle": "Add Trade",
     "editTitle": "Edit Trade",
