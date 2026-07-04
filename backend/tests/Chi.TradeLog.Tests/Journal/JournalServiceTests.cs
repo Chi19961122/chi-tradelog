@@ -1,0 +1,89 @@
+using Chi.TradeLog.Common.Models;
+using Chi.TradeLog.Common.Models.DataModels;
+using Chi.TradeLog.Common.Models.InfoModels;
+using Chi.TradeLog.Repositories.Journal;
+using Chi.TradeLog.Services.Journal;
+using FluentAssertions;
+using Xunit;
+
+namespace Chi.TradeLog.Tests.Journal;
+
+public class JournalServiceTests
+{
+    [Fact]
+    public async Task GetJournalAsync_ReturnsNull_WhenNotFound()
+    {
+        var repository = new FakeJournalRepository { Stored = null };
+        var service = new JournalService(repository);
+
+        var result = await service.GetJournalAsync("a1", "AAPL", 5);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetJournalAsync_DeserializesMistakesJson()
+    {
+        var repository = new FakeJournalRepository
+        {
+            Stored = new JournalEntryDataModel
+            {
+                AccountId = "a1",
+                Symbol = "AAPL",
+                Day = 5,
+                Notes = "<b>note</b>",
+                Emotions = ["Calm"],
+                Mistakes = """[{"label":"Chased entry","checked":true}]""",
+            },
+        };
+        var service = new JournalService(repository);
+
+        var result = await service.GetJournalAsync("a1", "AAPL", 5);
+
+        result.Should().NotBeNull();
+        result!.Notes.Should().Be("<b>note</b>");
+        result.Emotions.Should().ContainSingle().Which.Should().Be("Calm");
+        result.Mistakes.Should().ContainSingle();
+        result.Mistakes[0].Label.Should().Be("Chased entry");
+        result.Mistakes[0].Checked.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SaveJournalAsync_SerializesMistakesToJson()
+    {
+        var repository = new FakeJournalRepository();
+        var service = new JournalService(repository);
+        var info = new SaveJournalInfo
+        {
+            AccountId = "a1",
+            Symbol = "AAPL",
+            Day = 5,
+            Notes = "n",
+            Emotions = ["Confident"],
+            Mistakes = [new Mistake { Label = "Oversized position", Checked = false }],
+        };
+
+        await service.SaveJournalAsync(info);
+
+        repository.Upserted.Should().NotBeNull();
+        repository.Upserted!.Emotions.Should().ContainSingle().Which.Should().Be("Confident");
+        repository.Upserted.Mistakes.Should().Contain("Oversized position");
+        repository.Upserted.Mistakes.Should().Contain("checked");
+    }
+
+    private class FakeJournalRepository : IJournalRepository
+    {
+        public JournalEntryDataModel? Stored { get; set; }
+        public JournalEntryDataModel? Upserted { get; private set; }
+
+        public Task<JournalEntryDataModel?> GetAsync(
+            string accountId, string symbol, int day, CancellationToken cancellationToken = default)
+            => Task.FromResult(Stored);
+
+        public Task UpsertAsync(JournalEntryDataModel entry, CancellationToken cancellationToken = default)
+        {
+            Upserted = entry;
+            return Task.CompletedTask;
+        }
+    }
+}

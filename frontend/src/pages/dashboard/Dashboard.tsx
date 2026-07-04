@@ -12,6 +12,8 @@ import { TradeScoreCard } from './TradeScoreCard';
 import { CalendarBlock } from './CalendarBlock';
 import { DayDetailModal } from './DayDetailModal';
 import { RecentTrades } from './RecentTrades';
+import { JournalModal } from '@/pages/journal/JournalModal';
+import type { Trade } from '@/types/trade';
 import styles from './Dashboard.module.css';
 
 const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -30,6 +32,7 @@ export function Dashboard() {
     day: null,
     cell: null,
   });
+  const [journal, setJournal] = useState<{ open: boolean; trade: Trade | null }>({ open: false, trade: null });
 
   const { data: trades = [], isLoading } = useTrades(activeAccountIds);
 
@@ -85,6 +88,16 @@ export function Dashboard() {
         day={dayDetail.day}
         cell={dayDetail.cell}
         monthLabel={monthLabel}
+        onTradeClick={(trade) => {
+          setDayDetail((d) => ({ ...d, open: false }));
+          setJournal({ open: true, trade });
+        }}
+      />
+
+      <JournalModal
+        open={journal.open}
+        onClose={() => setJournal((j) => ({ ...j, open: false }))}
+        trade={journal.trade}
       />
     </div>
   );

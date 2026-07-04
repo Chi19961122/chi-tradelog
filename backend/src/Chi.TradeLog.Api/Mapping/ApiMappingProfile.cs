@@ -34,5 +34,9 @@ public class ApiMappingProfile : Profile
         CreateMap<AccountDto, AccountViewModel>();
         CreateMap<PlatformDto, PlatformViewModel>();
         CreateMap<SettingsDto, SettingsViewModel>();
+
+        // 交易日記：Parameter → InfoModel、Dto → ViewModel
+        CreateMap<SaveJournalParameter, SaveJournalInfo>();
+        CreateMap<JournalDto, JournalViewModel>();
     }
 }

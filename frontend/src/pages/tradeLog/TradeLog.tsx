@@ -8,6 +8,7 @@ import { fmtMoney } from '@/lib/format';
 import { toMetricsLang } from '@/i18n';
 import type { Trade } from '@/types/trade';
 import { AddEditTradeModal } from './AddEditTradeModal';
+import { JournalModal } from '@/pages/journal/JournalModal';
 import styles from './TradeLog.module.css';
 
 type SideFilter = 'all' | 'long' | 'short';
@@ -26,6 +27,8 @@ export function TradeLog() {
   const [pageSize, setPageSize] = useState(20);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Trade | null>(null);
+  const [journalOpen, setJournalOpen] = useState(false);
+  const [journalTrade, setJournalTrade] = useState<Trade | null>(null);
 
   const filtered = useMemo(() => {
     return trades.filter((tr) => {
@@ -50,6 +53,10 @@ export function TradeLog() {
   const openEdit = (trade: Trade) => {
     setEditing(trade);
     setModalOpen(true);
+  };
+  const openJournal = (trade: Trade) => {
+    setJournalTrade(trade);
+    setJournalOpen(true);
   };
 
   return (
@@ -123,7 +130,7 @@ export function TradeLog() {
           </thead>
           <tbody>
             {paged.map((tr) => (
-              <tr key={tr.id} className={styles.row} onClick={() => openEdit(tr)}>
+              <tr key={tr.id} className={styles.row} onClick={() => openJournal(tr)}>
                 <td className={styles.mono}>
                   {monthLabel} {tr.day}
                 </td>
@@ -214,6 +221,7 @@ export function TradeLog() {
       </div>
 
       <AddEditTradeModal open={modalOpen} onClose={() => setModalOpen(false)} editing={editing} />
+      <JournalModal open={journalOpen} onClose={() => setJournalOpen(false)} trade={journalTrade} />
     </div>
   );
 }

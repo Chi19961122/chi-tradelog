@@ -3,9 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { Icon } from '@/components/Icon/Icon';
 import { CalendarBlock } from '@/pages/dashboard/CalendarBlock';
 import { DayDetailModal } from '@/pages/dashboard/DayDetailModal';
+import { JournalModal } from '@/pages/journal/JournalModal';
 import { buildCalendar, type CalendarCell } from '@/lib/metrics';
 import { useUiStore } from '@/store/uiStore';
 import { toMetricsLang } from '@/i18n';
+import type { Trade } from '@/types/trade';
 import styles from './CalendarPage.module.css';
 
 const MONTHS_EN = [
@@ -24,6 +26,7 @@ export function CalendarPage() {
     day: null,
     cell: null,
   });
+  const [journal, setJournal] = useState<{ open: boolean; trade: Trade | null }>({ open: false, trade: null });
 
   const calendar = useMemo(() => buildCalendar(monthOffset), [monthOffset]);
   const monthLabel = isZh
@@ -64,6 +67,16 @@ export function CalendarPage() {
         day={dayDetail.day}
         cell={dayDetail.cell}
         monthLabel={shortMonth}
+        onTradeClick={(trade) => {
+          setDayDetail((d) => ({ ...d, open: false }));
+          setJournal({ open: true, trade });
+        }}
+      />
+
+      <JournalModal
+        open={journal.open}
+        onClose={() => setJournal((j) => ({ ...j, open: false }))}
+        trade={journal.trade}
       />
     </div>
   );

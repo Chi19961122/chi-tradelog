@@ -5,6 +5,8 @@ import { DonutRing } from '@/components/DonutRing/DonutRing';
 import { buildDayTrades, type CalendarCell } from '@/lib/metrics';
 import { fmtMoney } from '@/lib/format';
 import { SYMBOLS_LIST } from '@/lib/seededTrades';
+import { useUiStore } from '@/store/uiStore';
+import type { Trade } from '@/types/trade';
 import styles from './DayDetailModal.module.css';
 
 interface Props {
@@ -13,10 +15,13 @@ interface Props {
   day: number | null;
   cell: CalendarCell | null;
   monthLabel: string;
+  /** 點擊單筆交易列時觸發（跳到該筆日記）。 */
+  onTradeClick?: (trade: Trade) => void;
 }
 
-export function DayDetailModal({ open, onClose, day, cell, monthLabel }: Props) {
+export function DayDetailModal({ open, onClose, day, cell, monthLabel, onTradeClick }: Props) {
   const { t } = useTranslation();
+  const accountId = useUiStore((s) => s.activeAccountIds)[0] ?? '';
 
   const dayTrades = useMemo(
     () => (day != null && cell ? buildDayTrades(day, cell, SYMBOLS_LIST) : []),
@@ -26,6 +31,21 @@ export function DayDetailModal({ open, onClose, day, cell, monthLabel }: Props) 
   if (!cell || day == null) return null;
 
   const winRate = cell.tradesCount ? (cell.wins / cell.tradesCount) * 100 : 0;
+
+  const toTrade = (tr: (typeof dayTrades)[number]): Trade => ({
+    id: `${accountId}-${tr.sym}-${day}`,
+    accountId,
+    sym: tr.sym,
+    side: tr.side,
+    r: tr.r,
+    pnl: tr.pnl,
+    entry: tr.entry,
+    exit: tr.exit,
+    qty: tr.qty,
+    day,
+    tags: [],
+    holdingMinutes: 0,
+  });
 
   return (
     <Modal open={open} onClose={onClose} title={`${monthLabel} ${day}`} subtitle={t('dayDetail.hint')} width={480}>
@@ -40,7 +60,11 @@ export function DayDetailModal({ open, onClose, day, cell, monthLabel }: Props) 
 
       <div className={styles.list}>
         {dayTrades.map((tr, i) => (
-          <div key={i} className={styles.row}>
+          <div
+            key={i}
+            className={`${styles.row} ${onTradeClick ? styles.rowClickable : ''}`}
+            onClick={onTradeClick ? () => onTradeClick(toTrade(tr)) : undefined}
+          >
             <span
               className={styles.badge}
               style={{

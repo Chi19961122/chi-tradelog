@@ -57,6 +57,20 @@
   },
   "side": { "long": "Long", "short": "Short" },
   "common": { "comingSoon": "Coming soon" },
+  "journal": {
+    "title": "Journal",
+    "subtitle": "Trade notes & reflections",
+    "tags": "Tags",
+    "emotions": "Emotions",
+    "mistakes": "Mistake Review",
+    "notes": "Notes",
+    "add": "+ Add",
+    "applyTemplate": "Apply Template",
+    "setTemplate": "Set Template",
+    "clear": "Clear",
+    "saved": "Saved",
+    "editing": "Editing…"
+  },
   "tradelog": {
     "title": "Trade Log",
     "subtitle": "Every trade, logged",

@@ -20,8 +20,8 @@
 | `symbols` | 可選商品代號清單（feed 新增交易下拉） | ✅ 已建立（Migration 0003/0004） |
 | `tags` | 策略標籤清單 | ✅ 已建立（Migration 0003/0004） |
 | `app_settings` | 應用程式設定（初始資金等） | ✅ 已建立（Migration 0003/0004） |
+| `journal_entries` | 每筆交易日誌（筆記／情緒／檢討） | ✅ 已建立（Migration 0005） |
 | `users` | 使用者與認證（JWT / BCrypt 雜湊密碼） | 待建立 |
-| `journal_entries` | 每筆交易日誌（筆記／情緒／檢討／截圖） | 待建立 |
 
 ### trades
 由 `Migration0001_CreateTradesTable` 建立、`Migration0002_SeedTrades` 植入示範資料。
@@ -65,6 +65,22 @@
 | `tags.name` | varchar(64) | PK | 標籤名稱 |
 | `app_settings.id` | int | PK（固定為 1，單列） | 設定列 |
 | `app_settings.initial_capital` | numeric(18,2) | NOT NULL | 初始資金 |
+
+### journal_entries（Migration 0005）
+以（`account_id`, `symbol`, `day`）為唯一鍵；無 seed（前端在無資料時以確定性演算法產生預設情緒/檢討）。
+
+| 欄位 | 型別 | 約束 | 說明 |
+| --- | --- | --- | --- |
+| `id` | bigint | PK, identity | |
+| `account_id` | varchar(64) | NOT NULL | 所屬帳戶 |
+| `symbol` | varchar(32) | NOT NULL | 商品代號 |
+| `day` | integer | NOT NULL | 當月第幾天 |
+| `notes` | text | NOT NULL, default `''` | 筆記 HTML（含貼上截圖的 data URL） |
+| `emotions` | text[] | NOT NULL, default `{}` | 情緒標籤 |
+| `mistakes` | jsonb | NOT NULL, default `[]` | 錯誤檢討清單 `[{label,checked}]` |
+| `updated_at` | timestamptz | NOT NULL, default now() | 更新時間 |
+
+唯一鍵：`uq_journal_entry` (account_id, symbol, day)
 
 ## 其他資料相關文件
 本 `database/` 資料夾集中所有資料相關資產，例如：ERD 圖、seed 資料說明、匯入/匯出 CSV 欄位規格（`Date,Symbol,Side,Entry,Exit,Qty,PnL,R,Tags`）等，隨開發補充。

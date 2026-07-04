@@ -57,6 +57,20 @@
   },
   "side": { "long": "多", "short": "空" },
   "common": { "comingSoon": "即將推出" },
+  "journal": {
+    "title": "交易日記",
+    "subtitle": "交易筆記與反思",
+    "tags": "標籤",
+    "emotions": "情緒標籤",
+    "mistakes": "錯誤檢討清單",
+    "notes": "筆記",
+    "add": "+ 新增",
+    "applyTemplate": "套用範本",
+    "setTemplate": "設定範本",
+    "clear": "清空內容",
+    "saved": "已儲存",
+    "editing": "編輯中…"
+  },
   "tradelog": {
     "title": "交易日誌",
     "subtitle": "所有交易紀錄",
