@@ -80,5 +80,17 @@ public class TradeServiceTests
             LastCondition = condition;
             return Task.FromResult(_rows);
         }
+
+        public Task<long> InsertAsync(TradeDataModel trade, CancellationToken cancellationToken = default)
+            => Task.FromResult(0L);
+
+        public Task<int> UpdateAsync(TradeDataModel trade, CancellationToken cancellationToken = default)
+            => Task.FromResult(0);
+
+        public Task<TradeDataModel?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
+            => Task.FromResult<TradeDataModel?>(null);
+
+        public Task<int> DeleteAsync(long id, CancellationToken cancellationToken = default)
+            => Task.FromResult(0);
     }
 }

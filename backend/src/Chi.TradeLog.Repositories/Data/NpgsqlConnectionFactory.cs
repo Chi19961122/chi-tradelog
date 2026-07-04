@@ -19,7 +19,9 @@ public class NpgsqlConnectionFactory : IDbConnectionFactory
         _connectionString = options.Value.ConnectionString;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 以設定的連線字串建立並開啟一個 <see cref="NpgsqlConnection"/>。呼叫端負責釋放。
+    /// </summary>
     public async Task<NpgsqlConnection> CreateOpenConnectionAsync(CancellationToken cancellationToken = default)
     {
         var connection = new NpgsqlConnection(_connectionString);

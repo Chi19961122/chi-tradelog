@@ -49,6 +49,59 @@ public class TradesEndpointTests : IClassFixture<TradesEndpointTests.TestApiFact
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
+    [Fact]
+    public async Task CreateTrade_WithValidBody_Returns201AndComputedPnl()
+    {
+        var client = _factory.CreateClient();
+
+        var response = await client.PostAsJsonAsync("/api/trades", new
+        {
+            accountId = "a1",
+            sym = "aapl",
+            side = "Long",
+            entry = 100m,
+            exit = 110m,
+            qty = 10,
+            day = 8,
+            tags = new[] { "breakout" },
+        });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var trade = await response.Content.ReadFromJsonAsync<TradeViewModelResponse>();
+        trade!.Sym.Should().Be("AAPL");
+        trade.Pnl.Should().Be(100m); // (110 - 100) * 10
+        trade.Day.Should().Be(8);
+    }
+
+    [Fact]
+    public async Task CreateTrade_WithInvalidBody_Returns400()
+    {
+        var client = _factory.CreateClient();
+
+        var response = await client.PostAsJsonAsync("/api/trades", new
+        {
+            accountId = "a1",
+            sym = "AAPL",
+            side = "Long",
+            entry = 100m,
+            exit = 110m,
+            qty = 0, // 無效
+            day = 8,
+        });
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task DeleteTrade_Returns204()
+    {
+        var client = _factory.CreateClient();
+
+        var response = await client.DeleteAsync("/api/trades/1");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+    }
+
     /// <summary>
     /// 覆寫 ITradeRepository 以脫離真實資料庫；環境設為 Testing 以略過 migration。
     /// </summary>
@@ -96,6 +149,18 @@ public class TradesEndpointTests : IClassFixture<TradesEndpointTests.TestApiFact
                 : [];
             return Task.FromResult(rows);
         }
+
+        public Task<long> InsertAsync(TradeDataModel trade, CancellationToken cancellationToken = default)
+            => Task.FromResult(123L);
+
+        public Task<int> UpdateAsync(TradeDataModel trade, CancellationToken cancellationToken = default)
+            => Task.FromResult(1);
+
+        public Task<TradeDataModel?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
+            => Task.FromResult<TradeDataModel?>(new TradeDataModel { Id = id, AccountId = "a1" });
+
+        public Task<int> DeleteAsync(long id, CancellationToken cancellationToken = default)
+            => Task.FromResult(1);
     }
 
     /// <summary>

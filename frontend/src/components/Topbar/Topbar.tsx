@@ -11,6 +11,8 @@ const NAV_KEYS = ['dashboard', 'tradelog', 'calendar', 'reports', 'settings'] as
 export function Topbar() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
+  const tab = useUiStore((s) => s.tab);
+  const setTab = useUiStore((s) => s.setTab);
   const theme = useUiStore((s) => s.theme);
   const toggleTheme = useUiStore((s) => s.toggleTheme);
   const toggleLang = useUiStore((s) => s.toggleLang);
@@ -46,7 +48,8 @@ export function Topbar() {
           <button
             key={key}
             type="button"
-            className={`${styles.navItem} ${key === 'dashboard' ? styles.navActive : ''}`}
+            className={`${styles.navItem} ${key === tab ? styles.navActive : ''}`}
+            onClick={() => setTab(key)}
           >
             {t(`nav.${key}`)}
           </button>

@@ -1,0 +1,34 @@
+using Chi.TradeLog.Api.Models.Parameters;
+using FluentValidation;
+
+namespace Chi.TradeLog.Api.Validators;
+
+/// <summary>
+/// <see cref="UpdateTradeParameter"/> 的驗證規則。
+/// </summary>
+public class UpdateTradeParameterValidator : AbstractValidator<UpdateTradeParameter>
+{
+    /// <summary>
+    /// 建立驗證器。
+    /// </summary>
+    public UpdateTradeParameterValidator()
+    {
+        RuleFor(parameter => parameter.Sym)
+            .NotEmpty().WithMessage("商品代號為必填。");
+
+        RuleFor(parameter => parameter.Side)
+            .Must(side => side is "Long" or "Short").WithMessage("方向只能是 Long 或 Short。");
+
+        RuleFor(parameter => parameter.Entry)
+            .GreaterThan(0).WithMessage("進場價須大於 0。");
+
+        RuleFor(parameter => parameter.Exit)
+            .GreaterThan(0).WithMessage("出場價須大於 0。");
+
+        RuleFor(parameter => parameter.Qty)
+            .GreaterThan(0).WithMessage("數量須大於 0。");
+
+        RuleFor(parameter => parameter.Day)
+            .InclusiveBetween(1, 31).WithMessage("日期須介於 1 到 31。");
+    }
+}

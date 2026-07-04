@@ -89,6 +89,7 @@ Client ◀── ViewModel
   /// 交易查詢請求參數（Parameter）。
   /// </summary>
   ```
+- **不使用 `/// <inheritdoc />`**：介面與實作的每個成員都要寫完整的 `<summary>`（實作可重述行為），不靠繼承文件。
 - **不使用 `sealed`**：類別宣告不加 `sealed` 修飾詞。
 - **使用明確建構式（explicit constructor）注入相依**：欄位以 `_camelCase` 命名（`private readonly`）；**不使用 primary constructor**（即不寫 `class Foo(IBar bar)`）。
 

@@ -9,7 +9,9 @@ namespace Chi.TradeLog.Repositories.Data;
 /// </summary>
 public class DateOnlyTypeHandler : SqlMapper.TypeHandler<DateOnly>
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 將資料庫回傳的值（<see cref="DateOnly"/> 或 <see cref="DateTime"/>）轉為 <see cref="DateOnly"/>。
+    /// </summary>
     public override DateOnly Parse(object value) => value switch
     {
         DateOnly dateOnly => dateOnly,
@@ -17,7 +19,9 @@ public class DateOnlyTypeHandler : SqlMapper.TypeHandler<DateOnly>
         _ => DateOnly.FromDateTime(Convert.ToDateTime(value)),
     };
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 將 <see cref="DateOnly"/> 以 <see cref="DbType.Date"/> 寫入查詢參數。
+    /// </summary>
     public override void SetValue(IDbDataParameter parameter, DateOnly value)
     {
         parameter.DbType = DbType.Date;

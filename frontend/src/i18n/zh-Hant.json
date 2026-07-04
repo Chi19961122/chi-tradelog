@@ -55,5 +55,46 @@
     "trades": "交易",
     "hint": "點擊交易可開啟該筆日記"
   },
-  "side": { "long": "多", "short": "空" }
+  "side": { "long": "多", "short": "空" },
+  "common": { "comingSoon": "即將推出" },
+  "tradelog": {
+    "title": "交易日誌",
+    "subtitle": "所有交易紀錄",
+    "addTrade": "+ 新增交易",
+    "filterAll": "全部",
+    "filterLong": "做多",
+    "filterShort": "做空",
+    "allTags": "所有標籤",
+    "colDate": "日期",
+    "colSymbol": "商品",
+    "colSide": "方向",
+    "colEntry": "進場",
+    "colExit": "出場",
+    "colQty": "數量",
+    "colPnl": "損益",
+    "colR": "R值",
+    "colTags": "標籤",
+    "empty": "沒有符合篩選條件的交易。",
+    "showing": "顯示",
+    "of": "／共",
+    "perPage": "筆／頁",
+    "prev": "上一頁",
+    "next": "下一頁"
+  },
+  "tradeForm": {
+    "addTitle": "新增交易",
+    "editTitle": "編輯交易",
+    "symbol": "商品代號",
+    "side": "方向",
+    "entry": "進場價",
+    "exit": "出場價",
+    "qty": "數量",
+    "day": "日期（7月）",
+    "tag": "標籤",
+    "selectSymbol": "選擇商品",
+    "selectTag": "選擇標籤",
+    "save": "儲存",
+    "cancel": "取消",
+    "delete": "刪除"
+  }
 }

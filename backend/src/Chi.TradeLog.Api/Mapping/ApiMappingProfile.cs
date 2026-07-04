@@ -11,9 +11,14 @@ namespace Chi.TradeLog.Api.Mapping;
 /// </summary>
 public class ApiMappingProfile : Profile
 {
+    /// <summary>
+    /// 建立對應設定。
+    /// </summary>
     public ApiMappingProfile()
     {
         CreateMap<TradeQueryParameter, TradeQueryInfo>();
+        CreateMap<CreateTradeParameter, SaveTradeInfo>();
+        CreateMap<UpdateTradeParameter, SaveTradeInfo>();
 
         CreateMap<TradeDto, TradeViewModel>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))

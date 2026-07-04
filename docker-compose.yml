@@ -1,0 +1,45 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: chitradelog
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d chitradelog"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Database__ConnectionString: "Host=postgres;Port=5432;Database=chitradelog;Username=postgres;Password=postgres"
+      # 允許容器內 nginx 前端與本機 Vite dev 的來源
+      Cors__AllowedOrigins__0: "http://localhost:8080"
+      Cors__AllowedOrigins__1: "http://localhost:5173"
+    ports:
+      - "5079:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # 瀏覽器透過 host 對應埠呼叫後端
+        VITE_API_BASE_URL: "http://localhost:5079"
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

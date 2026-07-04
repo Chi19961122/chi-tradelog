@@ -55,5 +55,46 @@
     "trades": "Trades",
     "hint": "Tap a trade to open its journal"
   },
-  "side": { "long": "Long", "short": "Short" }
+  "side": { "long": "Long", "short": "Short" },
+  "common": { "comingSoon": "Coming soon" },
+  "tradelog": {
+    "title": "Trade Log",
+    "subtitle": "Every trade, logged",
+    "addTrade": "+ Add Trade",
+    "filterAll": "All",
+    "filterLong": "Long",
+    "filterShort": "Short",
+    "allTags": "All tags",
+    "colDate": "Date",
+    "colSymbol": "Symbol",
+    "colSide": "Side",
+    "colEntry": "Entry",
+    "colExit": "Exit",
+    "colQty": "Qty",
+    "colPnl": "P&L",
+    "colR": "R",
+    "colTags": "Tags",
+    "empty": "No trades match your filters.",
+    "showing": "Showing",
+    "of": "of",
+    "perPage": "per page",
+    "prev": "Prev",
+    "next": "Next"
+  },
+  "tradeForm": {
+    "addTitle": "Add Trade",
+    "editTitle": "Edit Trade",
+    "symbol": "Symbol",
+    "side": "Side",
+    "entry": "Entry",
+    "exit": "Exit",
+    "qty": "Qty",
+    "day": "Day (Jul)",
+    "tag": "Tag",
+    "selectSymbol": "Select symbol",
+    "selectTag": "Select tag",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete"
+  }
 }

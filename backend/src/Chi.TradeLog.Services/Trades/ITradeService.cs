@@ -14,4 +14,24 @@ public interface ITradeService
     Task<IReadOnlyList<TradeDto>> GetTradesAsync(
         TradeQueryInfo info,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 新增一筆交易（損益、R 值、持倉時間由後端計算），回傳建立後的交易。
+    /// </summary>
+    Task<TradeDto> CreateTradeAsync(
+        SaveTradeInfo info,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新指定交易；找不到時回傳 <c>null</c>。
+    /// </summary>
+    Task<TradeDto?> UpdateTradeAsync(
+        long id,
+        SaveTradeInfo info,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 刪除指定交易；成功回傳 <c>true</c>。
+    /// </summary>
+    Task<bool> DeleteTradeAsync(long id, CancellationToken cancellationToken = default);
 }

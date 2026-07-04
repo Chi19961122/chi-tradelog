@@ -2,8 +2,13 @@ import { create } from 'zustand';
 import type { Platform } from '@/types/trade';
 import type { Lang } from '@/i18n';
 import i18n from '@/i18n';
+import { SYMBOLS_LIST } from '@/lib/seededTrades';
 
 export type Theme = 'dark' | 'light';
+
+export type TabKey = 'dashboard' | 'tradelog' | 'calendar' | 'reports' | 'settings';
+
+const DEFAULT_TAGS = ['breakout', 'earnings', 'reversal', 'trend', 'news', 'gap', 'manual'];
 
 export interface KpiVisibility {
   netpnl: boolean;
@@ -29,6 +34,7 @@ export const NAME_TRANSLATIONS: Record<string, string> = {
 };
 
 interface UiState {
+  tab: TabKey;
   theme: Theme;
   lang: Lang;
   platforms: Platform[];
@@ -36,7 +42,10 @@ interface UiState {
   initialCapital: number;
   kpiVisible: KpiVisibility;
   monthOffset: number;
+  symbolsList: string[];
+  tagsList: string[];
 
+  setTab: (tab: TabKey) => void;
   toggleTheme: () => void;
   toggleLang: () => void;
   setActiveAccountIds: (ids: string[]) => void;
@@ -55,6 +64,7 @@ function applyLang(lang: Lang) {
 }
 
 export const useUiStore = create<UiState>((set, get) => ({
+  tab: 'dashboard',
   theme: 'dark',
   lang: 'en',
   platforms: DEFAULT_PLATFORMS,
@@ -62,7 +72,10 @@ export const useUiStore = create<UiState>((set, get) => ({
   initialCapital: 10000,
   kpiVisible: { netpnl: true, winrate: true, pf: true, avgwl: true, maxdd: true, balance: false },
   monthOffset: 0,
+  symbolsList: [...SYMBOLS_LIST],
+  tagsList: [...DEFAULT_TAGS],
 
+  setTab: (tab) => set({ tab }),
   toggleTheme: () => {
     const theme = get().theme === 'dark' ? 'light' : 'dark';
     applyTheme(theme);
