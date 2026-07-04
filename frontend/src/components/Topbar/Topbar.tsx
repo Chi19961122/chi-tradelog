@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Icon } from '@/components/Icon/Icon';
 import { useOutsideClick } from '@/lib/useOutsideClick';
 import { useUiStore, NAME_TRANSLATIONS } from '@/store/uiStore';
+import { useAuthStore } from '@/store/authStore';
 import { toMetricsLang } from '@/i18n';
 import styles from './Topbar.module.css';
 
@@ -122,9 +123,11 @@ function UserMenu() {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useOutsideClick<HTMLDivElement>(open, () => setOpen(false));
-  const userName = 'Alex Chen';
-  const userEmail = 'alex@chitradelog.com';
-  const initials = userName.split(' ').map((w) => w[0]).join('').slice(0, 2);
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+  const userName = user?.name ?? 'Trader';
+  const userEmail = user?.email ?? '';
+  const initials = userName.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 
   return (
     <div className={styles.dropdownRoot} ref={ref} data-dropdown-root="true">
@@ -141,7 +144,7 @@ function UserMenu() {
             </div>
           </div>
           <button type="button" className={styles.menuItem}>{t('shell.accountSettings')}</button>
-          <button type="button" className={styles.menuItem}>{t('shell.logOut')}</button>
+          <button type="button" className={styles.menuItem} onClick={logout}>{t('shell.logOut')}</button>
         </div>
       )}
     </div>

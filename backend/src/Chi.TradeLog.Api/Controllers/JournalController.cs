@@ -4,6 +4,7 @@ using Chi.TradeLog.Api.Models.ViewModels;
 using Chi.TradeLog.Common.Models.InfoModels;
 using Chi.TradeLog.Services.Journal;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chi.TradeLog.Api.Controllers;
@@ -12,6 +13,7 @@ namespace Chi.TradeLog.Api.Controllers;
 /// 交易日記查詢與儲存 API。
 /// </summary>
 [Route("api/[controller]")]
+[Authorize]
 public class JournalController : ApiControllerBase
 {
     private readonly IJournalService _journalService;

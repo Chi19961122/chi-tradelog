@@ -3,6 +3,7 @@ import type { Trade } from '@/types/trade';
 import type { TradeFormInput } from '@/lib/tradeForm';
 import { mockTradeStore } from '@/lib/mockTradeStore';
 import { API_BASE_URL } from '@/lib/apiConfig';
+import { apiFetch } from '@/lib/apiClient';
 
 interface CreateVars {
   accountId: string;
@@ -14,8 +15,8 @@ interface UpdateVars {
   input: TradeFormInput;
 }
 
-async function apiCreate(baseUrl: string, vars: CreateVars): Promise<Trade> {
-  const res = await fetch(`${baseUrl}/api/trades`, {
+async function apiCreate(vars: CreateVars): Promise<Trade> {
+  const res = await apiFetch('/api/trades', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ accountId: vars.accountId, ...vars.input }),
@@ -24,8 +25,8 @@ async function apiCreate(baseUrl: string, vars: CreateVars): Promise<Trade> {
   return (await res.json()) as Trade;
 }
 
-async function apiUpdate(baseUrl: string, vars: UpdateVars): Promise<Trade> {
-  const res = await fetch(`${baseUrl}/api/trades/${vars.id}`, {
+async function apiUpdate(vars: UpdateVars): Promise<Trade> {
+  const res = await apiFetch(`/api/trades/${vars.id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(vars.input),
@@ -34,8 +35,8 @@ async function apiUpdate(baseUrl: string, vars: UpdateVars): Promise<Trade> {
   return (await res.json()) as Trade;
 }
 
-async function apiDelete(baseUrl: string, id: string): Promise<void> {
-  const res = await fetch(`${baseUrl}/api/trades/${id}`, { method: 'DELETE' });
+async function apiDelete(id: string): Promise<void> {
+  const res = await apiFetch(`/api/trades/${id}`, { method: 'DELETE' });
   if (res.ok === false) throw new Error(`刪除交易失敗：${res.status}`);
 }
 
@@ -49,7 +50,7 @@ export function useTradeMutations() {
 
   const create = useMutation({
     mutationFn: async (vars: CreateVars) => {
-      if (API_BASE_URL) return apiCreate(API_BASE_URL, vars);
+      if (API_BASE_URL) return apiCreate(vars);
       return mockTradeStore.create(vars.accountId, vars.input);
     },
     onSuccess: invalidate,
@@ -57,7 +58,7 @@ export function useTradeMutations() {
 
   const update = useMutation({
     mutationFn: async (vars: UpdateVars) => {
-      if (API_BASE_URL) return apiUpdate(API_BASE_URL, vars);
+      if (API_BASE_URL) return apiUpdate(vars);
       return mockTradeStore.update(vars.id, vars.input);
     },
     onSuccess: invalidate,
@@ -65,7 +66,7 @@ export function useTradeMutations() {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      if (API_BASE_URL) return apiDelete(API_BASE_URL, id);
+      if (API_BASE_URL) return apiDelete(id);
       mockTradeStore.remove(id);
     },
     onSuccess: invalidate,

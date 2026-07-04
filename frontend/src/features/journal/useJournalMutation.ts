@@ -3,6 +3,7 @@ import type { JournalEntry } from '@/lib/journal';
 import { journalKey } from '@/lib/journal';
 import { mockJournalStore } from '@/lib/mockJournalStore';
 import { API_BASE_URL } from '@/lib/apiConfig';
+import { apiFetch } from '@/lib/apiClient';
 
 export interface SaveJournalVars {
   accountId: string;
@@ -12,7 +13,7 @@ export interface SaveJournalVars {
 }
 
 async function saveToApi(vars: SaveJournalVars): Promise<void> {
-  const res = await fetch(`${API_BASE_URL}/api/journal`, {
+  const res = await apiFetch('/api/journal', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

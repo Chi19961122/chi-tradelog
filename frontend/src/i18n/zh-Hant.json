@@ -57,6 +57,16 @@
   },
   "side": { "long": "多", "short": "空" },
   "common": { "comingSoon": "即將推出" },
+  "login": {
+    "subtitle": "登入您的帳戶",
+    "email": "電子郵件",
+    "password": "密碼",
+    "rememberMe": "記住我",
+    "logIn": "登入",
+    "error": "帳號或密碼錯誤。",
+    "hintApi": "示範 · alex@chitradelog.com / demo1234",
+    "hintMock": "原型 · 任意帳號密碼皆可"
+  },
   "journal": {
     "title": "交易日記",
     "subtitle": "交易筆記與反思",

@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { Trade } from '@/types/trade';
 import { mockTradeStore } from '@/lib/mockTradeStore';
 import { API_BASE_URL } from '@/lib/apiConfig';
+import { apiFetch } from '@/lib/apiClient';
 
 /**
  * 取得指定帳戶的交易。
@@ -10,9 +11,9 @@ import { API_BASE_URL } from '@/lib/apiConfig';
  * 後端 ViewModel 欄位與 Trade 型別對齊，故可直接使用。
  */
 
-async function fetchTradesFromApi(baseUrl: string, accountIds: string[]): Promise<Trade[]> {
+async function fetchTradesFromApi(accountIds: string[]): Promise<Trade[]> {
   const query = accountIds.map((id) => `accountIds=${encodeURIComponent(id)}`).join('&');
-  const res = await fetch(`${baseUrl}/api/trades?${query}`);
+  const res = await apiFetch(`/api/trades?${query}`);
   if (res.ok === false) {
     throw new Error(`取得交易失敗：${res.status}`);
   }
@@ -21,7 +22,7 @@ async function fetchTradesFromApi(baseUrl: string, accountIds: string[]): Promis
 
 async function fetchTrades(accountIds: string[]): Promise<Trade[]> {
   if (API_BASE_URL) {
-    return fetchTradesFromApi(API_BASE_URL, accountIds);
+    return fetchTradesFromApi(accountIds);
   }
   return mockTradeStore.getByAccounts(accountIds);
 }

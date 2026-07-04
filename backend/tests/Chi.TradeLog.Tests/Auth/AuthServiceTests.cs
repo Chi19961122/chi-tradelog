@@ -1,0 +1,80 @@
+using Chi.TradeLog.Common.Models.DataModels;
+using Chi.TradeLog.Common.Options;
+using Chi.TradeLog.Repositories.Users;
+using Chi.TradeLog.Services.Auth;
+using FluentAssertions;
+using Microsoft.Extensions.Options;
+using Xunit;
+
+namespace Chi.TradeLog.Tests.Auth;
+
+public class AuthServiceTests
+{
+    private static AuthService CreateService(UserDataModel? user)
+    {
+        var options = Options.Create(new JwtOptions
+        {
+            Key = "test-signing-key-that-is-long-enough-for-hs256-aaaa",
+            Issuer = "test",
+            Audience = "test",
+            ExpiryMinutes = 60,
+        });
+        return new AuthService(new FakeUserRepository(user), options);
+    }
+
+    [Fact]
+    public async Task LoginAsync_ReturnsTokenAndUser_WhenCredentialsValid()
+    {
+        var user = new UserDataModel
+        {
+            Id = 1,
+            Email = "alex@chitradelog.com",
+            DisplayName = "Alex Chen",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("demo1234"),
+        };
+        var service = CreateService(user);
+
+        var result = await service.LoginAsync("alex@chitradelog.com", "demo1234");
+
+        result.Should().NotBeNull();
+        result!.Token.Should().NotBeNullOrWhiteSpace();
+        result.User.Name.Should().Be("Alex Chen");
+        result.User.Email.Should().Be("alex@chitradelog.com");
+    }
+
+    [Fact]
+    public async Task LoginAsync_ReturnsNull_WhenPasswordWrong()
+    {
+        var user = new UserDataModel
+        {
+            Email = "alex@chitradelog.com",
+            DisplayName = "Alex Chen",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("demo1234"),
+        };
+        var service = CreateService(user);
+
+        var result = await service.LoginAsync("alex@chitradelog.com", "wrong");
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task LoginAsync_ReturnsNull_WhenUserNotFound()
+    {
+        var service = CreateService(null);
+
+        var result = await service.LoginAsync("nobody@example.com", "demo1234");
+
+        result.Should().BeNull();
+    }
+
+    private class FakeUserRepository : IUserRepository
+    {
+        private readonly UserDataModel? _user;
+
+        public FakeUserRepository(UserDataModel? user) => _user = user;
+
+        public Task<UserDataModel?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
+            => Task.FromResult(_user);
+    }
+}

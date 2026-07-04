@@ -1,5 +1,5 @@
 import type { Account, Platform } from '@/types/trade';
-import { API_BASE_URL } from '@/lib/apiConfig';
+import { apiFetch } from '@/lib/apiClient';
 
 export interface SettingsData {
   initialCapital: number;
@@ -9,7 +9,7 @@ export interface SettingsData {
 }
 
 async function send(path: string, init?: RequestInit): Promise<Response> {
-  const res = await fetch(`${API_BASE_URL}${path}`, init);
+  const res = await apiFetch(path, init);
   if (res.ok === false) {
     throw new Error(`設定 API 失敗：${res.status} ${path}`);
   }

@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text;
 using Chi.TradeLog.Api.Mapping;
 using Chi.TradeLog.Api.Middleware;
 using Chi.TradeLog.Api.Validators;
@@ -7,6 +8,8 @@ using Chi.TradeLog.Repositories.DependencyInjection;
 using Chi.TradeLog.Services.DependencyInjection;
 using Chi.TradeLog.Services.Mapping;
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,6 +46,27 @@ builder.Services.AddAutoMapper(
 // FluentValidation：註冊 Api assembly 內所有 Validator。
 builder.Services.AddValidatorsFromAssemblyContaining<TradeQueryParameterValidator>();
 
+// JWT 認證。
+var jwtSection = builder.Configuration.GetSection(JwtOptions.SectionName);
+builder.Services.Configure<JwtOptions>(jwtSection);
+var jwtOptions = jwtSection.Get<JwtOptions>() ?? new JwtOptions();
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtOptions.Issuer,
+            ValidAudience = jwtOptions.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
+        };
+    });
+builder.Services.AddAuthorization();
+
 // 應用層與資料層。
 builder.Services.AddApplicationServices();
 
@@ -61,6 +85,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors(FrontendCorsPolicy);
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
 
 // 於啟動時套用 migration（整合測試環境略過，避免依賴真實資料庫）。

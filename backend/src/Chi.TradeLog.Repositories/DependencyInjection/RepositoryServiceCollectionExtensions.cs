@@ -4,6 +4,7 @@ using Chi.TradeLog.Repositories.Journal;
 using Chi.TradeLog.Repositories.Migrations;
 using Chi.TradeLog.Repositories.Settings;
 using Chi.TradeLog.Repositories.Trades;
+using Chi.TradeLog.Repositories.Users;
 using Dapper;
 using FluentMigrator.Runner;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,6 +32,7 @@ public static class RepositoryServiceCollectionExtensions
         services.AddScoped<ITradeRepository, TradeRepository>();
         services.AddScoped<ISettingsRepository, SettingsRepository>();
         services.AddScoped<IJournalRepository, JournalRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
 
         services
             .AddFluentMigratorCore()

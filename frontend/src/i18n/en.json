@@ -57,6 +57,16 @@
   },
   "side": { "long": "Long", "short": "Short" },
   "common": { "comingSoon": "Coming soon" },
+  "login": {
+    "subtitle": "Log in to your account",
+    "email": "Email",
+    "password": "Password",
+    "rememberMe": "Remember me",
+    "logIn": "Log In",
+    "error": "Incorrect email or password.",
+    "hintApi": "Demo · alex@chitradelog.com / demo1234",
+    "hintMock": "Prototype · any email/password works"
+  },
   "journal": {
     "title": "Journal",
     "subtitle": "Trade notes & reflections",

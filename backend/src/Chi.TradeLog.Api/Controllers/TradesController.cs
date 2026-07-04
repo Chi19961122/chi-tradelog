@@ -4,6 +4,7 @@ using Chi.TradeLog.Api.Models.ViewModels;
 using Chi.TradeLog.Common.Models.InfoModels;
 using Chi.TradeLog.Services.Trades;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chi.TradeLog.Api.Controllers;
@@ -12,6 +13,7 @@ namespace Chi.TradeLog.Api.Controllers;
 /// 交易查詢與維護 API。
 /// </summary>
 [Route("api/[controller]")]
+[Authorize]
 public class TradesController : ApiControllerBase
 {
     private readonly ITradeService _tradeService;

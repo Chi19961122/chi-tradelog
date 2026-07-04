@@ -4,6 +4,7 @@ using Chi.TradeLog.Api.Models.ViewModels;
 using Chi.TradeLog.Common.Models.InfoModels;
 using Chi.TradeLog.Services.Settings;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chi.TradeLog.Api.Controllers;
@@ -12,6 +13,7 @@ namespace Chi.TradeLog.Api.Controllers;
 /// 應用程式設定（平台/帳戶、商品、標籤、初始資金）查詢與維護 API。
 /// </summary>
 [Route("api/[controller]")]
+[Authorize]
 public class SettingsController : ApiControllerBase
 {
     private readonly ISettingsService _settingsService;

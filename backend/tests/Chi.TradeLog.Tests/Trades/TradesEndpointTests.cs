@@ -3,7 +3,9 @@ using System.Net.Http.Json;
 using Chi.TradeLog.Common.Models.Conditions;
 using Chi.TradeLog.Common.Models.DataModels;
 using Chi.TradeLog.Repositories.Trades;
+using Chi.TradeLog.Tests.TestAuth;
 using FluentAssertions;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -114,6 +116,11 @@ public class TradesEndpointTests : IClassFixture<TradesEndpointTests.TestApiFact
             {
                 services.RemoveAll<ITradeRepository>();
                 services.AddScoped<ITradeRepository, StubTradeRepository>();
+
+                // 以測試認證方案覆寫預設，讓受保護端點在測試中可存取。
+                services
+                    .AddAuthentication(TestAuthHandler.SchemeName)
+                    .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, _ => { });
             });
         }
     }

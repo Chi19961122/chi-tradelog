@@ -3,10 +3,11 @@ import type { JournalEntry } from '@/lib/journal';
 import { journalKey } from '@/lib/journal';
 import { mockJournalStore } from '@/lib/mockJournalStore';
 import { API_BASE_URL } from '@/lib/apiConfig';
+import { apiFetch } from '@/lib/apiClient';
 
 async function fetchFromApi(accountId: string, symbol: string, day: number): Promise<JournalEntry | null> {
   const query = `accountId=${encodeURIComponent(accountId)}&symbol=${encodeURIComponent(symbol)}&day=${day}`;
-  const res = await fetch(`${API_BASE_URL}/api/journal?${query}`);
+  const res = await apiFetch(`/api/journal?${query}`);
   if (res.status === 404) return null;
   if (res.ok === false) throw new Error(`取得日記失敗：${res.status}`);
   const data = (await res.json()) as JournalEntry;

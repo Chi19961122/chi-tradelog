@@ -1,3 +1,4 @@
+using Chi.TradeLog.Services.Auth;
 using Chi.TradeLog.Services.Journal;
 using Chi.TradeLog.Services.Settings;
 using Chi.TradeLog.Services.Trades;
@@ -18,6 +19,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITradeService, TradeService>();
         services.AddScoped<ISettingsService, SettingsService>();
         services.AddScoped<IJournalService, JournalService>();
+        services.AddScoped<IAuthService, AuthService>();
         return services;
     }
 }
