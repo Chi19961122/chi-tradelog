@@ -1,0 +1,46 @@
+.wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px 6px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--pill);
+  border: 1px solid var(--line);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sub);
+  opacity: 0.6;
+}
+
+.remove:hover {
+  opacity: 1;
+  color: var(--red);
+}
+
+.input {
+  min-width: 130px;
+  padding: 7px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px dashed var(--line);
+  background: transparent;
+  color: var(--ink);
+  font-size: 12.5px;
+}
+
+.input::placeholder {
+  color: var(--faint);
+}

@@ -100,6 +100,24 @@
     "title": "Calendar",
     "subtitle": "Monthly performance breakdown"
   },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage app data",
+    "accountTitle": "Account",
+    "accountSubtitle": "Starting balance used for equity calculations",
+    "initialCapital": "Initial Capital",
+    "platformsTitle": "Platforms & Accounts",
+    "platformsSubtitle": "Manage brokerage platforms and their accounts",
+    "addPlatform": "+ Add platform",
+    "addAccount": "+ Add account",
+    "noAccount": "No accounts",
+    "symbolsTitle": "Symbols",
+    "symbolsSubtitle": "Available tickers for new trades",
+    "addSymbol": "+ Add symbol",
+    "tagsTitle": "Tags",
+    "tagsSubtitle": "Available tags for new trades",
+    "addTag": "+ Add tag"
+  },
   "weekdays": { "short": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] },
   "tradeForm": {
     "addTitle": "Add Trade",

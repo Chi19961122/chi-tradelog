@@ -1,3 +1,4 @@
+using Chi.TradeLog.Services.Settings;
 using Chi.TradeLog.Services.Trades;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,6 +15,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         services.AddScoped<ITradeService, TradeService>();
+        services.AddScoped<ISettingsService, SettingsService>();
         return services;
     }
 }

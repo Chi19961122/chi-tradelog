@@ -4,7 +4,6 @@ using Chi.TradeLog.Api.Models.ViewModels;
 using Chi.TradeLog.Common.Models.InfoModels;
 using Chi.TradeLog.Services.Trades;
 using FluentValidation;
-using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chi.TradeLog.Api.Controllers;
@@ -12,10 +11,8 @@ namespace Chi.TradeLog.Api.Controllers;
 /// <summary>
 /// 交易查詢與維護 API。
 /// </summary>
-[ApiController]
 [Route("api/[controller]")]
-[Produces("application/json")]
-public class TradesController : ControllerBase
+public class TradesController : ApiControllerBase
 {
     private readonly ITradeService _tradeService;
     private readonly IMapper _mapper;
@@ -146,17 +143,5 @@ public class TradesController : ControllerBase
     {
         var deleted = await _tradeService.DeleteTradeAsync(id, cancellationToken);
         return deleted ? NoContent() : NotFound();
-    }
-
-    /// <summary>
-    /// 將驗證失敗結果轉為 400 ValidationProblem 回應。
-    /// </summary>
-    private ActionResult ValidationProblemFrom(ValidationResult validationResult)
-    {
-        foreach (var error in validationResult.Errors)
-        {
-            ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
-        }
-        return ValidationProblem(ModelState);
     }
 }

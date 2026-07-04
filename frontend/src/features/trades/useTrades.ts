@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { Trade } from '@/types/trade';
 import { mockTradeStore } from '@/lib/mockTradeStore';
+import { API_BASE_URL } from '@/lib/apiConfig';
 
 /**
  * 取得指定帳戶的交易。
@@ -8,7 +9,6 @@ import { mockTradeStore } from '@/lib/mockTradeStore';
  * - 否則：使用 mock 交易存放區（可獨立開發，支援新增/編輯/刪除）。
  * 後端 ViewModel 欄位與 Trade 型別對齊，故可直接使用。
  */
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string | undefined;
 
 async function fetchTradesFromApi(baseUrl: string, accountIds: string[]): Promise<Trade[]> {
   const query = accountIds.map((id) => `accountIds=${encodeURIComponent(id)}`).join('&');

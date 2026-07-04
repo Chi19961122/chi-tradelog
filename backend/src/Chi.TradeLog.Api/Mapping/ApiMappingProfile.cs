@@ -28,5 +28,11 @@ public class ApiMappingProfile : Profile
             .ForMember(dest => dest.Exit, opt => opt.MapFrom(src => src.ExitPrice))
             .ForMember(dest => dest.Qty, opt => opt.MapFrom(src => src.Quantity))
             .ForMember(dest => dest.Day, opt => opt.MapFrom(src => src.TradedOn.Day));
+
+        // 設定：Parameter → InfoModel、Dto → ViewModel
+        CreateMap<CreatePlatformParameter, CreatePlatformInfo>();
+        CreateMap<AccountDto, AccountViewModel>();
+        CreateMap<PlatformDto, PlatformViewModel>();
+        CreateMap<SettingsDto, SettingsViewModel>();
     }
 }

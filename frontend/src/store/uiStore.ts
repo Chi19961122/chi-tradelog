@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Platform } from '@/types/trade';
+import type { Account, Platform } from '@/types/trade';
 import type { Lang } from '@/i18n';
 import i18n from '@/i18n';
 import { SYMBOLS_LIST } from '@/lib/seededTrades';
@@ -52,6 +52,23 @@ interface UiState {
   toggleAccount: (id: string) => void;
   toggleKpi: (key: keyof KpiVisibility) => void;
   setMonthOffset: (offset: number) => void;
+
+  // 設定維護（Settings 頁 + API 同步共用）
+  setSettings: (data: {
+    initialCapital: number;
+    platforms: Platform[];
+    symbols: string[];
+    tags: string[];
+  }) => void;
+  setInitialCapital: (value: number) => void;
+  addPlatform: (platform: Platform) => void;
+  removePlatform: (id: string) => void;
+  addAccount: (platformId: string, account: Account) => void;
+  removeAccount: (id: string) => void;
+  addSymbol: (symbol: string) => void;
+  removeSymbol: (symbol: string) => void;
+  addTag: (tag: string) => void;
+  removeTag: (tag: string) => void;
 }
 
 function applyTheme(theme: Theme) {
@@ -95,4 +112,47 @@ export const useUiStore = create<UiState>((set, get) => ({
   },
   toggleKpi: (key) => set((s) => ({ kpiVisible: { ...s.kpiVisible, [key]: !s.kpiVisible[key] } })),
   setMonthOffset: (offset) => set({ monthOffset: offset }),
+
+  setSettings: (data) => {
+    const validAccountIds = new Set(data.platforms.flatMap((p) => p.accounts.map((a) => a.id)));
+    const keptActive = get().activeAccountIds.filter((id) => validAccountIds.has(id));
+    const fallback = data.platforms[0]?.accounts[0]?.id;
+    set({
+      initialCapital: data.initialCapital,
+      platforms: data.platforms,
+      symbolsList: data.symbols,
+      tagsList: data.tags,
+      activeAccountIds: keptActive.length ? keptActive : fallback ? [fallback] : [],
+    });
+  },
+  setInitialCapital: (value) => set({ initialCapital: value }),
+  addPlatform: (platform) => set((s) => ({ platforms: [...s.platforms, platform] })),
+  removePlatform: (id) => {
+    const platform = get().platforms.find((p) => p.id === id);
+    const removedAccountIds = new Set(platform?.accounts.map((a) => a.id) ?? []);
+    const platforms = get().platforms.filter((p) => p.id !== id);
+    const active = get().activeAccountIds.filter((aid) => removedAccountIds.has(aid) === false);
+    const fallback = platforms[0]?.accounts[0]?.id;
+    set({ platforms, activeAccountIds: active.length ? active : fallback ? [fallback] : [] });
+  },
+  addAccount: (platformId, account) =>
+    set((s) => ({
+      platforms: s.platforms.map((p) =>
+        p.id === platformId ? { ...p, accounts: [...p.accounts, account] } : p,
+      ),
+    })),
+  removeAccount: (id) => {
+    const platforms = get().platforms.map((p) => ({
+      ...p,
+      accounts: p.accounts.filter((a) => a.id !== id),
+    }));
+    const active = get().activeAccountIds.filter((aid) => aid !== id);
+    const fallback = platforms[0]?.accounts[0]?.id;
+    set({ platforms, activeAccountIds: active.length ? active : fallback ? [fallback] : [] });
+  },
+  addSymbol: (symbol) =>
+    set((s) => (s.symbolsList.includes(symbol) ? s : { symbolsList: [...s.symbolsList, symbol] })),
+  removeSymbol: (symbol) => set((s) => ({ symbolsList: s.symbolsList.filter((x) => x !== symbol) })),
+  addTag: (tag) => set((s) => (s.tagsList.includes(tag) ? s : { tagsList: [...s.tagsList, tag] })),
+  removeTag: (tag) => set((s) => ({ tagsList: s.tagsList.filter((x) => x !== tag) })),
 }));

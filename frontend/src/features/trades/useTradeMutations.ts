@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Trade } from '@/types/trade';
 import type { TradeFormInput } from '@/lib/tradeForm';
 import { mockTradeStore } from '@/lib/mockTradeStore';
-import { API_BASE_URL } from './useTrades';
+import { API_BASE_URL } from '@/lib/apiConfig';
 
 interface CreateVars {
   accountId: string;

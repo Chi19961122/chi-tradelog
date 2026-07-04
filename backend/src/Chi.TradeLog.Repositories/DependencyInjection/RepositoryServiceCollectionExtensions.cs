@@ -1,6 +1,7 @@
 using Chi.TradeLog.Common.Options;
 using Chi.TradeLog.Repositories.Data;
 using Chi.TradeLog.Repositories.Migrations;
+using Chi.TradeLog.Repositories.Settings;
 using Chi.TradeLog.Repositories.Trades;
 using Dapper;
 using FluentMigrator.Runner;
@@ -27,6 +28,7 @@ public static class RepositoryServiceCollectionExtensions
 
         services.AddSingleton<IDbConnectionFactory, NpgsqlConnectionFactory>();
         services.AddScoped<ITradeRepository, TradeRepository>();
+        services.AddScoped<ISettingsRepository, SettingsRepository>();
 
         services
             .AddFluentMigratorCore()

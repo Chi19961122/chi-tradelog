@@ -100,6 +100,24 @@
     "title": "日曆",
     "subtitle": "每月績效總覽"
   },
+  "settings": {
+    "title": "設定",
+    "subtitle": "管理應用程式資料",
+    "accountTitle": "帳戶",
+    "accountSubtitle": "用於權益曲線計算的起始資金",
+    "initialCapital": "初始資金",
+    "platformsTitle": "平台與帳戶",
+    "platformsSubtitle": "管理券商平台與旗下帳戶",
+    "addPlatform": "+ 新增平台",
+    "addAccount": "+ 新增帳戶",
+    "noAccount": "尚無帳戶",
+    "symbolsTitle": "商品清單",
+    "symbolsSubtitle": "新增交易時可選用的商品代號",
+    "addSymbol": "+ 新增商品",
+    "tagsTitle": "標籤",
+    "tagsSubtitle": "新增交易時可選用的標籤",
+    "addTag": "+ 新增標籤"
+  },
   "weekdays": { "short": ["日", "一", "二", "三", "四", "五", "六"] },
   "tradeForm": {
     "addTitle": "新增交易",
