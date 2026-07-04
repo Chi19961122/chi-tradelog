@@ -1,0 +1,2530 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet data-dc-atomics="">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=IBM+Plex+Mono:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Inter', system-ui, sans-serif; }
+</style>
+</helmet>
+
+<sc-if value="{{ loggedOut }}">
+  <div style="min-height:100vh; background:{{ c.bg }}; display:flex; align-items:center; justify-content:center; padding:20px;">
+    <div style="width:360px; max-width:100%; background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:18px; padding:34px 32px; display:flex; flex-direction:column; gap:20px; box-shadow:0 20px 60px rgba(0,0,0,.12);">
+      <div style="display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center;">
+        <div style="font-size:19px; font-weight:800; letter-spacing:-.2px; color:{{ c.ink }};">Chi.TradeLog</div>
+        <div style="font-size:13px; color:{{ c.faint }};">{{ t.login_subtitle }}</div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        <div>
+          <div style="font-size:11px; font-weight:700; color:{{ c.faint }}; text-transform:uppercase; margin-bottom:6px;">{{ t.email_label }}</div>
+          <input type="email" placeholder="you@example.com" value="{{ loginEmail }}" onChange="{{ onLoginEmailChange }}" style="width:100%; padding:11px 13px; border-radius:10px; border:1px solid {{ c.line }}; background:{{ c.pillBg }}; color:{{ c.ink }}; font-size:13.5px;">
+        </div>
+        <div>
+          <div style="font-size:11px; font-weight:700; color:{{ c.faint }}; text-transform:uppercase; margin-bottom:6px;">{{ t.password_label }}</div>
+          <input type="password" placeholder="••••••••" value="{{ loginPassword }}" onChange="{{ onLoginPasswordChange }}" onKeyDown="{{ onLoginKeyDown }}" style="width:100%; padding:11px 13px; border-radius:10px; border:1px solid {{ c.line }}; background:{{ c.pillBg }}; color:{{ c.ink }}; font-size:13.5px;">
+        </div>
+      </div>
+      <div onClick="{{ toggleRememberMe }}" style="display:flex; align-items:center; gap:9px; cursor:pointer;">
+        <div style="width:18px; height:18px; border-radius:5px; background:{{ rememberMeBg }}; border:1px solid {{ c.line }}; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <sc-if value="{{ rememberMe }}">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </sc-if>
+        </div>
+        <div style="font-size:13px; color:{{ c.ink }};">{{ t.remember_me_label }}</div>
+      </div>
+      <div onClick="{{ logBackIn }}" style="text-align:center; font-size:13.5px; font-weight:700; padding:12px 24px; border-radius:10px; background:{{ c.navActiveBg }}; color:{{ c.navActiveText }}; cursor:pointer;">{{ t.log_in_label }}</div>
+      
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isLoggedIn }}" hint-placeholder-val="{{ true }}">
+<div style="min-height:100vh; background:{{ c.bg }}; color:{{ c.ink }}; transition:background .2s,color .2s; padding-bottom:60px;">
+
+  <!-- ===== Topbar ===== -->
+  <div style="display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; padding:22px 40px; border-bottom:1px solid {{ c.line }};">
+    <div style="display:flex; align-items:center; gap:14px; justify-self:stretch; justify-content:flex-start; min-width:0; overflow:hidden;">
+      <div style="font-size:19px; font-weight:800; letter-spacing:-.2px; flex-shrink:0;">Chi.TradeLog</div>
+      <div style="position:relative; min-width:0;" data-dropdown-root="true">
+        <div onClick="{{ toggleAccountSwitcher }}" style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; padding:6px 12px; border-radius:999px; border:1px solid {{ c.line }}; background:{{ c.pillBg }}; color:{{ c.sub }}; cursor:pointer; white-space:nowrap;">
+          <span style="white-space:nowrap; max-width:140px; overflow:hidden; text-overflow:ellipsis;">{{ activeAccountLabel }}</span>
+          <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+        <sc-if value="{{ accountSwitcherOpen }}">
+          <div style="position:absolute; left:0; top:38px; z-index:30; width:240px; background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:12px; padding:8px; box-shadow:0 12px 32px rgba(0,0,0,.16); max-height:320px; overflow-y:auto;">
+            <sc-for list="{{ switcherPlatforms }}" as="sp" hint-placeholder-count="2">
+              <div style="padding:8px 8px 4px;">
+                <div style="font-size:10.5px; font-weight:700; color:{{ c.faint }}; text-transform:uppercase;">{{ sp.name }}</div>
+              </div>
+              <sc-for list="{{ sp.accounts }}" as="spa" hint-placeholder-count="2">
+                <div onClick="{{ spa.onClick }}" style="display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; color:{{ c.ink }};">
+                  <div style="width:16px; height:16px; border-radius:5px; background:{{ spa.boxBg }}; border:1px solid {{ spa.boxBorder }}; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <sc-if value="{{ spa.checked }}">
+                      <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </sc-if>
+                  </div>
+                  {{ spa.name }}
+                </div>
+              </sc-for>
+            </sc-for>
+            <div onClick="{{ goToSettingsFromSwitcher }}" style="margin-top:6px; padding:9px 10px; border-top:1px solid {{ c.line }}; font-size:12.5px; font-weight:600; color:{{ c.blue }}; cursor:pointer;">{{ t.manage_platforms_label }}</div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:4px; background:{{ c.pillBg }}; border:1px solid {{ c.line }}; border-radius:999px; padding:4px; justify-self:center;">
+      <sc-for list="{{ navItems }}" as="item" hint-placeholder-count="5">
+        <div onClick="{{ item.onClick }}" style="padding:9px 16px; border-radius:999px; font-size:13px; font-weight:600; white-space:nowrap; cursor:pointer; color:{{ item.color }}; background:{{ item.bg }};">{{ item.label }}</div>
+      </sc-for>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:10px; justify-self:end;">
+      <div onClick="{{ toggleLang }}" style="font-size:12.5px; font-weight:700; padding:8px 14px; border-radius:999px; border:1px solid {{ c.line }}; background:{{ c.card }}; cursor:pointer; font-family:'IBM Plex Mono',monospace;">{{ t.lang_toggle_label }}</div>
+      <div onClick="{{ toggleTheme }}" style="display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:999px; border:1px solid {{ c.line }}; background:{{ c.card }}; cursor:pointer;">
+        <sc-if value="{{ isLightTheme }}">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="{{ c.ink }}" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="4.5"></circle>
+            <line x1="12" y1="1.5" x2="12" y2="4"></line>
+            <line x1="12" y1="20" x2="12" y2="22.5"></line>
+            <line x1="1.5" y1="12" x2="4" y2="12"></line>
+            <line x1="20" y1="12" x2="22.5" y2="12"></line>
+            <line x1="4.2" y1="4.2" x2="6" y2="6"></line>
+            <line x1="18" y1="18" x2="19.8" y2="19.8"></line>
+            <line x1="4.2" y1="19.8" x2="6" y2="18"></line>
+            <line x1="18" y1="6" x2="19.8" y2="4.2"></line>
+          </svg>
+        </sc-if>
+        <sc-if value="{{ isDarkTheme }}">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="{{ c.ink }}">
+            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+          </svg>
+        </sc-if>
+      </div>
+      <div style="position:relative;" data-dropdown-root="true">
+        <div onClick="{{ toggleUserMenu }}" style="width:36px; height:36px; border-radius:999px; background:{{ c.blue }}; flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:800;">{{ userInitials }}</div>
+        <sc-if value="{{ userMenuOpen }}">
+          <div style="position:absolute; right:0; top:44px; z-index:30; width:230px; background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:12px; padding:8px; box-shadow:0 12px 32px rgba(0,0,0,.16);">
+            <div style="display:flex; align-items:center; gap:10px; padding:10px 10px 12px; border-bottom:1px solid {{ c.line }}; margin-bottom:6px;">
+              <div style="width:38px; height:38px; border-radius:999px; background:{{ c.blue }}; display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:800; flex-shrink:0;">{{ userInitials }}</div>
+              <div style="min-width:0;">
+                <div style="font-size:13px; font-weight:700; color:{{ c.ink }}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ userName }}</div>
+                <div style="font-size:11.5px; color:{{ c.faint }}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ userEmail }}</div>
+              </div>
+            </div>
+            <div onClick="{{ goToSettingsFromMenu }}" style="display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px; cursor:pointer; font-size:13px; color:{{ c.ink }};">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="{{ c.sub }}" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1.04 1.56V21a2 2 0 01-4 0v-.09A1.7 1.7 0 008.5 19.4a1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.7 1.7 0 004.14 15a1.7 1.7 0 00-1.56-1.04H2.5a2 2 0 010-4h.09A1.7 1.7 0 004.14 8.5a1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06A1.7 1.7 0 008.5 4.14a1.7 1.7 0 001.04-1.56V2.5a2 2 0 014 0v.09a1.7 1.7 0 001.04 1.56 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06a1.7 1.7 0 00-.34 1.87V8.5a1.7 1.7 0 001.56 1.04h.09a2 2 0 010 4h-.09a1.7 1.7 0 00-1.56 1.04z"></path></svg>
+              {{ t.account_settings_label }}
+            </div>
+            <div onClick="{{ logOut }}" style="display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600; color:{{ c.red }};">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+              {{ t.log_out_label }}
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:32px 40px; display:flex; flex-direction:column; gap:22px; max-width:1440px; margin:0 auto;">
+
+    <!-- ================= DASHBOARD ================= -->
+    <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex; flex-direction:column; gap:22px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+          <div>
+            <div style="font-size:22px; font-weight:800;">{{ t.dash_title }}</div>
+            <div style="font-size:12.5px; color:{{ c.faint }}; margin-top:2px;">{{ t.dash_subtitle }}</div>
+          </div>
+          <div style="position:relative;" data-dropdown-root="true">
+            <div onClick="{{ toggleKpiPanel }}" style="display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; padding:8px 14px; border-radius:999px; border:1px solid {{ c.line }}; background:{{ c.card }}; cursor:pointer; color:{{ c.sub }};">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="{{ c.sub }}" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1.04 1.56V21a2 2 0 01-4 0v-.09A1.7 1.7 0 008.5 19.4a1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.7 1.7 0 004.14 15a1.7 1.7 0 00-1.56-1.04H2.5a2 2 0 010-4h.09A1.7 1.7 0 004.14 8.5a1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06A1.7 1.7 0 008.5 4.14a1.7 1.7 0 001.04-1.56V2.5a2 2 0 014 0v.09a1.7 1.7 0 001.04 1.56 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06a1.7 1.7 0 00-.34 1.87V8.5a1.7 1.7 0 001.56 1.04h.09a2 2 0 010 4h-.09a1.7 1.7 0 00-1.56 1.04z"></path></svg>
+              {{ t.customize_label }}
+            </div>
+            <sc-if value="{{ kpiPanelOpen }}">
+              <div style="position:absolute; right:0; top:44px; z-index:10; width:220px; background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:12px; padding:10px; box-shadow:0 8px 24px rgba(0,0,0,.12); display:flex; flex-direction:column; gap:2px;">
+                <sc-for list="{{ kpiToggleItems }}" as="kt" hint-placeholder-count="5">
+                  <div onClick="{{ kt.onToggle }}" style="display:flex; align-items:center; justify-content:space-between; padding:9px 10px; border-radius:8px; cursor:pointer;">
+                    <div style="font-size:13px; color:{{ c.ink }};">{{ kt.label }}</div>
+                    <div style="width:34px; height:20px; border-radius:999px; background:{{ kt.trackBg }}; position:relative; flex-shrink:0;">
+                      <div style="position:absolute; top:2px; left:{{ kt.knobLeft }}; width:16px; height:16px; border-radius:999px; background:#fff; transition:left .15s;"></div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:{{ kpiGridCols }}; gap:16px;">
+          <sc-for list="{{ dashboardKpis }}" as="k" hint-placeholder-count="5">
+            <div style="background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:14px; padding:20px 22px; display:flex; flex-direction:column; gap:8px; min-width:0;">
+              <div style="font-size:11.5px; font-weight:600; color:{{ c.sub }}; letter-spacing:.3px; text-transform:uppercase;">{{ k.label }}</div>
+              <sc-if value="{{ k.isWinRate }}">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                  <div style="font-size:26px; font-weight:800; font-family:'IBM Plex Mono',monospace; color:{{ k.color }};">{{ k.value }}</div>
+                  <svg viewBox="0 0 40 40" style="width:40px; height:40px; flex-shrink:0;">
+                    <circle cx="20" cy="20" r="16" fill="none" stroke="{{ c.green }}" stroke-width="6" stroke-linecap="round" stroke-dasharray="{{ k.ring.greenDash }}" transform="rotate(-90 20 20)"></circle>
+                    <circle cx="20" cy="20" r="16" fill="none" stroke="{{ c.red }}" stroke-width="6" stroke-linecap="round" stroke-dasharray="{{ k.ring.redDash }}" stroke-dashoffset="{{ k.ring.redOffset }}" transform="rotate(-90 20 20)"></circle>
+                  </svg>
+                </div>
+              </sc-if>
+              <sc-if value="{{ k.isAvgWL }}">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                  <div style="font-size:26px; font-weight:800; font-family:'IBM Plex Mono',monospace; color:{{ k.color }};">{{ k.value }}</div>
+                  <svg viewBox="0 0 40 40" style="width:40px; height:40px; flex-shrink:0;">
+                    <circle cx="20" cy="20" r="16" fill="none" stroke="{{ c.green }}" stroke-width="6" stroke-linecap="round" stroke-dasharray="{{ k.ring.greenDash }}" transform="rotate(-90 20 20)"></circle>
+                    <circle cx="20" cy="20" r="16" fill="none" stroke="{{ c.red }}" stroke-width="6" stroke-linecap="round" stroke-dasharray="{{ k.ring.redDash }}" stroke-dashoffset="{{ k.ring.redOffset }}" transform="rotate(-90 20 20)"></circle>
+                  </svg>
+                </div>
+                <div style="font-size:11.5px; color:{{ c.faint }}; font-family:'IBM Plex Mono',monospace;">{{ k.avgWinText }} / {{ k.avgLossText }}</div>
+              </sc-if>
+              <sc-if value="{{ k.isPlain }}">
+                <div style="font-size:26px; font-weight:800; font-family:'IBM Plex Mono',monospace; color:{{ k.color }};">{{ k.value }}</div>
+              </sc-if>
+              <div style="font-size: 12px; color: {{ c.faint }}; display: none">{{ k.sub }}</div>
+              
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1.5fr 1fr; gap:22px; align-items:stretch;">
+          <div style="background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:16px; padding:24px 28px; display:flex; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;">
+              <div style="font-size:14px; font-weight:700;">{{ t.equity_curve }}</div>
+              <div style="display:flex; gap:14px; font-size:12px; font-family:'IBM Plex Mono',monospace;">
+                <div style="color:{{ c.faint }};">{{ t.curr_equity_label }} <span style="color:{{ c.ink }}; font-weight:700;">{{ equityCurrentText }}</span></div>
+                <div style="color:{{ c.faint }};">{{ t.high_label }} <span style="color:{{ c.green }}; font-weight:700;">{{ equityHighText }}</span></div>
+                <div style="color:{{ c.faint }};">{{ t.low_label }} <span style="color:{{ c.red }}; font-weight:700;">{{ equityLowText }}</span></div>
+              </div>
+            </div>
+            <div style="display:flex; gap:4px; background:{{ c.pillBg }}; border:1px solid {{ c.line }}; border-radius:999px; padding:4px; width:fit-content; margin-bottom:10px;">
+              <sc-for list="{{ equityRangeItems }}" as="er" hint-placeholder-count="4">
+                <div onClick="{{ er.onClick }}" style="padding:6px 13px; border-radius:999px; font-size:11.5px; font-weight:600; cursor:pointer; color:{{ er.color }}; background:{{ er.bg }};">{{ er.label }}</div>
+              </sc-for>
+            </div>
+            <div style="display:flex; flex:1; min-height:0; gap:8px;">
+              <div style="position:relative; width:50px; flex-shrink:0;">
+                <sc-for list="{{ equityYAxis }}" as="ya2" hint-placeholder-count="4">
+                  <div style="position:absolute; right:0; top:{{ ya2.topPct }}; transform:translateY(-50%); font-size:10.5px; font-family:'IBM Plex Mono',monospace; color:{{ c.faint }}; white-space:nowrap;">{{ ya2.text }}</div>
+                </sc-for>
+              </div>
+              <div style="position:relative; flex:1; min-width:0; display:flex; flex-direction:column;">
+                <div style="position:relative; flex:1; min-height:0;">
+                  <svg ref="{{ equitySvgRefCallback }}" onMouseMove="{{ onEquityMouseMove }}" onMouseDown="{{ onEquityMouseDown }}" onMouseUp="{{ onEquityMouseUp }}" onMouseLeave="{{ onEquityMouseLeave }}" viewBox="0 0 1240 190" preserveAspectRatio="none" style="width:100%; height:100%; display:block; cursor:crosshair;">
+                    <defs>
+                      <linearGradient id="eqgrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="{{ c.green }}" stop-opacity="0.16"></stop>
+                        <stop offset="100%" stop-color="{{ c.green }}" stop-opacity="0"></stop>
+                      </linearGradient>
+                    </defs>
+                    <sc-for list="{{ equityYAxis }}" as="ya" hint-placeholder-count="4">
+                      <line x1="0" y1="{{ ya.y }}" x2="1240" y2="{{ ya.y }}" stroke="{{ c.line }}" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+                    </sc-for>
+                    <path d="{{ equityArea }}" fill="url(#eqgrad)"></path>
+                    <path d="{{ equityPath }}" fill="none" stroke="{{ c.green }}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path>
+                    <sc-if value="{{ hasEquitySelection }}">
+                      <rect x="{{ equitySelection.rectX }}" y="0" width="{{ equitySelection.rectW }}" height="190" fill="{{ c.blue }}22"></rect>
+                    </sc-if>
+                    <sc-if value="{{ hasEquityHover }}">
+                      <line x1="{{ equityHoverLineX }}" y1="0" x2="{{ equityHoverLineX }}" y2="190" stroke="{{ c.faint }}" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+                    </sc-if>
+                  </svg>
+                  <sc-if value="{{ hasEquityHover }}">
+                    <div style="position:absolute; left:{{ equityHoverTooltip.leftPct }}; top:8px; transform:translateX(-50%); background:{{ c.ink }}; color:{{ c.bg }}; font-size:11px; font-weight:600; padding:5px 9px; border-radius:7px; white-space:nowrap; pointer-events:none;">{{ equityHoverTooltip.dateText }} · {{ equityHoverTooltip.valueText }}</div>
+                  </sc-if>
+                  <sc-if value="{{ hasEquitySelection }}">
+                    <div style="position:absolute; left:{{ equitySelection.summaryLeftPct }}; bottom:6px; transform:translateX(-50%); background:{{ c.card }}; border:1px solid {{ c.line }}; font-size:11px; font-weight:600; padding:6px 10px; border-radius:8px; white-space:nowrap; display:flex; align-items:center; gap:8px; box-shadow:0 4px 12px rgba(0,0,0,.1);">
+                      <span style="color:{{ c.faint }};">{{ equitySelection.rangeText }}</span>
+                      <span style="color:{{ equitySelection.changeColor }};">{{ equitySelection.changeText }}</span>
+                      <span onClick="{{ clearEquitySelection }}" style="color:{{ c.faint }}; cursor:pointer;">×</span>
+                    </div>
+                  </sc-if>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-top:6px;">
+                  <sc-for list="{{ equityXAxis }}" as="xa" hint-placeholder-count="5">
+                    <div style="font-size:10.5px; font-family:'IBM Plex Mono',monospace; color:{{ c.faint }};">{{ xa.text }}</div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:16px; padding:20px 22px; display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline;">
+              <div style="font-size:14px; font-weight:700;">{{ t.trade_score_title }}</div>
+              <div style="font-size:12.5px; font-weight:700; font-family:'IBM Plex Mono',monospace; color:{{ c.faint }};">{{ tradeScoreText }} / 100</div>
+            </div>
+            <div style="position:relative; width:100%;">
+              <svg viewBox="0 0 260 250" style="width:100%; height:auto; display:block; overflow:visible;">
+                <sc-for list="{{ radar.gridPolygons }}" as="gp" hint-placeholder-count="3">
+                  <polygon points="{{ gp }}" fill="none" stroke="{{ c.radarLine }}" stroke-width="1"></polygon>
+                </sc-for>
+                <sc-for list="{{ radar.axisLines }}" as="al" hint-placeholder-count="6">
+                  <line x1="{{ al.x1 }}" y1="{{ al.y1 }}" x2="{{ al.x2 }}" y2="{{ al.y2 }}" stroke="{{ c.radarLine }}" stroke-width="1" style="cursor:default;"><title>{{ al.tooltip }}</title></line>
+                </sc-for>
+                <polygon points="{{ radar.scorePolygonPoints }}" fill="{{ c.purpleFill }}" stroke="{{ c.purple }}" stroke-width="1.5"></polygon>
+                <sc-for list="{{ radar.scoreDots }}" as="sd" hint-placeholder-count="6">
+                  <circle cx="{{ sd.x }}" cy="{{ sd.y }}" r="3" fill="{{ c.purple }}" stroke="{{ c.card }}" stroke-width="1" style="cursor:default;"><title>{{ sd.tooltip }}</title></circle>
+                </sc-for>
+              </svg>
+              <sc-for list="{{ radar.labels }}" as="lb" hint-placeholder-count="6">
+                <div title="{{ lb.tooltip }}" style="position:absolute; left:{{ lb.leftPct }}; top:{{ lb.topPct }}; transform:translate({{ lb.translateX }}, -50%); text-align:{{ lb.align }}; font-size:11px; line-height:1; font-weight:700; color:{{ c.sub }}; white-space:nowrap; cursor:default;">{{ lb.text }}</div>
+              </sc-for>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:center; gap:12px;">
+              <div style="font-size:28px; font-weight:800;">{{ tradeScoreRounded }}</div>
+              <div style="width:120px; height:8px; border-radius:999px; background:linear-gradient(90deg, #EF4444, #F59E0B, #22C55E);"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Calendar block (shared dataset) -->
+        <div style="background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:16px; padding:24px 28px;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:16px;">
+            <div style="font-size:14px; font-weight:700;">{{ t.calendar_title }}</div>
+            <div style="font-size:12px; color:{{ c.faint }};">{{ t.calendar_subtitle }}</div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(7,1fr) 1.3fr; gap:8px; margin-bottom:8px;">
+            <sc-for list="{{ weekdayLabels }}" as="wd" hint-placeholder-count="7">
+              <div style="text-align:center; font-size:13px; font-weight:700; color:{{ c.faint }};">{{ wd }}</div>
+            </sc-for>
+            <div style="text-align:center; font-size:13px; font-weight:700; color:{{ c.faint }};">{{ t.wk_label }}</div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <sc-for list="{{ calendarWeeks }}" as="week" hint-placeholder-count="5">
+              <div style="display:grid; grid-template-columns:repeat(7,1fr) 1.3fr; gap:8px;">
+                <sc-for list="{{ week.cells }}" as="cell" hint-placeholder-count="7">
+                  <div onClick="{{ cell.onClick }}" style="aspect-ratio:1.05; border-radius:10px; padding:10px 12px; display:flex; flex-direction:column; justify-content:space-between; background:{{ cell.bg }}; border:1px solid {{ cell.border }}; cursor:{{ cell.cursor }};">
+                    <div style="font-size:14px; font-weight:700; color:{{ cell.dateColor }};">{{ cell.day }}</div>
+                    <sc-if value="{{ cell.hasData }}">
+                      <div>
+                        <div style="font-size:18px; font-weight:800; font-family:'IBM Plex Mono',monospace; color:{{ cell.pnlColor }};">{{ cell.pnlText }}</div>
+                        <div style="font-size:12px; color:{{ c.faint }}; margin-top:2px;">{{ cell.winRateText }}</div>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+                <div style="border-radius:10px; padding:10px 12px; display:flex; flex-direction:column; justify-content:flex-start; background:{{ week.stat.bg }}; border:1px solid {{ week.stat.border }};">
+                  <div style="font-size:12px; font-weight:700; color:{{ c.faint }}; text-transform:uppercase;">{{ week.stat.label }}</div>
+                  <div style="flex:1; display:flex; flex-direction:column; justify-content:center; gap:2px;">
+                    <div style="font-size:17px; font-weight:800; font-family:'IBM Plex Mono',monospace; color:{{ week.stat.pnlColor }};">{{ week.stat.pnlText }}</div>
+                    <div style="font-size:12px; color:{{ c.faint }};">{{ week.stat.winRateText }}</div>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- Recent trades: 1b icon-badge style -->
+        <div style="background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:16px; padding:20px 24px;">
+          <div style="font-size:14px; font-weight:700; margin-bottom:10px;">{{ t.recent_trades }}</div>
+          <sc-for list="{{ recentTrades }}" as="tr" hint-placeholder-count="6">
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:13px 4px; border-top:{{ tr.borderTop }};">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <div style="width:34px; height:34px; border-radius:9px; background:{{ tr.badgeBg }}; color:{{ tr.badgeColor }}; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800;">{{ tr.sideLetter }}</div>
+                <div>
+                  <div style="font-size:14px; font-weight:700;">{{ tr.sym }}</div>
+                  <div style="font-size:11px; color:{{ c.faint }};">{{ tr.rText }}</div>
+                </div>
+              </div>
+              <div style="font-family:'IBM Plex Mono',monospace; font-weight:700; color:{{ tr.pnlColor }};">{{ tr.pnlText }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ================= TRADE LOG ================= -->
+    <sc-if value="{{ isTradeLog }}">
+      <div style="display:flex; flex-direction:column; gap:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+          <div>
+            <div style="font-size:22px; font-weight:800;">{{ t.tradelog_title }}</div>
+            <div style="font-size:12.5px; color:{{ c.faint }}; margin-top:2px;">{{ t.tradelog_subtitle }}</div>
+          </div>
+          <div onClick="{{ openAddTrade }}" style="font-size:12.5px; font-weight:700; padding:9px 18px; border-radius:999px; background:{{ c.navActiveBg }}; color:{{ c.navActiveText }}; cursor:pointer;">{{ t.add_trade }}</div>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:2px; background:{{ c.pillBg }}; border:1px solid {{ c.line }}; border-radius:10px; padding:4px;">
+            <input type="file" accept=".csv" ref="{{ importFileRefCallback }}" onChange="{{ onImportFileChange }}" style="display:none">
+            <div onClick="{{ triggerImportFile }}" style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; padding:8px 13px; border-radius:8px; color:{{ c.ink }}; cursor:pointer;">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"></path><path d="M7 8l5-5 5 5"></path><path d="M4 19h16"></path></svg>
+              {{ t.import_csv }}
+            </div>
+            <div style="width:1px; height:16px; background:{{ c.line }};"></div>
+            <div onClick="{{ exportCSV }}" style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; padding:8px 13px; border-radius:8px; color:{{ c.ink }}; cursor:pointer;">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M4 19h16"></path></svg>
+              {{ t.export_csv }}
+            </div>
+          </div>
+          <div onClick="{{ downloadSampleCSV }}" style="display:flex; align-items:center; gap:5px; font-size:12px; font-weight:600; color:{{ c.faint }}; cursor:pointer;">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v10"></path><path d="M8 10l4 4 4-4"></path><path d="M5 18h14"></path></svg>
+            <span style="text-decoration:underline; text-underline-offset:2px;">{{ t.download_sample }}</span>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+          <div style="display:flex; gap:4px; background:{{ c.pillBg }}; border:1px solid {{ c.line }}; border-radius:999px; padding:4px; width:fit-content;">
+            <sc-for list="{{ filterItems }}" as="fi" hint-placeholder-count="3">
+              <div onClick="{{ fi.onClick }}" style="padding:8px 16px; border-radius:999px; font-size:12.5px; font-weight:600; cursor:pointer; color:{{ fi.color }}; background:{{ fi.bg }};">{{ fi.label }}</div>
+            </sc-for>
+          </div>
+
+          <div style="width:1px; height:22px; background:{{ c.line }};"></div>
+
+          <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+            <div style="font-size:11.5px; font-weight:700; color:{{ c.faint }}; text-transform:uppercase; margin-right:2px;">{{ t.col_tags }}</div>
+            <sc-for list="{{ tagFilterItems }}" as="tfi" hint-placeholder-count="4">
+              <div onClick="{{ tfi.onClick }}" style="padding:7px 14px; border-radius:999px; font-size:12px; font-weight:600; cursor:pointer; color:{{ tfi.color }}; background:{{ tfi.bg }}; border:1px solid {{ tfi.border }};">{{ tfi.label }}</div>
+            </sc-for>
+            <input type="text" placeholder="{{ t.new_tag_placeholder }}" value="{{ newTagText }}" onChange="{{ onNewTagChange }}" onKeyDown="{{ onNewTagKeyDown }}" style="width:110px; padding:7px 12px; border-radius:999px; border:1px dashed {{ c.line }}; background:transparent; color:{{ c.ink }}; font-size:12px;">
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+          <div style="position:relative;" data-dropdown-root="true">
+            <div onClick="{{ toggleDatePicker }}" style="display:flex; align-items:center; gap:8px; padding:8px 14px; border-radius:8px; border:1px solid {{ c.line }}; background:{{ c.card }}; cursor:pointer; font-size:12.5px; font-weight:600; color:{{ c.ink }};">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="{{ c.sub }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><line x1="3" y1="10" x2="21" y2="10"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="16" y1="2" x2="16" y2="6"></line></svg>
+              {{ dateRangeButtonText }}
+            </div>
+            <sc-if value="{{ datePickerOpen }}">
+              <div style="position:absolute; top:44px; left:0; z-index:30; width:280px; background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:14px; padding:16px; box-shadow:0 12px 32px rgba(0,0,0,.18);">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+                  <div onClick="{{ pickerPrevMonth }}" style="cursor:pointer; padding:4px 10px; font-size:16px; font-weight:700; color:{{ c.sub }};">‹</div>
+                  <div style="font-weight:700; font-size:13.5px; color:{{ c.ink }};">{{ pickerMonthLabel }}</div>
+                  <div onClick="{{ pickerNextMonth }}" style="cursor:pointer; padding:4px 10px; font-size:16px; font-weight:700; color:{{ c.sub }};">›</div>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:2px; margin-bottom:4px;">
+                  <sc-for list="{{ pickerWeekdayLabels }}" as="pw" hint-placeholder-count="7">
+                    <div style="text-align:center; font-size:10px; font-weight:700; color:{{ c.faint }};">{{ pw }}</div>
+                  </sc-for>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:3px;">
+                  <sc-for list="{{ pickerDays }}" as="pd" hint-placeholder-count="35">
+                    <div onClick="{{ pd.onClick }}" style="aspect-ratio:1; display:flex; align-items:center; justify-content:center; border-radius:8px; font-size:12.5px; font-weight:600; cursor:pointer; color:{{ pd.color }}; background:{{ pd.bg }}; opacity:{{ pd.opacity }};">{{ pd.day }}</div>
+                  </sc-for>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+                  <div onClick="{{ pickerCancel }}" style="padding:8px 16px; border-radius:8px; font-size:12.5px; font-weight:600; color:{{ c.sub }}; cursor:pointer;">{{ t.cancel_label }}</div>
+                  <div onClick="{{ pickerDone }}" style="padding:8px 18px; border-radius:8px; font-size:12.5px; font-weight:700; background:{{ c.purple }}; color:#fff; cursor:pointer;">{{ t.done_label }}</div>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+
+          <div style="width:1px; height:22px; background:{{ c.line }};"></div>
+
+          <div style="display:flex; gap:4px; background:{{ c.pillBg }}; border:1px solid {{ c.line }}; border-radius:999px; padding:4px;">
+            <sc-for list="{{ quickRanges }}" as="qr" hint-placeholder-count="4">
+              <div onClick="{{ qr.onClick }}" style="padding:7px 14px; border-radius:999px; font-size:12px; font-weight:600; cursor:pointer; color:{{ c.sub }};">{{ qr.label }}</div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:16px; overflow:hidden;">
+          <div style="display:grid; grid-template-columns:80px 90px 70px 90px 90px 60px 110px 70px 1fr 36px; gap:20px; padding:16px 24px; border-bottom:1px solid {{ c.line }}; font-size:12.5px; font-weight:700; color:{{ c.faint }}; text-transform:uppercase;">
+            <div>{{ t.col_date }}</div><div>{{ t.col_symbol }}</div><div>{{ t.col_side }}</div><div>{{ t.col_entry }}</div><div>{{ t.col_exit }}</div><div>{{ t.col_qty }}</div><div style="text-align:right;">{{ t.col_pnl }}</div><div style="text-align:right;">{{ t.col_r }}</div><div>{{ t.col_tags }}</div><div></div>
+          </div>
+          <sc-for list="{{ pagedTrades }}" as="row" hint-placeholder-count="10">
+            <div onClick="{{ row.onClick }}" style="display:grid; grid-template-columns:80px 90px 70px 90px 90px 60px 110px 70px 1fr 36px; gap:20px; padding:22px 24px; border-top:1px solid {{ c.line }}; font-size:14.5px; align-items:center; cursor:pointer;">
+              <div style="color:{{ c.faint }}; font-size:13.5px;">{{ row.date }}</div>
+              <div style="font-weight:700;">{{ row.sym }}</div>
+              <div style="font-size:13.5px; font-weight:600; color:{{ row.sideColor }};">{{ row.sideLabel }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:13.5px;">{{ row.entry }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:13.5px;">{{ row.exit }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:13.5px;">{{ row.qty }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace; font-weight:700; text-align:right; color:{{ row.pnlColor }};">{{ row.pnlText }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:13.5px; text-align:right; color:{{ c.faint }};">{{ row.rText }}</div>
+              <div style="font-size:13px; color:{{ c.faint }};">{{ row.tagsText }}</div>
+              <div onClick="{{ row.editOnClick }}" style="width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:{{ c.faint }}; cursor:pointer;">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+          <div style="font-size:12.5px; color:{{ c.faint }};">{{ t.showing_label }} {{ rangeStart }}–{{ rangeEnd }} {{ t.of_label }} {{ totalFiltered }}</div>
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <div style="font-size:12px; color:{{ c.faint }};">{{ t.per_page_label }}</div>
+              <div style="display:flex; gap:4px; background:{{ c.pillBg }}; border:1px solid {{ c.line }}; border-radius:999px; padding:4px;">
+                <sc-for list="{{ pageSizeOptions }}" as="ps" hint-placeholder-count="3">
+                  <div onClick="{{ ps.onClick }}" style="padding:6px 12px; border-radius:999px; font-size:12px; font-weight:600; cursor:pointer; color:{{ ps.color }}; background:{{ ps.bg }};">{{ ps.label }}</div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div onClick="{{ goPrevPage }}" style="width:30px; height:30px; border-radius:8px; border:1px solid {{ c.line }}; background:{{ c.card }}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; font-weight:700; color:{{ c.sub }}; opacity:{{ prevOpacity }};">‹</div>
+              <div style="font-size:12.5px; font-weight:600; font-family:'IBM Plex Mono',monospace; color:{{ c.sub }};">{{ pageLabel }}</div>
+              <div onClick="{{ goNextPage }}" style="width:30px; height:30px; border-radius:8px; border:1px solid {{ c.line }}; background:{{ c.card }}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; font-weight:700; color:{{ c.sub }}; opacity:{{ nextOpacity }};">›</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <sc-if value="{{ tradeModalOpen }}">
+        <div onClick="{{ closeTradeModal }}" style="position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:20; display:flex; align-items:center; justify-content:center; padding:20px;">
+          <div onClick="{{ stopPropagation }}" style="width:460px; max-width:100%; background:{{ c.card }}; border-radius:18px; box-shadow:0 24px 64px rgba(0,0,0,.3); overflow:hidden;">
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:22px 26px; border-bottom:1px solid {{ c.line }};">
+              <div style="font-size:17px; font-weight:800;">{{ tradeModalTitle }}</div>
+              <div onClick="{{ closeTradeModal }}" style="width:30px; height:30px; border-radius:999px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:{{ c.faint }};">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg>
+              </div>
+            </div>
+
+            <div style="padding:24px 26px; display:flex; flex-direction:column; gap:18px;">
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                <div style="position:relative;" data-dropdown-root="true">
+                  <div style="font-size:11px; font-weight:700; color:{{ c.faint }}; text-transform:uppercase; letter-spacing:.3px; margin-bottom:7px;">{{ t.form_symbol }}</div>
+                  <div onClick="{{ toggleSymbolDropdown }}" style="display:flex; align-items:center; justify-content:space-between; width:100%; padding:11px 13px; border-radius:10px; border:1px solid {{ c.line }}; background:{{ c.pillBg }}; color:{{ c.ink }}; font-size:14px; font-weight:700; cursor:pointer;">
+                    <span>{{ tradeForm.sym }}</span>
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="{{ c.faint }}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  </div>
+                  <sc-if value="{{ symbolDropdownOpen }}">
+                    <div style="position:absolute; top:100%; left:0; right:0; margin-top:6px; z-index:30; background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:10px; padding:5px; box-shadow:0 10px 28px rgba(0,0,0,.16); max-height:220px; overflow-y:auto;">
+                      <sc-for list="{{ symbolOptionItems }}" as="sopt" hint-placeholder-count="8">
+                        <div onClick="{{ sopt.onClick }}" style="padding:8px 10px; border-radius:7px; font-size:13px; font-weight:600; cursor:pointer; color:{{ sopt.color }}; background:{{ sopt.bg }};">{{ sopt.label }}</div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+                <div>
+                  <div style="font-size:11px; font-weight:700; color:{{ c.faint }}; text-transform:uppercase; letter-spacing:.3px; margin-bottom:7px;">{{ t.form_side }}</div>
+                  <div style="display:flex; gap:4px; background:{{ c.pillBg }}; border:1px solid {{ c.line }}; border-radius:10px; padding:4px; height:42px;">
+                    <sc-for list="{{ formSideItems }}" as="fs" hint-placeholder-count="2">
+                      <div onClick="{{ fs.onClick }}" style="flex:1; display:flex; align-items:center; justify-content:center; border-radius:7px; font-size:13px; font-weight:700; cursor:pointer; color:{{ fs.color }}; background:{{ fs.bg }};">{{ fs.label }}</div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;">
+                <div>
+                  <div style="font-size:11px; font-weight:700; color:{{ c.faint }}; text-transform:uppercase; letter-spacing:.3px; margin-bottom:7px;">{{ t.form_entry }}</div>
+                  <input type="number" value="{{ tradeForm.entry }}" onChange="{{ onFormEntryChange }}" style="width:100%; padding:11px 13px; border-radius:10px; border:1px solid {{ c.line }}; background:{{ c.pillBg }}; color:{{ c.ink }}; font-family:'IBM Plex Mono',monospace; font-size:13.5px;">
+                </div>
+                <div>
+                  <div style="font-size:11px; font-weight:700; color:{{ c.faint }}; text-transform:uppercase; letter-spacing:.3px; margin-bottom:7px;">{{ t.form_exit }}</div>
+                  <input type="number" value="{{ tradeForm.exit }}" onChange="{{ onFormExitChange }}" style="width:100%; padding:11px 13px; border-radius:10px; border:1px solid {{ c.line }}; background:{{ c.pillBg }}; color:{{ c.ink }}; font-family:'IBM Plex Mono',monospace; font-size:13.5px;">
+                </div>
+                <div>
+                  <div style="font-size:11px; font-weight:700; color:{{ c.faint }}; text-transform:uppercase; letter-spacing:.3px; margin-bottom:7px;">{{ t.form_qty }}</div>
+                  <input type="number" value="{{ tradeForm.qty }}" onChange="{{ onFormQtyChange }}" style="width:100%; padding:11px 13px; border-radius:10px; border:1px solid {{ c.line }}; background:{{ c.pillBg }}; color:{{ c.ink }}; font-family:'IBM Plex Mono',monospace; font-size:13.5px;">
+                </div>
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                <div>
+                  <div style="font-size:11px; font-weight:700; color:{{ c.faint }}; text-transform:uppercase; letter-spacing:.3px; margin-bottom:7px;">{{ t.form_day }}</div>
+                  <input type="number" min="1" max="31" value="{{ tradeForm.day }}" onChange="{{ onFormDayChange }}" style="width:100%; padding:11px 13px; border-radius:10px; border:1px solid {{ c.line }}; background:{{ c.pillBg }}; color:{{ c.ink }}; font-family:'IBM Plex Mono',monospace; font-size:13.5px;">
+                </div>
+                <div style="position:relative;" data-dropdown-root="true">
+                  <div style="font-size:11px; font-weight:700; color:{{ c.faint }}; text-transform:uppercase; letter-spacing:.3px; margin-bottom:7px;">{{ t.form_tags }}</div>
+                  <div onClick="{{ toggleTagDropdown }}" style="display:flex; align-items:center; justify-content:space-between; width:100%; padding:11px 13px; border-radius:10px; border:1px solid {{ c.line }}; background:{{ c.pillBg }}; color:{{ c.ink }}; font-size:13.5px; cursor:pointer;">
+                    <span style="text-transform:capitalize;">{{ tradeForm.tags }}</span>
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="{{ c.faint }}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  </div>
+                  <sc-if value="{{ tagDropdownOpen }}">
+                    <div style="position:absolute; top:100%; left:0; right:0; margin-top:6px; z-index:30; background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:10px; padding:5px; box-shadow:0 10px 28px rgba(0,0,0,.16); max-height:220px; overflow-y:auto;">
+                      <sc-for list="{{ tagOptionItems }}" as="topt" hint-placeholder-count="6">
+                        <div onClick="{{ topt.onClick }}" style="padding:8px 10px; border-radius:7px; font-size:13px; font-weight:600; cursor:pointer; text-transform:capitalize; color:{{ topt.color }}; background:{{ topt.bg }};">{{ topt.label }}</div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:18px 26px; border-top:1px solid {{ c.line }}; background:{{ c.pillBg }};">
+              <sc-if value="{{ isEditingTrade }}">
+                <div onClick="{{ deleteTrade }}" style="font-size:12.5px; font-weight:700; color:{{ c.red }}; cursor:pointer;">{{ t.delete_label }}</div>
+              </sc-if>
+              <div style="display:flex; gap:10px; margin-left:auto;">
+                <div onClick="{{ closeTradeModal }}" style="font-size:13px; font-weight:600; padding:10px 18px; border-radius:9px; color:{{ c.sub }}; background:{{ c.card }}; border:1px solid {{ c.line }}; cursor:pointer;">{{ t.cancel_label }}</div>
+                <div onClick="{{ saveTrade }}" style="font-size:13px; font-weight:700; padding:10px 20px; border-radius:9px; background:{{ c.navActiveBg }}; color:{{ c.navActiveText }}; cursor:pointer;">{{ t.save_label }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+    </sc-if>
+
+    <!-- ================= CALENDAR PAGE ================= -->
+    <sc-if value="{{ isCalendarPage }}">
+      <div style="display:flex; flex-direction:column; gap:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline;">
+          <div>
+            <div style="font-size:22px; font-weight:800;">{{ t.calendar_page_title }}</div>
+            <div style="font-size:12.5px; color:{{ c.faint }}; margin-top:2px;">{{ t.calendar_page_subtitle }}</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <div onClick="{{ prevMonth }}" style="width:32px; height:32px; border-radius:9px; border:1px solid {{ c.line }}; background:{{ c.card }}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; font-weight:700; color:{{ c.sub }};">‹</div>
+            <div style="font-size:13px; font-weight:700; font-family:'IBM Plex Mono',monospace; color:{{ c.faint }}; min-width:120px; text-align:center;">{{ monthLabel }}</div>
+            <div onClick="{{ nextMonth }}" style="width:32px; height:32px; border-radius:9px; border:1px solid {{ c.line }}; background:{{ c.card }}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; font-weight:700; color:{{ c.sub }};">›</div>
+          </div>
+        </div>
+
+        <div style="background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:16px; padding:28px 32px;">
+          <div style="display:grid; grid-template-columns:repeat(7,1fr) 1.3fr; gap:10px; margin-bottom:10px;">
+            <sc-for list="{{ weekdayLabels }}" as="wd2" hint-placeholder-count="7">
+              <div style="text-align:center; font-size:14px; font-weight:700; color:{{ c.faint }};">{{ wd2 }}</div>
+            </sc-for>
+            <div style="text-align:center; font-size:14px; font-weight:700; color:{{ c.faint }};">{{ t.wk_label }}</div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <sc-for list="{{ calendarWeeks }}" as="week2" hint-placeholder-count="5">
+              <div style="display:grid; grid-template-columns:repeat(7,1fr) 1.3fr; gap:10px;">
+                <sc-for list="{{ week2.cells }}" as="cell2" hint-placeholder-count="7">
+                  <div onClick="{{ cell2.onClick }}" style="aspect-ratio:1; border-radius:12px; padding:14px 16px; display:flex; flex-direction:column; justify-content:space-between; background:{{ cell2.bg }}; border:1px solid {{ cell2.border }}; cursor:{{ cell2.cursor }};">
+                    <div style="font-size:15px; font-weight:700; color:{{ cell2.dateColor }};">{{ cell2.day }}</div>
+                    <sc-if value="{{ cell2.hasData }}">
+                      <div>
+                        <div style="font-size:22px; font-weight:800; font-family:'IBM Plex Mono',monospace; color:{{ cell2.pnlColor }};">{{ cell2.pnlText }}</div>
+                        <div style="font-size:13px; color:{{ c.faint }}; margin-top:3px;">{{ cell2.winRateText }}</div>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+                <div style="border-radius:12px; padding:14px 16px; display:flex; flex-direction:column; justify-content:flex-start; background:{{ week2.stat.bg }}; border:1px solid {{ week2.stat.border }};">
+                  <div style="font-size:13px; font-weight:700; color:{{ c.faint }}; text-transform:uppercase;">{{ week2.stat.label }}</div>
+                  <div style="flex:1; display:flex; flex-direction:column; justify-content:center; gap:3px;">
+                    <div style="font-size:20px; font-weight:800; font-family:'IBM Plex Mono',monospace; color:{{ week2.stat.pnlColor }};">{{ week2.stat.pnlText }}</div>
+                    <div style="font-size:13px; color:{{ c.faint }};">{{ week2.stat.winRateText }}</div>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ================= REPORTS ================= -->
+    <sc-if value="{{ isReports }}">
+      <div style="display:flex; flex-direction:column; gap:20px;">
+        <div>
+          <div style="font-size:22px; font-weight:800;">{{ t.reports_title }}</div>
+          <div style="font-size:12.5px; color:{{ c.faint }}; margin-top:2px;">{{ t.reports_subtitle }}</div>
+        </div>
+
+        <div style="display:flex; gap:16px; flex-wrap:wrap;">
+          <sc-for list="{{ kpis }}" as="k2" hint-placeholder-count="5">
+            <div style="flex:1; min-width:180px; background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:14px; padding:20px 22px; display:flex; flex-direction:column; gap:8px;">
+              <div style="font-size:11.5px; font-weight:600; color:{{ c.sub }}; letter-spacing:.3px; text-transform:uppercase;">{{ k2.label }}</div>
+              <div style="font-size:26px; font-weight:800; font-family:'IBM Plex Mono',monospace; color:{{ k2.color }};">{{ k2.value }}</div>
+              <div style="font-size:12px; color:{{ c.faint }};">{{ k2.sub }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+          <div style="background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:16px; padding:22px 24px;">
+            <div style="font-size:14px; font-weight:700; margin-bottom:14px;">{{ t.chart_winrate_weekday }}</div>
+            <div style="display:flex; align-items:flex-end; gap:10px; height:140px;">
+              <sc-for list="{{ winRateByWeekday }}" as="b" hint-placeholder-count="7">
+                <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; height:100%; justify-content:flex-end;">
+                  <div style="width:100%; border-radius:5px 5px 0 0; background:{{ c.blue }}; height:{{ b.h }};"></div>
+                  <div style="font-size:10.5px; color:{{ c.faint }};">{{ b.label }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:16px; padding:22px 24px;">
+            <div style="font-size:14px; font-weight:700; margin-bottom:14px;">{{ t.chart_pnl_symbol }}</div>
+            <div style="display:flex; align-items:flex-end; gap:10px; height:140px;">
+              <sc-for list="{{ pnlBySymbol }}" as="b2" hint-placeholder-count="6">
+                <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; height:100%; justify-content:flex-end;">
+                  <div style="width:100%; border-radius:5px 5px 0 0; background:{{ b2.color }}; height:{{ b2.h }};"></div>
+                  <div style="font-size:10.5px; color:{{ c.faint }};">{{ b2.label }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+          <div style="background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:16px; padding:22px 24px;">
+            <div style="font-size:14px; font-weight:700; margin-bottom:14px;">{{ t.chart_distribution }}</div>
+            <div style="display:flex; align-items:flex-end; gap:8px; height:120px;">
+              <sc-for list="{{ rDistribution }}" as="b3" hint-placeholder-count="10">
+                <div style="flex:1; border-radius:4px 4px 0 0; background:{{ b3.color }}; height:{{ b3.h }};"></div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:16px; padding:22px 24px;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:14px;">
+              <div style="font-size:14px; font-weight:700;">{{ t.holding_time_title }}</div>
+              <div style="font-size:12px; color:{{ c.faint }};">{{ t.avg_holding_label }}: {{ avgHoldingText }}</div>
+            </div>
+            <div style="display:flex; align-items:flex-end; gap:10px; height:120px;">
+              <sc-for list="{{ holdingBuckets }}" as="hb" hint-placeholder-count="5">
+                <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; height:100%; justify-content:flex-end;">
+                  <div style="width:100%; border-radius:5px 5px 0 0; background:{{ c.blue }}; height:{{ hb.h }};"></div>
+                  <div style="font-size:10.5px; color:{{ c.faint }}; text-align:center;">{{ hb.label }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:16px; padding:22px 24px;">
+          <div style="font-size:14px; font-weight:700; margin-bottom:14px;">{{ t.monthly_compare_title }}</div>
+          <div style="display:flex; align-items:flex-end; gap:14px; height:150px;">
+            <sc-for list="{{ monthlyPerf }}" as="mp" hint-placeholder-count="6">
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; height:100%; justify-content:flex-end;">
+                <div style="font-size:11px; font-weight:700; font-family:'IBM Plex Mono',monospace; color:{{ mp.pnlColor }};">{{ mp.pnlText }}</div>
+                <div style="width:100%; border-radius:5px 5px 0 0; background:{{ mp.color }}; height:{{ mp.h }};"></div>
+                <div style="font-size:10.5px; color:{{ c.faint }};">{{ mp.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:16px; overflow:hidden;">
+          <div style="font-size:14px; font-weight:700; padding:20px 24px 0;">{{ t.strategy_stats_title }}</div>
+          <div style="display:grid; grid-template-columns:1.2fr 90px 100px 110px; gap:16px; padding:16px 24px; margin-top:10px; border-bottom:1px solid {{ c.line }}; font-size:11.5px; font-weight:700; color:{{ c.faint }}; text-transform:uppercase;">
+            <div>{{ t.col_tags }}</div><div style="text-align:right;">{{ t.col_trades }}</div><div style="text-align:right;">{{ t.col_winrate }}</div><div style="text-align:right;">{{ t.col_avgpnl }}</div>
+          </div>
+          <sc-for list="{{ strategyStats }}" as="ss" hint-placeholder-count="6">
+            <div style="display:grid; grid-template-columns:1.2fr 90px 100px 110px; gap:16px; padding:14px 24px; border-top:1px solid {{ c.line }}; font-size:13.5px; align-items:center;">
+              <div style="font-weight:700; text-transform:capitalize;">{{ ss.tag }}</div>
+              <div style="text-align:right; font-family:'IBM Plex Mono',monospace; color:{{ c.faint }};">{{ ss.count }}</div>
+              <div style="text-align:right; font-family:'IBM Plex Mono',monospace;">{{ ss.winRateText }}</div>
+              <div style="text-align:right; font-family:'IBM Plex Mono',monospace; font-weight:700; color:{{ ss.avgColor }};">{{ ss.avgPnlText }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ================= JOURNAL ================= -->
+    <sc-if value="{{ journalModalOpen }}">
+      <div onClick="{{ closeJournalModal }}" style="position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:40; display:flex; align-items:center; justify-content:center; padding:20px; overflow-y:auto;">
+        <div onClick="{{ stopPropagation }}" style="width:640px; max-width:100%; max-height:90vh; overflow-y:auto; background:{{ c.card }}; border-radius:18px; box-shadow:0 24px 64px rgba(0,0,0,.3);">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:20px 26px; border-bottom:1px solid {{ c.line }}; position:sticky; top:0; background:{{ c.card }}; z-index:2;">
+            <div style="font-size:16px; font-weight:800;">{{ t.journal_title }}</div>
+            <div onClick="{{ closeJournalModal }}" style="width:30px; height:30px; border-radius:999px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:{{ c.faint }};">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg>
+            </div>
+          </div>
+
+          <div style="padding:26px 30px; display:flex; flex-direction:column; gap:18px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <div style="font-size:19px; font-weight:800;">{{ selected.date }}</div>
+                <div style="font-size:12.5px; color:{{ c.faint }}; margin-top:2px;">{{ selected.sym }} · {{ selected.sideLabel }}</div>
+              </div>
+              <div style="font-size:24px; font-weight:800; font-family:'IBM Plex Mono',monospace; color:{{ selected.pnlColor }};">{{ selected.pnlText }}</div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px;">
+              <div style="background:{{ c.pillBg }}; border-radius:10px; padding:12px 14px;">
+                <div style="font-size:10.5px; color:{{ c.faint }}; text-transform:uppercase; font-weight:700;">{{ t.col_entry }}</div>
+                <div style="font-size:14px; font-weight:700; font-family:'IBM Plex Mono',monospace; margin-top:4px;">{{ selected.entry }}</div>
+              </div>
+              <div style="background:{{ c.pillBg }}; border-radius:10px; padding:12px 14px;">
+                <div style="font-size:10.5px; color:{{ c.faint }}; text-transform:uppercase; font-weight:700;">{{ t.col_exit }}</div>
+                <div style="font-size:14px; font-weight:700; font-family:'IBM Plex Mono',monospace; margin-top:4px;">{{ selected.exit }}</div>
+              </div>
+              <div style="background:{{ c.pillBg }}; border-radius:10px; padding:12px 14px;">
+                <div style="font-size:10.5px; color:{{ c.faint }}; text-transform:uppercase; font-weight:700;">{{ t.col_qty }}</div>
+                <div style="font-size:14px; font-weight:700; font-family:'IBM Plex Mono',monospace; margin-top:4px;">{{ selected.qty }}</div>
+              </div>
+              <div style="background:{{ c.pillBg }}; border-radius:10px; padding:12px 14px;">
+                <div style="font-size:10.5px; color:{{ c.faint }}; text-transform:uppercase; font-weight:700;">{{ t.col_r }}</div>
+                <div style="font-size:14px; font-weight:700; font-family:'IBM Plex Mono',monospace; margin-top:4px;">{{ selected.rText }}</div>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size:11.5px; font-weight:700; color:{{ c.faint }}; text-transform:uppercase; margin-bottom:8px;">{{ t.tags_label }}</div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <sc-for list="{{ selected.tagList }}" as="tag" hint-placeholder-count="3">
+                  <div style="font-size:11.5px; font-weight:600; padding:5px 12px; border-radius:999px; background:{{ c.pillBg }}; border:1px solid {{ c.line }}; color:{{ c.sub }};">{{ tag }}</div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size:11.5px; font-weight:700; color:{{ c.faint }}; text-transform:uppercase; margin-bottom:8px;">{{ t.emotions_label }}</div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                <sc-for list="{{ selected.emotionChips }}" as="emo" hint-placeholder-count="3">
+                  <div style="display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:600; padding:5px 8px 5px 12px; border-radius:999px; background:{{ c.blue }}1A; border:1px solid {{ c.blue }}; color:{{ c.blue }};">
+                    {{ emo.label }}
+                    <span onClick="{{ emo.onRemove }}" style="cursor:pointer; opacity:.65; font-size:13px; line-height:1;">×</span>
+                  </div>
+                </sc-for>
+                <input type="text" placeholder="{{ t.add_placeholder }}" value="{{ newEmotionText }}" onChange="{{ onNewEmotionChange }}" onKeyDown="{{ onNewEmotionKeyDown }}" style="width:100px; padding:6px 12px; border-radius:999px; border:1px dashed {{ c.line }}; background:transparent; color:{{ c.ink }}; font-size:11.5px;">
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size:11.5px; font-weight:700; color:{{ c.faint }}; text-transform:uppercase; margin-bottom:8px;">{{ t.mistakes_label }}</div>
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                <sc-for list="{{ selected.mistakeChecklist }}" as="mk" hint-placeholder-count="6">
+                  <div style="display:flex; align-items:center; gap:10px;">
+                    <div onClick="{{ mk.onToggle }}" style="width:18px; height:18px; border-radius:5px; background:{{ mk.boxBg }}; border:1px solid {{ mk.boxBorder }}; display:flex; align-items:center; justify-content:center; font-size:11px; color:{{ mk.markColor }}; flex-shrink:0; cursor:pointer;">{{ mk.mark }}</div>
+                    <div style="font-size:13px; color:{{ mk.textColor }}; flex:1;">{{ mk.label }}</div>
+                    <span onClick="{{ mk.onRemove }}" style="cursor:pointer; color:{{ c.faint }}; font-size:14px; padding:2px 4px;">×</span>
+                  </div>
+                </sc-for>
+                <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
+                  <input type="text" placeholder="{{ t.add_placeholder }}" value="{{ newMistakeText }}" onChange="{{ onNewMistakeChange }}" onKeyDown="{{ onNewMistakeKeyDown }}" style="flex:1; max-width:220px; padding:7px 12px; border-radius:8px; border:1px dashed {{ c.line }}; background:transparent; color:{{ c.ink }}; font-size:12.5px;">
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <div style="font-size:11.5px; font-weight:700; color:{{ c.faint }}; text-transform:uppercase;">{{ t.notes_label }}</div>
+                <div style="font-size:11px; font-weight:600; color:{{ savedColor }};">{{ savedLabel }}</div>
+              </div>
+              <div style="border:1px solid {{ c.line }}; border-radius:12px; overflow:hidden; background:{{ c.pillBg }};">
+                <div style="display:flex; align-items:center; gap:6px; padding:8px 10px; border-bottom:1px solid {{ c.line }}; flex-wrap:wrap;">
+                  <div onClick="{{ applyTemplate }}" style="font-size:11.5px; font-weight:600; padding:6px 10px; border-radius:7px; cursor:pointer; color:{{ c.sub }}; background:{{ c.card }}; border:1px solid {{ c.line }};">{{ t.apply_template }}</div>
+                  <div onClick="{{ setTemplate }}" style="font-size:11.5px; font-weight:600; padding:6px 10px; border-radius:7px; cursor:pointer; color:{{ c.sub }}; background:{{ c.card }}; border:1px solid {{ c.line }};">{{ t.set_template }}</div>
+                  <div onClick="{{ clearNotes }}" style="font-size:11.5px; font-weight:600; padding:6px 10px; border-radius:7px; cursor:pointer; color:{{ c.sub }}; background:{{ c.card }}; border:1px solid {{ c.line }};">{{ t.clear_notes }}</div>
+                  <div style="width:1px; height:18px; background:{{ c.line }}; margin:0 4px;"></div>
+                  <div onClick="{{ toggleBold }}" style="width:28px; height:28px; border-radius:7px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12.5px; font-weight:800; color:{{ boldColor }}; background:{{ boldBg }};">B</div>
+                  <div onClick="{{ toggleItalic }}" style="width:28px; height:28px; border-radius:7px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12.5px; font-style:italic; font-weight:700; color:{{ italicColor }}; background:{{ italicBg }};">I</div>
+                  <div onClick="{{ toggleUnderline }}" style="width:28px; height:28px; border-radius:7px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12.5px; font-weight:700; text-decoration:underline; color:{{ underlineColor }}; background:{{ underlineBg }};">U</div>
+                  <div style="width:1px; height:18px; background:{{ c.line }}; margin:0 4px;"></div>
+                  <div onClick="{{ decreaseFontSize }}" style="width:28px; height:28px; border-radius:7px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:{{ c.sub }}; background:{{ c.card }};">−</div>
+                  <div style="font-size:11.5px; font-weight:600; color:{{ c.faint }}; font-family:'IBM Plex Mono',monospace; min-width:20px; text-align:center;">{{ noteFontSize }}</div>
+                  <div onClick="{{ increaseFontSize }}" style="width:28px; height:28px; border-radius:7px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:{{ c.sub }}; background:{{ c.card }};">+</div>
+                </div>
+                <div contentEditable="{{ true }}" suppressContentEditableWarning="{{ true }}" ref="{{ notesRefCallback }}" onInput="{{ onNotesInput }}" onPaste="{{ onNotesPaste }}" style="padding:16px 18px; min-height:160px; font-size:{{ noteFontSizePx }}; font-weight:{{ noteBoldWeight }}; font-style:{{ noteItalicStyle }}; text-decoration:{{ noteUnderlineDeco }}; line-height:1.7; color:{{ c.ink }}; outline:none;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ================= SETTINGS ================= -->
+    <sc-if value="{{ isSettings }}">
+      <div style="display:flex; flex-direction:column; gap:20px;">
+        <div>
+          <div style="font-size:22px; font-weight:800;">{{ t.settings_title }}</div>
+          <div style="font-size:12.5px; color:{{ c.faint }}; margin-top:2px;">{{ t.settings_subtitle }}</div>
+        </div>
+
+        <div style="background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:16px; padding:22px 24px; display:flex; flex-direction:column; gap:14px; max-width:560px;">
+          <div>
+            <div style="font-size:14px; font-weight:700;">{{ t.account_title }}</div>
+            <div style="font-size:12px; color:{{ c.faint }}; margin-top:2px;">{{ t.account_subtitle }}</div>
+          </div>
+          <div style="max-width:220px;">
+            <div style="font-size:11px; font-weight:700; color:{{ c.faint }}; text-transform:uppercase; margin-bottom:6px;">{{ t.initial_capital_label }}</div>
+            <div style="display:flex; align-items:center; gap:8px; padding:9px 12px; border-radius:8px; border:1px solid {{ c.line }}; background:{{ c.pillBg }};">
+              <span style="color:{{ c.faint }}; font-family:'IBM Plex Mono',monospace; font-size:13.5px;">$</span>
+              <input type="number" value="{{ initialCapital }}" onChange="{{ onInitialCapitalChange }}" style="flex:1; border:none; background:transparent; color:{{ c.ink }}; font-family:'IBM Plex Mono',monospace; font-size:13.5px; outline:none;">
+            </div>
+          </div>
+        </div>
+
+        <div style="background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:16px; padding:22px 24px; display:flex; flex-direction:column; gap:16px; max-width:560px;">
+          <div>
+            <div style="font-size:14px; font-weight:700;">{{ t.platforms_title }}</div>
+            <div style="font-size:12px; color:{{ c.faint }}; margin-top:2px;">{{ t.platforms_subtitle }}</div>
+          </div>
+          <sc-for list="{{ settingsPlatforms }}" as="spl" hint-placeholder-count="2">
+            <div style="border:1px solid {{ c.line }}; border-radius:12px; padding:14px 16px; display:flex; flex-direction:column; gap:10px;">
+              <div style="display:flex; align-items:center; justify-content:space-between;">
+                <div style="font-size:13.5px; font-weight:700;">{{ spl.name }}</div>
+                <span onClick="{{ spl.onRemove }}" style="cursor:pointer; color:{{ c.faint }}; font-size:15px; padding:2px 4px;">×</span>
+              </div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <sc-for list="{{ spl.accounts }}" as="spacc" hint-placeholder-count="2">
+                  <div style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; padding:6px 7px 6px 11px; border-radius:999px; background:{{ c.pillBg }}; border:1px solid {{ c.line }}; color:{{ c.ink }};">
+                    {{ spacc.name }}
+                    <span onClick="{{ spacc.onRemove }}" style="cursor:pointer; opacity:.6; font-size:13px; line-height:1;">×</span>
+                  </div>
+                </sc-for>
+                <input type="text" placeholder="{{ t.add_account_placeholder }}" value="{{ spl.newAccountText }}" onChange="{{ spl.onNewAccountChange }}" onKeyDown="{{ spl.onNewAccountKeyDown }}" style="width:120px; padding:6px 11px; border-radius:999px; border:1px dashed {{ c.line }}; background:transparent; color:{{ c.ink }}; font-size:12px;">
+              </div>
+            </div>
+          </sc-for>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <input type="text" placeholder="{{ t.add_platform_placeholder }}" value="{{ newPlatformText }}" onChange="{{ onNewPlatformChange }}" onKeyDown="{{ onNewPlatformKeyDown }}" style="flex:1; max-width:220px; padding:8px 13px; border-radius:8px; border:1px dashed {{ c.line }}; background:transparent; color:{{ c.ink }}; font-size:12.5px;">
+          </div>
+        </div>
+
+        <div style="background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:16px; padding:22px 24px; display:flex; flex-direction:column; gap:14px; max-width:560px;">
+          <div>
+            <div style="font-size:14px; font-weight:700;">{{ t.symbols_title }}</div>
+            <div style="font-size:12px; color:{{ c.faint }}; margin-top:2px;">{{ t.symbols_subtitle }}</div>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <sc-for list="{{ settingsSymbols }}" as="ssym" hint-placeholder-count="10">
+              <div style="display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:700; padding:7px 8px 7px 13px; border-radius:999px; background:{{ c.pillBg }}; border:1px solid {{ c.line }}; color:{{ c.ink }};">
+                {{ ssym.label }}
+                <span onClick="{{ ssym.onRemove }}" style="cursor:pointer; opacity:.6; font-size:14px; line-height:1;">×</span>
+              </div>
+            </sc-for>
+            <input type="text" placeholder="{{ t.add_symbol_placeholder }}" value="{{ newSymbolText }}" onChange="{{ onNewSymbolChange }}" onKeyDown="{{ onNewSymbolKeyDown }}" style="width:130px; padding:7px 13px; border-radius:999px; border:1px dashed {{ c.line }}; background:transparent; color:{{ c.ink }}; font-size:12.5px;">
+          </div>
+        </div>
+
+        <div style="background:{{ c.card }}; border:1px solid {{ c.line }}; border-radius:16px; padding:22px 24px; display:flex; flex-direction:column; gap:14px; max-width:560px;">
+          <div>
+            <div style="font-size:14px; font-weight:700;">{{ t.tags_settings_title }}</div>
+            <div style="font-size:12px; color:{{ c.faint }}; margin-top:2px;">{{ t.tags_settings_subtitle }}</div>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <sc-for list="{{ settingsTags }}" as="stag" hint-placeholder-count="7">
+              <div style="display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:700; padding:7px 8px 7px 13px; border-radius:999px; background:{{ c.pillBg }}; border:1px solid {{ c.line }}; color:{{ c.ink }}; text-transform:capitalize;">
+                {{ stag.label }}
+                <span onClick="{{ stag.onRemove }}" style="cursor:pointer; opacity:.6; font-size:14px; line-height:1;">×</span>
+              </div>
+            </sc-for>
+            <input type="text" placeholder="{{ t.add_tag_placeholder2 }}" value="{{ newSettingsTagText }}" onChange="{{ onNewSettingsTagChange }}" onKeyDown="{{ onNewSettingsTagKeyDown }}" style="width:130px; padding:7px 13px; border-radius:999px; border:1px dashed {{ c.line }}; background:transparent; color:{{ c.ink }}; font-size:12.5px;">
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ dayDetailOpen }}">
+      <div onClick="{{ closeDayDetail }}" style="position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:40; display:flex; align-items:center; justify-content:center; padding:20px;">
+        <div onClick="{{ stopPropagation }}" style="width:440px; max-width:100%; max-height:88vh; overflow-y:auto; background:{{ c.card }}; border-radius:18px; box-shadow:0 24px 64px rgba(0,0,0,.3);">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:20px 24px; border-bottom:1px solid {{ c.line }};">
+            <div>
+              <div style="font-size:16px; font-weight:800;">{{ dayDetail.dateText }}</div>
+              <div style="font-size:12px; color:{{ c.faint }}; margin-top:2px;">{{ dayDetail.weekdayText }}</div>
+            </div>
+            <div onClick="{{ closeDayDetail }}" style="width:30px; height:30px; border-radius:999px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:{{ c.faint }};">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:18px; padding:22px 24px; border-bottom:1px solid {{ c.line }}; background:{{ c.pillBg }};">
+            <svg viewBox="0 0 40 40" style="width:56px; height:56px; flex-shrink:0;">
+              <circle cx="20" cy="20" r="16" fill="none" stroke="{{ c.green }}" stroke-width="6" stroke-linecap="round" stroke-dasharray="{{ dayDetail.ring.greenDash }}" transform="rotate(-90 20 20)"></circle>
+              <circle cx="20" cy="20" r="16" fill="none" stroke="{{ c.red }}" stroke-width="6" stroke-linecap="round" stroke-dasharray="{{ dayDetail.ring.redDash }}" stroke-dashoffset="{{ dayDetail.ring.redOffset }}" transform="rotate(-90 20 20)"></circle>
+            </svg>
+            <div style="flex:1; display:flex; flex-direction:column; gap:2px;">
+              <div style="font-size:10.5px; font-weight:700; color:{{ c.faint }}; text-transform:uppercase;">{{ t.kpi_netpnl }}</div>
+              <div style="font-size:26px; font-weight:800; font-family:'IBM Plex Mono',monospace; color:{{ dayDetail.pnlColor }};">{{ dayDetail.pnlText }}</div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px; text-align:right;">
+              <div>
+                <div style="font-size:10px; font-weight:700; color:{{ c.faint }}; text-transform:uppercase;">{{ t.kpi_winrate }}</div>
+                <div style="font-size:14px; font-weight:800; font-family:'IBM Plex Mono',monospace;">{{ dayDetail.winRateText }}</div>
+              </div>
+              <div>
+                <div style="font-size:10px; font-weight:700; color:{{ c.faint }}; text-transform:uppercase;">{{ t.col_trades }}</div>
+                <div style="font-size:14px; font-weight:800; font-family:'IBM Plex Mono',monospace;">{{ dayDetail.tradesCountText }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="padding:8px 24px 22px;">
+            <sc-if value="{{ dayDetail.hint }}">
+              <div style="font-size:11px; color:{{ c.faint }}; padding:6px 0 4px;">{{ dayDetail.hint }}</div>
+            </sc-if>
+            <sc-for list="{{ dayDetail.trades }}" as="dt" hint-placeholder-count="3">
+              <div onClick="{{ dt.onClick }}" style="display:flex; align-items:center; gap:12px; padding:14px 0; border-top:1px solid {{ c.line }}; cursor:{{ dt.cursor }};">
+                <div style="width:34px; height:34px; border-radius:9px; background:{{ dt.badgeBg }}; color:{{ dt.badgeColor }}; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex-shrink:0;">{{ dt.sideLetter }}</div>
+                <div style="flex:1; min-width:0;">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="font-size:14px; font-weight:700;">{{ dt.sym }}</div>
+                    <div style="font-size:11px; font-weight:600; color:{{ c.faint }};">{{ dt.sideLabel }} · {{ dt.qtyText }}</div>
+                  </div>
+                  <div style="font-size:11.5px; color:{{ c.faint }}; font-family:'IBM Plex Mono',monospace; margin-top:2px;">{{ dt.entryExitText }}</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-family:'IBM Plex Mono',monospace; font-weight:700; color:{{ dt.pnlColor }};">{{ dt.pnlText }}</div>
+                  <div style="font-size:11px; color:{{ c.faint }}; font-family:'IBM Plex Mono',monospace; margin-top:2px;">{{ dt.rText }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+</div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+
+class Component extends DCLogic {
+  state = {
+    tab: 'dashboard', lang: 'en', theme: 'dark', tradeFilter: 'all', tagFilter: 'all', dateFrom: '', dateTo: '', monthOffset: 0,
+    journalModalOpen: false, journalTradeId: null,
+    customTags: [], newTagText: '', tlPage: 0, tlPageSize: 20,
+    tagsList: ['breakout', 'earnings', 'reversal', 'trend', 'news', 'gap', 'manual'], newSettingsTagText: '',
+    customEmotions: {}, customMistakes: {}, newEmotionText: '', newMistakeText: '',
+    notesByEntry: {}, noteTemplate: null, noteFontSize: 15, noteBold: false, noteItalic: false, noteUnderline: false, savedStatus: 'saved',
+    kpiVisible: { netpnl: true, winrate: true, pf: true, avgwl: true, maxdd: true, balance: false }, kpiPanelOpen: false,
+    equityHoverIdx: null, equitySelStart: null, equitySelEnd: null, equityDragging: false, equityRange: 'all',
+    trades: null,
+    datePickerOpen: false, pickerMonthOffset: 0, pickerTempFrom: null, pickerTempTo: null,
+    tradeModalOpen: false, editingTradeId: null, tagDropdownOpen: false, symbolDropdownOpen: false,
+    tradeForm: { sym: '', side: 'Long', entry: '', exit: '', qty: '', day: '', tags: '' },
+    symbolsList: ['AAPL', 'TSLA', 'NVDA', 'MSFT', 'QQQ', 'AMD', 'META', 'AMZN', 'SPY', 'COIN', 'NFLX', 'GOOGL'],
+    newSymbolText: '',
+    initialCapital: '10000',
+    dayDetailOpen: false, dayDetailDay: null, dayDetailCell: null,
+    userMenuOpen: false, loggedOut: false,
+    userName: 'Alex Chen', userEmail: 'alex@chitradelog.com',
+    loginEmail: '', loginPassword: '', rememberMe: true,
+    platforms: [
+      { id: 'p1', name: 'Interactive Brokers', accounts: [{ id: 'a1', name: 'Main' }, { id: 'a2', name: 'Paper' }] },
+      { id: 'p2', name: 'TD Ameritrade', accounts: [{ id: 'a3', name: 'Individual' }] },
+    ],
+    activePlatformId: 'p1', activeAccountIds: ['a1'],
+    accountSwitcherOpen: false, newPlatformText: '',
+    newAccountTextByPlatform: {},
+    tradesByAccount: {},
+  };
+  nextPlatformId = 3;
+  nextAccountId = 4;
+  nextTradeId = 24;
+  MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  CN_NUM = ['一','二','三','四','五','六'];
+
+  STRINGS = {
+    en: {
+      nav_dashboard: 'Dashboard', nav_tradelog: 'Trade Log', nav_calendar: 'Calendar', nav_reports: 'Reports', nav_journal: 'Journal', nav_settings: 'Settings',
+      lang_toggle_label: '中文', theme_label: 'Dark',
+      dash_title: 'Overview', dash_subtitle: 'Last 30 days · Jul 2026',
+      kpi_netpnl: 'Net P&L', kpi_winrate: 'Win Rate', kpi_pf: 'Profit Factor', kpi_avgwl: 'Avg Win/Loss', kpi_maxdd: 'Max Drawdown', kpi_balance: 'Account Balance',
+      sub_month: 'This month', sub_trades: '35 trades', sub_pf: 'Profit factor', sub_avgwl: 'Avg R multiple', sub_maxdd: 'Peak-to-trough', sub_balance: 'Initial capital + net P&L',
+      equity_curve: 'Equity Curve',
+      trade_score_title: 'Trade Score',
+      vs_last_month: 'vs last month',
+      curr_equity_label: 'Current', high_label: 'High', low_label: 'Low',
+      equity_hint: 'Drag to select a range',
+      eq_range_all: 'All', eq_range_month: 'This Month', eq_range_quarter: 'This Quarter', eq_range_year: 'This Year',
+      calendar_title: 'Calendar', calendar_subtitle: 'Daily P&L, win rate & weekly totals',
+      recent_trades: 'Recent Trades',
+      tradelog_title: 'Trade Log', tradelog_subtitle: 'Every trade, logged',
+      filter_all: 'All', filter_long: 'Long', filter_short: 'Short',
+      col_date: 'Date', col_symbol: 'Symbol', col_side: 'Side', col_entry: 'Entry', col_exit: 'Exit', col_qty: 'Qty', col_pnl: 'P&L', col_r: 'R', col_tags: 'Tags',
+      calendar_page_title: 'Calendar', calendar_page_subtitle: 'Monthly performance breakdown',
+      reports_title: 'Reports', reports_subtitle: 'Performance analytics',
+      chart_winrate_weekday: 'Win Rate by Weekday', chart_pnl_symbol: 'P&L by Symbol', chart_distribution: 'R-Multiple Distribution',
+      journal_title: 'Journal', journal_subtitle: 'Trade notes & reflections',
+      notes_label: 'Notes', tags_label: 'Tags', screenshot_label: 'Screenshots',
+      emotions_label: 'Emotions', mistakes_label: 'Mistake Review',
+      side_long: 'Long', side_short: 'Short',
+      wk_label: 'Week', win: 'win',
+      date_range_label: 'Date', clear_label: 'Clear', done_label: 'Done',
+      new_tag_placeholder: '+ Add tag',
+      range_today: 'Today', range_week: 'This Week', range_month: 'This Month', range_quarter: 'This Quarter',
+      showing_label: 'Showing', of_label: 'of', per_page_label: 'per page',
+      add_placeholder: '+ Add', apply_template: 'Apply Template', set_template: 'Set Template', clear_notes: 'Clear',
+      saved_label: 'Saved', editing_label: 'Editing…',
+      customize_label: 'Customize',
+      add_trade: '+ Add Trade', edit_trade: 'Edit Trade', save_label: 'Save', delete_label: 'Delete', cancel_label: 'Cancel',
+      form_symbol: 'Symbol', form_side: 'Side', form_entry: 'Entry', form_exit: 'Exit', form_qty: 'Qty', form_day: 'Day (Jul)', form_tags: 'Tag',
+      holding_time_title: 'Holding Time Distribution', avg_holding_label: 'Avg Holding Time',
+      monthly_compare_title: 'Monthly Performance', strategy_stats_title: 'Strategy Tag Performance',
+      col_winrate: 'Win Rate', col_avgpnl: 'Avg P&L', col_trades: 'Trades',
+      settings_title: 'Settings', settings_subtitle: 'Manage app data',
+      symbols_title: 'Symbols', symbols_subtitle: 'Available tickers for new trades', add_symbol_placeholder: '+ Add symbol',
+      tags_settings_title: 'Tags', tags_settings_subtitle: 'Available tags for new trades', add_tag_placeholder2: '+ Add tag',
+      day_detail_hint: 'Tap a trade to open its journal',
+      export_csv: 'Export CSV', import_csv: 'Import CSV', download_sample: 'Download sample',
+      account_settings_label: 'Account Settings', log_out_label: 'Log Out',
+      logged_out_title: 'You have been logged out', logged_out_subtitle: 'This is a prototype — any email/password will sign you in.',
+      log_back_in_label: 'Log Back In',
+      login_subtitle: 'Log in to your account', email_label: 'Email', password_label: 'Password', log_in_label: 'Log In',
+      remember_me_label: 'Remember me',
+      no_account_label: 'No account', add_platform_placeholder: '+ Add platform', add_account_placeholder: '+ Add account',
+      accounts_selected_label: 'accounts selected',
+      platforms_title: 'Platforms & Accounts', platforms_subtitle: 'Manage brokerage platforms and their accounts', manage_platforms_label: 'Manage Platforms',
+      account_title: 'Account', account_subtitle: 'Starting balance used for equity calculations',
+      initial_capital_label: 'Initial Capital',
+    },
+    zh: {
+      nav_dashboard: '儀表板', nav_tradelog: '交易日誌', nav_calendar: '日曆', nav_reports: '分析報表', nav_journal: '日記', nav_settings: '設定',
+      lang_toggle_label: 'EN', theme_label: '暗色',
+      dash_title: '總覽', dash_subtitle: '過去 30 天 · 2026 年 7 月',
+      kpi_netpnl: '淨損益', kpi_winrate: '勝率', kpi_pf: '獲利因子', kpi_avgwl: '平均賺賠比', kpi_maxdd: '最大回撤', kpi_balance: '帳戶總額',
+      sub_month: '本月累積', sub_trades: '35 筆交易', sub_pf: '獲利因子', sub_avgwl: '平均 R 倍數', sub_maxdd: '高點至低點', sub_balance: '初始資金 + 淨損益',
+      equity_curve: '權益曲線',
+      trade_score_title: '交易評分',
+      vs_last_month: '較上月',
+      curr_equity_label: '目前', high_label: '最高', low_label: '最低',
+      equity_hint: '拖曳可選取區間',
+      eq_range_all: '全部', eq_range_month: '本月', eq_range_quarter: '本季', eq_range_year: '本年',
+      calendar_title: '月曆檢視', calendar_subtitle: '每日損益、勝率與每週統計',
+      recent_trades: '最近交易',
+      tradelog_title: '交易日誌', tradelog_subtitle: '所有交易紀錄',
+      filter_all: '全部', filter_long: '做多', filter_short: '做空',
+      col_date: '日期', col_symbol: '商品', col_side: '方向', col_entry: '進場', col_exit: '出場', col_qty: '數量', col_pnl: '損益', col_r: 'R值', col_tags: '標籤',
+      calendar_page_title: '日曆', calendar_page_subtitle: '每月績效總覽',
+      reports_title: '分析報表', reports_subtitle: '績效分析',
+      chart_winrate_weekday: '各星期勝率', chart_pnl_symbol: '各商品損益', chart_distribution: 'R 倍數分佈',
+      journal_title: '交易日記', journal_subtitle: '交易筆記與反思',
+      notes_label: '筆記', tags_label: '標籤', screenshot_label: '截圖',
+      emotions_label: '情緒標籤', mistakes_label: '錯誤檢討清單',
+      side_long: '多', side_short: '空',
+      wk_label: '第', win: '勝',
+      date_range_label: '日期', clear_label: '清除', done_label: '完成',
+      new_tag_placeholder: '+ 新增標籤',
+      range_today: '今日', range_week: '本週', range_month: '本月', range_quarter: '本季',
+      showing_label: '顯示', of_label: '／共', per_page_label: '筆／頁',
+      add_placeholder: '+ 新增', apply_template: '套用範本', set_template: '設定範本', clear_notes: '清空內容',
+      saved_label: '已儲存', editing_label: '編輯中…',
+      customize_label: '自訂',
+      add_trade: '+ 新增交易', edit_trade: '編輯交易', save_label: '儲存', delete_label: '刪除', cancel_label: '取消',
+      form_symbol: '商品代號', form_side: '方向', form_entry: '進場價', form_exit: '出場價', form_qty: '數量', form_day: '日期（7月）', form_tags: '標籤',
+      holding_time_title: '持倉時間分析', avg_holding_label: '平均持倉時間',
+      monthly_compare_title: '每月績效比較', strategy_stats_title: '策略標籤統計',
+      col_winrate: '勝率', col_avgpnl: '平均損益', col_trades: '交易次數',
+      settings_title: '設定', settings_subtitle: '管理應用程式資料',
+      symbols_title: '商品清單', symbols_subtitle: '新增交易時可選用的商品代號', add_symbol_placeholder: '+ 新增商品',
+      tags_settings_title: '標籤', tags_settings_subtitle: '新增交易時可選用的標籤', add_tag_placeholder2: '+ 新增標籤',
+      day_detail_hint: '點擊交易可開啟該筆日記',
+      export_csv: '匯出 CSV', import_csv: '匯入 CSV', download_sample: '下載範例檔',
+      account_settings_label: '帳戶設定', log_out_label: '登出',
+      logged_out_title: '您已登出', logged_out_subtitle: '此為原型展示，輸入任意帳號密碼即可登入。',
+      log_back_in_label: '重新登入',
+      login_subtitle: '登入您的帳戶', email_label: '電子郵件', password_label: '密碼', log_in_label: '登入',
+      remember_me_label: '記住我',
+      no_account_label: '尚無帳戶', add_platform_placeholder: '+ 新增平台', add_account_placeholder: '+ 新增帳戶',
+      accounts_selected_label: '個帳戶已選取',
+      platforms_title: '平台與帳戶', platforms_subtitle: '管理券商平台與旗下帳戶', manage_platforms_label: '管理平台',
+      account_title: '帳戶', account_subtitle: '用於權益曲線計算的起始資金',
+      initial_capital_label: '初始資金',
+    }
+  };
+
+  THEMES = {
+    light: { bg: '#FBFAF8', card: '#FFFFFF', pillBg: '#F1EFEA', ink: '#14171A', sub: 'rgba(20,23,26,.55)', faint: 'rgba(20,23,26,.38)', line: 'rgba(20,23,26,.09)', green: '#16A34A', red: '#DC2626', blue: '#2A5FD6', navActiveBg: '#16341F', navActiveText: '#FFFFFF', purple: '#7C3AED', purpleFill: 'rgba(124,58,237,.20)', radarLine: 'rgba(20,23,26,.16)' },
+    dark:  { bg: '#0B0F0D', card: '#121613', pillBg: '#171C18', ink: '#F2F4F1', sub: 'rgba(242,244,241,.62)', faint: 'rgba(242,244,241,.42)', line: 'rgba(255,255,255,.09)', green: '#34D399', red: '#F87171', blue: '#7AA2F7', navActiveBg: '#1F3A26', navActiveText: '#EFFFF2', purple: '#A78BFA', purpleFill: 'rgba(167,139,250,.26)', radarLine: 'rgba(255,255,255,.16)' },
+  };
+
+  seededRand(seed) {
+    const r = Math.sin(seed * 12.9898) * 43758.5453;
+    return r - Math.floor(r);
+  }
+
+  fmt(n, digits) {
+    const sign = n < 0 ? '-' : '+';
+    return sign + '$' + Math.abs(n).toLocaleString('en-US', { maximumFractionDigits: digits ?? 0 });
+  }
+
+  TAG_POOL = ['breakout', 'earnings', 'reversal', 'trend', 'news', 'gap'];
+
+  buildTrades(seedOffset) {
+    const off = seedOffset || 0;
+    const syms = this.state.symbolsList;
+    const trades = [];
+    for (let i = 0; i < 24; i++) {
+      const seed = i + 1 + off * 41.7;
+      const sym = syms[(i + Math.floor(off)) % syms.length];
+      const side = this.seededRand(seed * 3.1) > 0.45 ? 'Long' : 'Short';
+      const win = this.seededRand(seed * 7.7) > 0.4;
+      const r = win ? (0.4 + this.seededRand(seed * 5.3) * 3.2) : -(0.2 + this.seededRand(seed * 9.1) * 1.4);
+      const pnl = r * (80 + this.seededRand(seed * 2.2) * 60);
+      const entry = 40 + this.seededRand(seed * 1.7) * 400;
+      const exit = entry + (side === 'Long' ? pnl / 10 : -pnl / 10);
+      const qty = 10 + Math.round(this.seededRand(seed * 4.4) * 90);
+      const day = 1 + Math.floor(this.seededRand(seed * 6.6) * 30);
+      const tags = [this.TAG_POOL[i % this.TAG_POOL.length]];
+      const holdingMinutes = Math.round(3 + this.seededRand(seed * 11.3) * (this.seededRand(seed * 13.1) > 0.7 ? 600 : 90));
+      trades.push({ id: i, sym, side, r, pnl, entry, exit, qty, day, tags, holdingMinutes });
+    }
+    trades.sort((a, b) => b.day - a.day);
+    return trades;
+  }
+
+  NAME_TRANSLATIONS = {
+    'Interactive Brokers': '盈透證券', 'TD Ameritrade': '德美利證券',
+    'Main': '主帳戶', 'Paper': '模擬帳戶', 'Individual': '個人帳戶',
+  };
+  displayName(name, lang) {
+    if (lang === 'zh' && this.NAME_TRANSLATIONS[name]) return this.NAME_TRANSLATIONS[name];
+    return name;
+  }
+  accountSeed(accountId) {
+    let h = 0;
+    for (let i = 0; i < accountId.length; i++) h = (h * 31 + accountId.charCodeAt(i)) % 97;
+    return h;
+  }
+  ensureAccountTrades(accountId) {
+    if (this.state.tradesByAccount[accountId]) return;
+    const seed = this.accountSeed(accountId);
+    const raw = this.buildTrades(seed);
+    const tagged = raw.map(tr => ({ ...tr, id: accountId + '#' + tr.id, accountId }));
+    this.tradesByAccountPending = this.tradesByAccountPending || {};
+    this.tradesByAccountPending[accountId] = tagged;
+  }
+  getActiveTrades() {
+    const ids = this.state.activeAccountIds || [];
+    let changed = false;
+    ids.forEach(id => {
+      if (!this.state.tradesByAccount[id]) {
+        this.ensureAccountTrades(id);
+        changed = true;
+      }
+    });
+    if (changed) {
+      const merged = { ...this.state.tradesByAccount, ...(this.tradesByAccountPending || {}) };
+      this.tradesByAccountPending = {};
+      // schedule state update outside render
+      setTimeout(() => this.setState(s => ({ tradesByAccount: { ...s.tradesByAccount, ...merged } })), 0);
+      return ids.flatMap(id => merged[id] || []);
+    }
+    return ids.flatMap(id => this.state.tradesByAccount[id] || []);
+  }
+
+  buildCalendar() {
+    const monthOffset = this.state.monthOffset || 0;
+    const seedBase = monthOffset * 97.3;
+    const base = new Date(2026, 6, 1);
+    base.setMonth(base.getMonth() + monthOffset);
+    const firstDow = base.getDay(); // 0 = Sunday
+    const daysInMonth = new Date(base.getFullYear(), base.getMonth() + 1, 0).getDate();
+    const cells = [];
+    const weeks = [[], [], [], [], []];
+    for (let i = 0; i < 35; i++) {
+      const dayNum = i - firstDow + 1;
+      const inMonth = dayNum >= 1 && dayNum <= daysInMonth;
+      const seed = i + 11 + seedBase;
+      const hasData = inMonth && this.seededRand(seed * 4.7) > 0.28;
+      let pnl = null, tradesCount = 0, wins = 0;
+      if (hasData) {
+        const r = (this.seededRand(seed * 8.3) - 0.42) * 900;
+        pnl = Math.round(r);
+        tradesCount = 1 + Math.floor(this.seededRand(seed * 2.9) * 4);
+        wins = pnl >= 0 ? Math.ceil(tradesCount * (0.5 + this.seededRand(seed * 1.1) * 0.5)) : Math.floor(tradesCount * this.seededRand(seed * 1.3) * 0.5);
+      }
+      const cell = { day: inMonth ? dayNum : '', pnl, tradesCount, wins, hasData, weekIdx: Math.floor(i / 7) };
+      cells.push(cell);
+      weeks[cell.weekIdx].push(cell);
+    }
+    return { cells, weeks };
+  }
+
+  prevMonth() { this.setState(s => ({ monthOffset: (s.monthOffset || 0) - 1 })); }
+  nextMonth() { this.setState(s => ({ monthOffset: (s.monthOffset || 0) + 1 })); }
+
+  openDayDetail(day, cell) { this.setState({ dayDetailOpen: true, dayDetailDay: day, dayDetailCell: cell }); }
+  closeDayDetail() { this.setState({ dayDetailOpen: false }); }
+
+  buildDayTrades(day, cell) {
+    const syms = this.state.symbolsList;
+    const list = [];
+    for (let i = 0; i < cell.tradesCount; i++) {
+      const seed = day * 13.7 + i * 4.1;
+      const sym = syms[Math.floor(this.seededRand(seed * 2.1) * syms.length)];
+      const side = this.seededRand(seed * 5.5) > 0.5 ? 'Long' : 'Short';
+      const isWin = i < cell.wins;
+      const share = cell.pnl / Math.max(1, cell.tradesCount);
+      const jitter = (this.seededRand(seed * 7.3) - 0.5) * Math.abs(share) * 0.6;
+      const pnl = isWin ? Math.abs(share) + Math.abs(jitter) + 5 : -(Math.abs(share) * 0.6 + Math.abs(jitter));
+      const entry = 40 + this.seededRand(seed * 1.9) * 350;
+      const qty = 10 + Math.round(this.seededRand(seed * 3.3) * 80);
+      const exit = entry + (side === 'Long' ? pnl / qty : -pnl / qty);
+      const r = pnl / 100;
+      list.push({ sym, side, pnl, entry, exit, qty, r });
+    }
+    return list;
+  }
+
+  buildRadar(axes, c) {
+    const cx = 130, cy = 128, r = 88;
+    const n = axes.length;
+    const angleFor = i => (-90 + i * (360 / n)) * Math.PI / 180;
+    const pointAt = (i, radius) => ({
+      x: cx + radius * Math.cos(angleFor(i)),
+      y: cy + radius * Math.sin(angleFor(i)),
+    });
+    const gridPolygons = [0.33, 0.66, 1].map(frac =>
+      Array.from({ length: n }, (_, i) => { const p = pointAt(i, r * frac); return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ')
+    );
+    const axisLines = Array.from({ length: n }, (_, i) => { const p = pointAt(i, r); return { x1: cx, y1: cy, x2: p.x.toFixed(1), y2: p.y.toFixed(1), tooltip: axes[i].label + ': ' + axes[i].raw + ' — ' + axes[i].desc }; });
+    const scoreDots = axes.map((a, i) => {
+      const p = pointAt(i, r * (a.score / 100));
+      return { x: p.x.toFixed(1), y: p.y.toFixed(1), tooltip: a.label + ': ' + a.raw + ' — ' + a.desc };
+    });
+    const scorePolygonPoints = scoreDots.map(p => p.x + ',' + p.y).join(' ');
+    const viewW = 260, viewH = 250;
+    const labelPositions = axes.map((a, i) => {
+      const p = pointAt(i, r * 1.22);
+      return {
+        leftPct: (p.x / viewW * 100).toFixed(2) + '%',
+        topPct: (p.y / viewH * 100).toFixed(2) + '%',
+        text: a.label, align: 'center', translateX: '-50%',
+        tooltip: a.label + ': ' + a.raw + ' — ' + a.desc,
+      };
+    });
+    return { gridPolygons, axisLines, scorePolygonPoints, scoreDots, labels: labelPositions };
+  }
+
+  setEquityRange(r) { this.setState({ equityRange: r, equitySelStart: null, equitySelEnd: null }); }
+
+  syntheticMonthEntries(monthsAgo) {
+    const entries = [];
+    for (let i = 0; i < 16; i++) {
+      const seed = monthsAgo * 37.1 + i * 5.3;
+      const win = this.seededRand(seed * 7.7) > 0.42;
+      const r = win ? (0.4 + this.seededRand(seed * 5.3) * 3.2) : -(0.2 + this.seededRand(seed * 9.1) * 1.4);
+      const pnl = r * (80 + this.seededRand(seed * 2.2) * 60);
+      const day = 1 + Math.floor(this.seededRand(seed * 6.6) * 27);
+      entries.push({ day, pnl });
+    }
+    return entries;
+  }
+
+  buildRangeEntries(rangeKey, trades, lang) {
+    const monthsBack = { month: 0, quarter: 2, year: 11, all: 11 }[rangeKey] ?? 0;
+    const monthNamesEnShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthNamesZh = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+    const curMonthIdx = 6; // July, 0-based
+    let entries = trades.map(tr => ({
+      absDay: tr.day, pnl: tr.pnl,
+      label: (lang === 'en' ? monthNamesEnShort[curMonthIdx] : monthNamesZh[curMonthIdx]) + ' ' + tr.day,
+    }));
+    for (let m = 1; m <= monthsBack; m++) {
+      const monthIdx = ((curMonthIdx - m) % 12 + 12) % 12;
+      const monthName = lang === 'en' ? monthNamesEnShort[monthIdx] : monthNamesZh[monthIdx];
+      this.syntheticMonthEntries(m).forEach(e => {
+        entries.push({ absDay: -m * 31 + e.day, pnl: e.pnl, label: monthName + ' ' + e.day });
+      });
+    }
+    entries.sort((a, b) => a.absDay - b.absDay);
+    return entries;
+  }
+
+  buildEquityCurve(entries, c) {
+    const w = 1240, h = 190;
+    let running = 0;
+    const points = [{ label: null, value: 0 }];
+    entries.forEach(e => { running += e.pnl; points.push({ label: e.label, value: running }); });
+    const n = points.length;
+    const values = points.map(p => p.value);
+    const minV = Math.min(...values), maxV = Math.max(...values);
+    const range = Math.max(1, maxV - minV);
+    const xy = points.map((p, i) => {
+      const x = (i / (n - 1)) * w;
+      const y = h * 0.92 - ((p.value - minV) / range) * (h * 0.84);
+      return { ...p, x, y };
+    });
+    const path = xy.map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
+    const area = path + ` L${w},${h} L0,${h} Z`;
+    const yAxis = [1, 0.6667, 0.3333, 0].map(f => {
+      const val = minV + f * range;
+      const y = h * 0.92 - f * (h * 0.84);
+      return { y: y.toFixed(1), topPct: (y / h * 100).toFixed(2) + '%', text: this.fmt(val) };
+    });
+    const zeroY = h * 0.92 - ((0 - minV) / range) * (h * 0.84);
+    const barW = Math.max(2, (w / n) * 0.6);
+    const bars = xy.map(p => ({
+      x: (p.x - barW / 2).toFixed(1), w: barW.toFixed(1),
+      y: Math.min(p.y, zeroY).toFixed(1), h: Math.max(1, Math.abs(p.y - zeroY)).toFixed(1),
+      color: p.value >= 0 ? c.green : c.red,
+    }));
+    const labelCount = Math.min(5, n);
+    const xAxis = Array.from({ length: labelCount }, (_, i) => {
+      const idx = Math.round((i / (labelCount - 1)) * (n - 1));
+      const p = xy[idx];
+      const dayLabel = p.label == null ? '—' : p.label;
+      return { x: p.x.toFixed(1), text: dayLabel };
+    });
+    return { xy, path, area, current: values[n - 1], high: maxV, low: minV, yAxis, xAxis, w, h, bars };
+  }
+
+  equitySvgRefCallback = (el) => { this.equitySvgEl = el; };
+  getEquityIdxFromEvent(e) {
+    if (!this.equitySvgEl || !this.equityPointsCount) return null;
+    const rect = this.equitySvgEl.getBoundingClientRect();
+    if (!rect.width) return null;
+    const relX = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+    const frac = relX / rect.width;
+    return Math.max(0, Math.min(this.equityPointsCount - 1, Math.round(frac * (this.equityPointsCount - 1))));
+  }
+  onEquityMouseMove(e) {
+    const idx = this.getEquityIdxFromEvent(e);
+    if (idx == null) return;
+    this.setState(s => ({ equityHoverIdx: idx, equitySelEnd: s.equityDragging ? idx : s.equitySelEnd }));
+  }
+  onEquityMouseDown(e) {
+    const idx = this.getEquityIdxFromEvent(e);
+    if (idx == null) return;
+    this.setState({ equityDragging: true, equitySelStart: idx, equitySelEnd: idx });
+  }
+  onEquityMouseUp() {
+    this.setState(s => {
+      if (s.equitySelStart != null && s.equitySelStart === s.equitySelEnd) return { equityDragging: false, equitySelStart: null, equitySelEnd: null };
+      return { equityDragging: false };
+    });
+  }
+  onEquityMouseLeave() { this.setState({ equityHoverIdx: null, equityDragging: false }); }
+  clearEquitySelection() { this.setState({ equitySelStart: null, equitySelEnd: null }); }
+
+  setTab(tab) { this.setState({ tab }); }
+  toggleLang() { this.setState(s => ({ lang: s.lang === 'en' ? 'zh' : 'en' })); }
+  toggleTheme() { this.setState(s => ({ theme: s.theme === 'light' ? 'dark' : 'light' })); }
+  setFilter(f) { this.setState({ tradeFilter: f, tlPage: 0 }); }
+  setTagFilter(tg) { this.setState({ tagFilter: tg, tlPage: 0 }); }
+  openJournalModal(tradeId) { this.setState({ journalModalOpen: true, journalTradeId: tradeId }); }
+  closeJournalModal() { this.setState({ journalModalOpen: false }); }
+  setDateFrom(v) { this.setState({ dateFrom: v, tlPage: 0 }); }
+  setDateTo(v) { this.setState({ dateTo: v, tlPage: 0 }); }
+  setDateRange(from, to) { this.setState({ dateFrom: from, dateTo: to, tlPage: 0 }); }
+  clearDateFilter() { this.setState({ dateFrom: '', dateTo: '', tlPage: 0 }); }
+  setTlPage(p) { this.setState({ tlPage: p }); }
+  setTlPageSize(sz) { this.setState({ tlPageSize: sz, tlPage: 0 }); }
+
+  // ---------- Journal: emotions ----------
+  defaultEmotionsFor(idKey, lang) {
+    const emotionPoolEn = ['Confident', 'Patient', 'Anxious', 'FOMO', 'Greedy', 'Calm', 'Hesitant', 'Excited'];
+    const emotionPoolZh = ['自信', '耐心', '焦慮', '錯失恐懼', '貪婪', '平靜', '猶豫', '興奮'];
+    const pool = lang === 'en' ? emotionPoolEn : emotionPoolZh;
+    const seed = idKey.length + idKey.charCodeAt(0);
+    const picked = pool.filter((_, i) => this.seededRand((seed + i) * 3.3) > 0.55).slice(0, 3);
+    return picked.length ? picked : [pool[0]];
+  }
+  getEmotionsFor(idKey, lang) {
+    return this.state.customEmotions[idKey] || this.defaultEmotionsFor(idKey, lang);
+  }
+  addEmotion(idKey, lang) {
+    const v = (this.state.newEmotionText || '').trim();
+    if (!v) return;
+    const cur = this.getEmotionsFor(idKey, lang);
+    if (cur.includes(v)) { this.setState({ newEmotionText: '' }); return; }
+    this.setState(s => ({ customEmotions: { ...s.customEmotions, [idKey]: [...cur, v] }, newEmotionText: '' }));
+  }
+  removeEmotion(idKey, lang, val) {
+    const cur = this.getEmotionsFor(idKey, lang);
+    this.setState(s => ({ customEmotions: { ...s.customEmotions, [idKey]: cur.filter(x => x !== val) } }));
+  }
+  setNewEmotionText(v) { this.setState({ newEmotionText: v }); }
+
+  // ---------- Journal: mistakes ----------
+  defaultMistakesFor(idKey, lang) {
+    const mistakePoolEn = ['Moved stop loss', 'Oversized position', 'Chased entry', 'No clear plan', 'Ignored trend', 'Revenge trade'];
+    const mistakePoolZh = ['移動停損', '部位過大', '追高進場', '無明確計畫', '忽略趨勢', '報復性交易'];
+    const pool = lang === 'en' ? mistakePoolEn : mistakePoolZh;
+    const seed = idKey.length + idKey.charCodeAt(0);
+    return pool.map((label, i) => ({ label, checked: this.seededRand((seed + i) * 6.1) > 0.6 }));
+  }
+  getMistakesFor(idKey, lang) {
+    return this.state.customMistakes[idKey] || this.defaultMistakesFor(idKey, lang);
+  }
+  addMistake(idKey, lang) {
+    const v = (this.state.newMistakeText || '').trim();
+    if (!v) return;
+    const cur = this.getMistakesFor(idKey, lang);
+    this.setState(s => ({ customMistakes: { ...s.customMistakes, [idKey]: [...cur, { label: v, checked: false }] }, newMistakeText: '' }));
+  }
+  removeMistake(idKey, lang, idx) {
+    const cur = this.getMistakesFor(idKey, lang);
+    this.setState(s => ({ customMistakes: { ...s.customMistakes, [idKey]: cur.filter((_, i) => i !== idx) } }));
+  }
+  toggleMistake(idKey, lang, idx) {
+    const cur = this.getMistakesFor(idKey, lang);
+    const next = cur.map((m, i) => i === idx ? { ...m, checked: !m.checked } : m);
+    this.setState(s => ({ customMistakes: { ...s.customMistakes, [idKey]: next } }));
+  }
+  setNewMistakeText(v) { this.setState({ newMistakeText: v }); }
+
+  // ---------- Journal: notes editor ----------
+  defaultNotesFor(lang) {
+    return lang === 'en'
+      ? 'Entered on confirmation of the breakout above resistance with volume expansion. Stayed disciplined with the stop loss and scaled out into strength. Overall a clean execution following the plan.'
+      : '在突破壓力位並伴隨量能放大後進場確認。嚴格遵守停損設定，並在價格走強時分批出場。整體執行乾淨，完全按照交易計畫進行。';
+  }
+  defaultTemplate(lang) {
+    return lang === 'en'
+      ? 'Market context:<br><br>Emotions:<br><br>Discipline:<br><br>Improvements:<br>'
+      : '市場環境：<br><br>情緒：<br><br>紀律：<br><br>改進方向：<br>';
+  }
+  notesRefCallback = (el) => { this.notesRef = el; };
+  syncNotesContent() {
+    if (!this.notesRef) return;
+    const idKey = this.currentIdKey;
+    const html = this.state.notesByEntry[idKey];
+    this.notesRef.innerHTML = html != null ? html : this.defaultNotesFor(this.state.lang);
+  }
+  componentDidMount() {
+    this.lastJournalTradeId = this.state.journalTradeId;
+    this.syncNotesContent();
+    (this.state.activeAccountIds || []).forEach(id => this.ensureAccountTrades(id));
+    if (this.tradesByAccountPending && Object.keys(this.tradesByAccountPending).length) {
+      const pending = this.tradesByAccountPending;
+      this.tradesByAccountPending = {};
+      this.setState(s => ({ tradesByAccount: { ...s.tradesByAccount, ...pending } }));
+    }
+    document.addEventListener('mousedown', this.onDocMouseDown);
+  }
+  componentWillUnmount() {
+    document.removeEventListener('mousedown', this.onDocMouseDown);
+  }
+  onDocMouseDown = (e) => {
+    const insideDropdown = e.target.closest && e.target.closest('[data-dropdown-root]');
+    if (insideDropdown) return;
+    const s = this.state;
+    if (s.kpiPanelOpen || s.symbolDropdownOpen || s.tagDropdownOpen || s.datePickerOpen || s.userMenuOpen || s.accountSwitcherOpen) {
+      this.setState({ kpiPanelOpen: false, symbolDropdownOpen: false, tagDropdownOpen: false, datePickerOpen: false, userMenuOpen: false, accountSwitcherOpen: false });
+    }
+  };
+
+  toggleAccountSwitcher() { this.setState(s => ({ accountSwitcherOpen: !s.accountSwitcherOpen })); }
+  toggleAccountSelected(accountId) {
+    this.setState(s => {
+      const has = s.activeAccountIds.includes(accountId);
+      let ids = has ? s.activeAccountIds.filter(x => x !== accountId) : [...s.activeAccountIds, accountId];
+      if (!ids.length) ids = [accountId]; // keep at least one selected
+      return { activeAccountIds: ids };
+    });
+  }
+  setNewPlatformText(v) { this.setState({ newPlatformText: v }); }
+  addPlatform() {
+    const v = (this.state.newPlatformText || '').trim();
+    if (!v) return;
+    const id = 'p' + (this.nextPlatformId++);
+    this.setState(s => ({ platforms: [...s.platforms, { id, name: v, accounts: [] }], newPlatformText: '' }));
+  }
+  removePlatform(platformId) {
+    this.setState(s => {
+      const platforms = s.platforms.filter(p => p.id !== platformId);
+      let activePlatformId = s.activePlatformId, activeAccountIds = s.activeAccountIds;
+      const removedIds = new Set((s.platforms.find(p => p.id === platformId) || { accounts: [] }).accounts.map(a => a.id));
+      activeAccountIds = activeAccountIds.filter(id => !removedIds.has(id));
+      if (activePlatformId === platformId) {
+        const next = platforms[0];
+        activePlatformId = next ? next.id : null;
+      }
+      if (!activeAccountIds.length) {
+        const anyPlat = platforms.find(p => p.accounts.length);
+        activeAccountIds = anyPlat ? [anyPlat.accounts[0].id] : [];
+      }
+      return { platforms, activePlatformId, activeAccountIds };
+    });
+  }
+  setNewAccountText(platformId, v) {
+    this.setState(s => ({ newAccountTextByPlatform: { ...s.newAccountTextByPlatform, [platformId]: v } }));
+  }
+  addAccount(platformId) {
+    const v = (this.state.newAccountTextByPlatform[platformId] || '').trim();
+    if (!v) return;
+    const id = 'a' + (this.nextAccountId++);
+    this.setState(s => ({
+      platforms: s.platforms.map(p => p.id === platformId ? { ...p, accounts: [...p.accounts, { id, name: v }] } : p),
+      newAccountTextByPlatform: { ...s.newAccountTextByPlatform, [platformId]: '' },
+    }));
+  }
+  removeAccount(platformId, accountId) {
+    this.setState(s => {
+      const platforms = s.platforms.map(p => p.id === platformId ? { ...p, accounts: p.accounts.filter(a => a.id !== accountId) } : p);
+      let activeAccountIds = s.activeAccountIds.filter(id => id !== accountId);
+      if (!activeAccountIds.length) {
+        const anyPlat = platforms.find(p => p.accounts.length);
+        activeAccountIds = anyPlat ? [anyPlat.accounts[0].id] : [];
+      }
+      return { platforms, activeAccountIds };
+    });
+  }
+
+  toggleUserMenu() { this.setState(s => ({ userMenuOpen: !s.userMenuOpen })); }
+  goToSettingsFromMenu() { this.setState({ userMenuOpen: false, tab: 'settings' }); }
+  logOut() { this.setState({ userMenuOpen: false, loggedOut: true }); }
+  logBackIn() { this.setState({ loggedOut: false, loginEmail: '', loginPassword: '' }); }
+  setLoginEmail(v) { this.setState({ loginEmail: v }); }
+  setLoginPassword(v) { this.setState({ loginPassword: v }); }
+  toggleRememberMe() { this.setState(s => ({ rememberMe: !s.rememberMe })); }
+  componentDidUpdate() {
+    if (this.state.journalTradeId !== this.lastJournalTradeId) {
+      this.lastJournalTradeId = this.state.journalTradeId;
+      this.syncNotesContent();
+    }
+  }
+  onNotesInput(e) {
+    const idKey = this.currentIdKey;
+    const html = e.target.innerHTML;
+    this.setState(s => ({ notesByEntry: { ...s.notesByEntry, [idKey]: html }, savedStatus: 'editing' }));
+    clearTimeout(this.saveTimer);
+    this.saveTimer = setTimeout(() => this.setState({ savedStatus: 'saved' }), 900);
+  }
+  onNotesPaste(e) {
+    const items = e.clipboardData && e.clipboardData.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') === 0) {
+        e.preventDefault();
+        const file = items[i].getAsFile();
+        const reader = new FileReader();
+        reader.onload = () => {
+          document.execCommand('insertImage', false, reader.result);
+          if (this.notesRef) {
+            const imgs = this.notesRef.querySelectorAll('img');
+            imgs.forEach(img => {
+              img.style.maxWidth = '100%';
+              img.style.borderRadius = '8px';
+              img.style.display = 'block';
+              img.style.margin = '10px 0';
+            });
+            const idKey = this.currentIdKey;
+            this.setState(s => ({ notesByEntry: { ...s.notesByEntry, [idKey]: this.notesRef.innerHTML }, savedStatus: 'saved' }));
+          }
+        };
+        reader.readAsDataURL(file);
+        return;
+      }
+    }
+  }
+  applyTemplate() {
+    const idKey = this.currentIdKey;
+    const tpl = this.state.noteTemplate != null ? this.state.noteTemplate : this.defaultTemplate(this.state.lang);
+    this.setState(s => ({ notesByEntry: { ...s.notesByEntry, [idKey]: tpl }, savedStatus: 'saved' }));
+    if (this.notesRef) this.notesRef.innerHTML = tpl;
+  }
+  setTemplate() {
+    const current = this.notesRef ? this.notesRef.innerHTML : (this.state.notesByEntry[this.currentIdKey] || '');
+    this.setState({ noteTemplate: current });
+  }
+  clearNotes() {
+    const idKey = this.currentIdKey;
+    this.setState(s => ({ notesByEntry: { ...s.notesByEntry, [idKey]: '' }, savedStatus: 'saved' }));
+    if (this.notesRef) this.notesRef.innerHTML = '';
+  }
+  toggleBold() { this.setState(s => ({ noteBold: !s.noteBold })); }
+  toggleItalic() { this.setState(s => ({ noteItalic: !s.noteItalic })); }
+  toggleUnderline() { this.setState(s => ({ noteUnderline: !s.noteUnderline })); }
+  increaseFontSize() { this.setState(s => ({ noteFontSize: Math.min(24, s.noteFontSize + 1) })); }
+  decreaseFontSize() { this.setState(s => ({ noteFontSize: Math.max(11, s.noteFontSize - 1) })); }
+
+  toggleKpiPanel() { this.setState(s => ({ kpiPanelOpen: !s.kpiPanelOpen })); }
+  toggleKpiVisible(key) { this.setState(s => ({ kpiVisible: { ...s.kpiVisible, [key]: !s.kpiVisible[key] } })); }
+
+  // ---------- Trade Log: add / edit / delete ----------
+  openAddTrade() {
+    this.setState(s => ({
+      tradeModalOpen: true, editingTradeId: null, editingTradeAccountId: null,
+      tradeForm: { sym: s.symbolsList[0] || '', side: 'Long', entry: '', exit: '', qty: '', day: '', tags: '' },
+    }));
+  }
+  openEditTrade(tr) {
+    this.setState({
+      tradeModalOpen: true, editingTradeId: tr.id, editingTradeAccountId: tr.accountId,
+      tradeForm: { sym: tr.sym, side: tr.side, entry: '' + tr.entry.toFixed(2), exit: '' + tr.exit.toFixed(2), qty: '' + tr.qty, day: '' + tr.day, tags: tr.tags[0] || '' },
+    });
+  }
+  closeTradeModal() { this.setState({ tradeModalOpen: false, tagDropdownOpen: false }); }
+  setTradeFormField(key, val) { this.setState(s => ({ tradeForm: { ...s.tradeForm, [key]: val } })); }
+  toggleTagDropdown() { this.setState(s => ({ tagDropdownOpen: !s.tagDropdownOpen })); }
+  selectTagOption(tag) { this.setState(s => ({ tradeForm: { ...s.tradeForm, tags: tag }, tagDropdownOpen: false })); }
+  toggleSymbolDropdown() { this.setState(s => ({ symbolDropdownOpen: !s.symbolDropdownOpen })); }
+  selectSymbolOption(sym) { this.setState(s => ({ tradeForm: { ...s.tradeForm, sym }, symbolDropdownOpen: false })); }
+  setNewSymbolText(v) { this.setState({ newSymbolText: v }); }
+  addSymbol() {
+    const v = (this.state.newSymbolText || '').trim().toUpperCase();
+    if (!v) return;
+    this.setState(s => ({ symbolsList: s.symbolsList.includes(v) ? s.symbolsList : [...s.symbolsList, v], newSymbolText: '' }));
+  }
+  removeSymbol(sym) { this.setState(s => ({ symbolsList: s.symbolsList.filter(x => x !== sym) })); }
+  setInitialCapital(v) { this.setState({ initialCapital: v }); }
+  setNewSettingsTagText(v) { this.setState({ newSettingsTagText: v }); }
+  addSettingsTag() {
+    const v = (this.state.newSettingsTagText || '').trim();
+    if (!v) return;
+    this.setState(s => ({ tagsList: s.tagsList.includes(v) ? s.tagsList : [...s.tagsList, v], newSettingsTagText: '' }));
+  }
+  removeSettingsTag(tg) { this.setState(s => ({ tagsList: s.tagsList.filter(x => x !== tg) })); }
+
+  importFileRefCallback = (el) => { this.importInputRef = el; };
+  triggerImportFile() { if (this.importInputRef) this.importInputRef.click(); }
+  parseCSVLine(line) {
+    const out = [];
+    let cur = '', inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inQuotes) {
+        if (ch === '"') {
+          if (line[i + 1] === '"') { cur += '"'; i++; } else { inQuotes = false; }
+        } else cur += ch;
+      } else {
+        if (ch === '"') inQuotes = true;
+        else if (ch === ',') { out.push(cur); cur = ''; }
+        else cur += ch;
+      }
+    }
+    out.push(cur);
+    return out;
+  }
+  onImportFileChange(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => this.importCSVText(reader.result);
+    reader.readAsText(file);
+    e.target.value = '';
+  }
+  importCSVText(text) {
+    const lines = text.split(/\r?\n/).filter(l => l.trim().length);
+    if (lines.length < 2) return;
+    const rows = lines.slice(1);
+    const newTrades = [];
+    rows.forEach(line => {
+      const cols = this.parseCSVLine(line);
+      if (cols.length < 8) return;
+      const [dateStr, sym, side, entryStr, exitStr, qtyStr, pnlStr, rStr, tagsStr] = cols;
+      const dayMatch = /-(\d{2})$/.exec((dateStr || '').trim());
+      const day = dayMatch ? parseInt(dayMatch[1], 10) : (1 + Math.floor(this.seededRand(newTrades.length * 3.3) * 28));
+      const entry = parseFloat(entryStr) || 0;
+      const exit = parseFloat(exitStr) || 0;
+      const qty = parseInt(qtyStr, 10) || 1;
+      const pnl = pnlStr !== undefined && pnlStr !== '' ? parseFloat(pnlStr) : (side === 'Long' ? (exit - entry) * qty : (entry - exit) * qty);
+      const r = rStr !== undefined && rStr !== '' ? parseFloat(rStr) : pnl / 100;
+      const tags = (tagsStr || '').split(';').map(x => x.trim()).filter(Boolean);
+      const holdingMinutes = 30 + Math.round(this.seededRand((entry + exit + qty) * 5.1) * 400);
+      newTrades.push({
+        id: this.nextTradeId++, sym: (sym || '').trim().toUpperCase(), side: side === 'Short' ? 'Short' : 'Long',
+        entry, exit, qty, day, pnl, r, tags: tags.length ? tags : ['manual'], holdingMinutes,
+      });
+    });
+    if (!newTrades.length) return;
+    this.setState(s => ({
+      trades: [...newTrades, ...(s.trades || [])].sort((a, b) => b.day - a.day),
+      symbolsList: [...new Set([...s.symbolsList, ...newTrades.map(t => t.sym)])],
+      tagsList: [...new Set([...s.tagsList, ...newTrades.flatMap(t => t.tags)])],
+    }));
+  }
+
+  downloadSampleCSV() {
+    const header = ['Date', 'Symbol', 'Side', 'Entry', 'Exit', 'Qty', 'PnL', 'R', 'Tags'];
+    const sample = [
+      ['2026-07-05', 'AAPL', 'Long', '210.50', '215.80', '50', '265.00', '2.7', 'breakout'],
+      ['2026-07-08', 'TSLA', 'Short', '260.00', '252.30', '30', '231.00', '1.5', 'reversal'],
+    ];
+    const csv = [header, ...sample].map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'trades-sample.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  exportCSV() {
+    const trades = this.getActiveTrades();
+    const filtered = trades
+      .filter(tr => this.state.tradeFilter === 'all' || tr.side.toLowerCase() === this.state.tradeFilter)
+      .filter(tr => this.state.tagFilter === 'all' || tr.tags.includes(this.state.tagFilter))
+      .filter(tr => !this.state.dateFrom || this.dayToISO(tr.day) >= this.state.dateFrom)
+      .filter(tr => !this.state.dateTo || this.dayToISO(tr.day) <= this.state.dateTo);
+    const header = ['Date', 'Symbol', 'Side', 'Entry', 'Exit', 'Qty', 'PnL', 'R', 'Tags'];
+    const esc = v => { const s = '' + v; return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+    const rows = filtered.map(tr => [
+      this.dayToISO(tr.day), tr.sym, tr.side, tr.entry.toFixed(2), tr.exit.toFixed(2), tr.qty,
+      tr.pnl.toFixed(2), tr.r.toFixed(2), tr.tags.join('; '),
+    ]);
+    const csv = [header, ...rows].map(r => r.map(esc).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'trades.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  saveTrade() {
+    const f = this.state.tradeForm;
+    const sym = (f.sym || '').trim().toUpperCase();
+    const entry = parseFloat(f.entry), exit = parseFloat(f.exit), qty = parseInt(f.qty, 10);
+    const day = Math.max(1, Math.min(31, parseInt(f.day, 10) || 1));
+    if (!sym || isNaN(entry) || isNaN(exit) || isNaN(qty) || qty <= 0) return;
+    const side = f.side === 'Short' ? 'Short' : 'Long';
+    const pnl = (side === 'Long' ? (exit - entry) : (entry - exit)) * qty;
+    const r = pnl / 100;
+    const tags = (f.tags || '').split(',').map(x => x.trim()).filter(Boolean);
+    const holdingMinutes = 30 + Math.round(this.seededRand((entry + exit + qty) * 7.7) * 400);
+    if (this.state.editingTradeId == null) {
+      const accountId = (this.state.activeAccountIds || [])[0];
+      if (!accountId) { this.setState({ tradeModalOpen: false }); return; }
+      const newTrade = { id: accountId + '#new' + (this.nextTradeId++), accountId, sym, side, entry, exit, qty, day, r, pnl, tags: tags.length ? tags : ['manual'], holdingMinutes };
+      this.setState(s => ({
+        tradesByAccount: { ...s.tradesByAccount, [accountId]: [newTrade, ...(s.tradesByAccount[accountId] || [])].sort((a, b) => b.day - a.day) },
+        tradeModalOpen: false,
+      }));
+    } else {
+      const id = this.state.editingTradeId;
+      const accountId = this.state.editingTradeAccountId;
+      this.setState(s => ({
+        tradesByAccount: {
+          ...s.tradesByAccount,
+          [accountId]: (s.tradesByAccount[accountId] || []).map(t => t.id === id ? { ...t, sym, side, entry, exit, qty, day, r, pnl, tags: tags.length ? tags : t.tags } : t).sort((a, b) => b.day - a.day),
+        },
+        tradeModalOpen: false,
+      }));
+    }
+  }
+  deleteTrade() {
+    const id = this.state.editingTradeId;
+    const accountId = this.state.editingTradeAccountId;
+    if (id == null || !accountId) return;
+    this.setState(s => ({
+      tradesByAccount: { ...s.tradesByAccount, [accountId]: (s.tradesByAccount[accountId] || []).filter(t => t.id !== id) },
+      tradeModalOpen: false,
+    }));
+  }
+  setNewTagText(v) { this.setState({ newTagText: v }); }
+
+  // ---------- Trade Log: custom date range picker ----------
+  toggleDatePicker() {
+    this.setState(s => {
+      if (s.datePickerOpen) return { datePickerOpen: false };
+      return { datePickerOpen: true, pickerMonthOffset: 0, pickerTempFrom: s.dateFrom || null, pickerTempTo: s.dateTo || null };
+    });
+  }
+  pickerPrevMonth() { this.setState(s => ({ pickerMonthOffset: s.pickerMonthOffset - 1 })); }
+  pickerNextMonth() { this.setState(s => ({ pickerMonthOffset: s.pickerMonthOffset + 1 })); }
+  pickerPickDay(iso) {
+    this.setState(s => {
+      if (!s.pickerTempFrom || (s.pickerTempFrom && s.pickerTempTo)) return { pickerTempFrom: iso, pickerTempTo: null };
+      if (iso < s.pickerTempFrom) return { pickerTempFrom: iso, pickerTempTo: s.pickerTempFrom };
+      return { pickerTempTo: iso };
+    });
+  }
+  pickerCancel() { this.setState({ datePickerOpen: false }); }
+  pickerDone() {
+    this.setState(s => ({
+      datePickerOpen: false,
+      dateFrom: s.pickerTempFrom || '', dateTo: s.pickerTempTo || s.pickerTempFrom || '',
+      tlPage: 0,
+    }));
+  }
+  addCustomTag() {
+    const v = (this.state.newTagText || '').trim();
+    if (!v) return;
+    this.setState(s => ({
+      tagsList: s.tagsList.includes(v) ? s.tagsList : [...s.tagsList, v],
+      tagFilter: v,
+      newTagText: '',
+      tlPage: 0,
+    }));
+  }
+  pad2(n) { return n < 10 ? '0' + n : '' + n; }
+  dayToISO(day) { return '2026-07-' + this.pad2(day); }
+
+  renderVals() {
+    const lang = this.state.lang;
+    const t = this.STRINGS[lang];
+    const c = this.THEMES[this.state.theme];
+    const tab = this.state.tab;
+
+    const navKeys = [
+      ['dashboard', t.nav_dashboard],
+      ['tradelog', t.nav_tradelog],
+      ['calendarpage', t.nav_calendar],
+      ['reports', t.nav_reports],
+      ['settings', t.nav_settings],
+    ];
+    const navItems = navKeys.map(([key, label]) => ({
+      key, label,
+      color: tab === key ? c.navActiveText : c.sub,
+      bg: tab === key ? c.navActiveBg : 'transparent',
+      onClick: () => this.setTab(key),
+    }));
+
+    const trades = this.getActiveTrades();
+    const wins = trades.filter(x => x.pnl >= 0);
+    const netPnl = trades.reduce((s, x) => s + x.pnl, 0);
+    const winRate = (wins.length / trades.length) * 100;
+    const grossWin = wins.reduce((s, x) => s + x.pnl, 0);
+    const grossLoss = Math.abs(trades.filter(x => x.pnl < 0).reduce((s, x) => s + x.pnl, 0));
+    const profitFactor = grossLoss ? (grossWin / grossLoss) : 0;
+    const avgWin = grossWin / (wins.length || 1);
+    const avgLoss = grossLoss / ((trades.length - wins.length) || 1);
+    const avgWL = avgLoss ? (avgWin / avgLoss) : 0;
+    const maxDrawdown = -612;
+
+    const gaugeR = 40, gaugeCx = 50, gaugeCy = 50;
+    const gaugePoint = deg => { const rad = deg * Math.PI / 180; return { x: gaugeCx + gaugeR * Math.cos(rad), y: gaugeCy - gaugeR * Math.sin(rad) }; };
+    const winRateClamped = Math.max(0, Math.min(100, winRate));
+    const gaugeMidDeg = 180 - winRateClamped * 1.8;
+    const gaugeStart = gaugePoint(180), gaugeMid = gaugePoint(gaugeMidDeg), gaugeEnd = gaugePoint(0);
+    const greenGaugePath = `M ${gaugeStart.x.toFixed(2)} ${gaugeStart.y.toFixed(2)} A ${gaugeR} ${gaugeR} 0 0 1 ${gaugeMid.x.toFixed(2)} ${gaugeMid.y.toFixed(2)}`;
+    const redGaugePath = `M ${gaugeMid.x.toFixed(2)} ${gaugeMid.y.toFixed(2)} A ${gaugeR} ${gaugeR} 0 0 1 ${gaugeEnd.x.toFixed(2)} ${gaugeEnd.y.toFixed(2)}`;
+    const wlTotal = Math.max(0.01, avgWin + avgLoss);
+    const winBarPct = Math.max(0, Math.min(100, (avgWin / wlTotal) * 100)).toFixed(1) + '%';
+    const lossBarPct = Math.max(0, Math.min(100, (avgLoss / wlTotal) * 100)).toFixed(1) + '%';
+
+    const ringR = 16, ringCirc = 2 * Math.PI * ringR;
+    const ringGap = ringCirc * 0.035;
+    const ringArcs = frac => {
+      const f = Math.max(0.02, Math.min(0.98, frac));
+      const greenLen = Math.max(0, ringCirc * f - ringGap / 2);
+      const redLen = Math.max(0, ringCirc * (1 - f) - ringGap / 2);
+      return {
+        greenDash: greenLen.toFixed(1) + ' ' + (ringCirc - greenLen).toFixed(1),
+        redDash: redLen.toFixed(1) + ' ' + (ringCirc - redLen).toFixed(1),
+        redOffset: (-(greenLen + ringGap)).toFixed(1),
+      };
+    };
+    const winRateRing = ringArcs(winRateClamped / 100);
+    const avgWlRing = ringArcs(avgWin / wlTotal);
+
+    const deltaFor = (seed, betterIsUp) => {
+      const pct = Math.round((this.seededRand(seed * 4.4) - 0.4) * 40);
+      const up = pct >= 0;
+      const good = betterIsUp ? up : !up;
+      return { text: (up ? '▲ ' : '▼ ') + Math.abs(pct) + '% ' + t.vs_last_month, color: good ? c.green : c.red };
+    };
+    const d1 = deltaFor(1.1, true), d2 = deltaFor(2.2, true), d3 = deltaFor(3.3, true), d4 = deltaFor(4.4, true), d5 = deltaFor(5.5, false);
+    const kpis = [
+      { key: 'netpnl', label: t.kpi_netpnl, value: this.fmt(netPnl), sub: t.sub_month, color: netPnl >= 0 ? c.green : c.red, isWinRate: false, isAvgWL: false, isPlain: true, deltaText: d1.text, deltaColor: d1.color },
+      { key: 'winrate', label: t.kpi_winrate, value: winRate.toFixed(1) + '%', sub: t.sub_trades, color: c.ink, isWinRate: true, isAvgWL: false, isPlain: false, ring: winRateRing, deltaText: d2.text, deltaColor: d2.color },
+      { key: 'pf', label: t.kpi_pf, value: profitFactor.toFixed(2), sub: t.sub_pf, color: c.ink, isWinRate: false, isAvgWL: false, isPlain: true, deltaText: d3.text, deltaColor: d3.color },
+      { key: 'avgwl', label: t.kpi_avgwl, value: avgWL.toFixed(1) + 'R', sub: t.sub_avgwl, color: c.ink, isWinRate: false, isAvgWL: true, isPlain: false, ring: avgWlRing, avgWinText: '$' + avgWin.toFixed(1), avgLossText: '$' + avgLoss.toFixed(1), deltaText: d4.text, deltaColor: d4.color },
+      { key: 'maxdd', label: t.kpi_maxdd, value: this.fmt(maxDrawdown), sub: t.sub_maxdd, color: c.red, isWinRate: false, isAvgWL: false, isPlain: true, deltaText: d5.text, deltaColor: d5.color },
+      { key: 'balance', label: t.kpi_balance, value: this.fmt((parseFloat(this.state.initialCapital) || 0) + netPnl), sub: t.sub_balance, color: c.ink, isWinRate: false, isAvgWL: false, isPlain: true, deltaText: d1.text, deltaColor: d1.color },
+    ];
+    const dashboardKpis = kpis.filter(k => this.state.kpiVisible[k.key] !== false);
+    const kpiGridCols = 'repeat(' + Math.max(1, dashboardKpis.length) + ', 1fr)';
+    const kpiToggleItems = kpis.map(k => {
+      const on = this.state.kpiVisible[k.key] !== false;
+      return {
+        key: k.key, label: k.label, on,
+        trackBg: on ? c.navActiveBg : c.pillBg,
+        knobLeft: on ? '16px' : '2px',
+        onToggle: () => this.toggleKpiVisible(k.key),
+      };
+    });
+
+    const equityEntries = this.buildRangeEntries(this.state.equityRange, trades, lang);
+    const equityCurve = this.buildEquityCurve(equityEntries, c);
+    const { path: equityPath, area: equityArea, current: equityCurrent, high: equityHigh, low: equityLow, xy: equityXY, yAxis: equityYAxis, xAxis: equityXAxis, w: equityW, h: equityH, bars: equityBars } = equityCurve;
+    this.equityPointsCount = equityXY.length;
+    const equityCurrentText = this.fmt(equityCurrent);
+    const equityHighText = this.fmt(equityHigh);
+    const equityLowText = this.fmt(equityLow);
+
+    const equityHoverIdx = this.state.equityHoverIdx;
+    const equityHoverPoint = (equityHoverIdx != null && equityXY[equityHoverIdx]) ? equityXY[equityHoverIdx] : null;
+    const hasEquityHover = !!equityHoverPoint && !this.state.equityDragging;
+    const equityHoverTooltip = equityHoverPoint ? {
+      leftPct: (equityHoverPoint.x / equityW * 100).toFixed(2) + '%',
+      dateText: equityHoverPoint.label == null ? '—' : equityHoverPoint.label,
+      valueText: this.fmt(equityHoverPoint.value),
+    } : null;
+    const equityHoverLineX = equityHoverPoint ? equityHoverPoint.x.toFixed(1) : '0';
+
+    const selStartIdx = this.state.equitySelStart, selEndIdx = this.state.equitySelEnd;
+    const hasEquitySelection = selStartIdx != null && selEndIdx != null && equityXY[selStartIdx] && equityXY[selEndIdx];
+    let equitySelection = null;
+    if (hasEquitySelection) {
+      const lo = Math.min(selStartIdx, selEndIdx), hi = Math.max(selStartIdx, selEndIdx);
+      const p1 = equityXY[lo], p2 = equityXY[hi];
+      const change = p2.value - p1.value;
+      equitySelection = {
+        rectX: p1.x.toFixed(1), rectW: Math.max(1, p2.x - p1.x).toFixed(1),
+        summaryLeftPct: ((p1.x + p2.x) / 2 / equityW * 100).toFixed(2) + '%',
+        rangeText: (p1.label == null ? '—' : p1.label) + ' → ' + (p2.label == null ? '—' : p2.label),
+        changeText: this.fmt(change),
+        changeColor: change >= 0 ? c.green : c.red,
+      };
+    }
+
+    // Trade Score radar — axis labels are always English (professional convention for this widget)
+    const consistencyScore = 40 + this.seededRand(7.7) * 55;
+    const recoveryScore = 40 + this.seededRand(13.3) * 55;
+    const ddScore = Math.max(5, Math.min(100, 100 - (Math.abs(maxDrawdown) / Math.max(1, Math.abs(netPnl) + Math.abs(maxDrawdown))) * 140));
+    const radarAxes = [
+      { label: 'Win Rate', score: Math.max(0, Math.min(100, winRate)), raw: winRate.toFixed(1) + '%', desc: lang === 'en' ? 'Share of trades closed profitably' : '獲利交易佔比' },
+      { label: 'Profit Factor', score: Math.max(0, Math.min(100, (profitFactor / 3) * 100)), raw: profitFactor.toFixed(2), desc: lang === 'en' ? 'Gross profit ÷ gross loss' : '總獲利 ÷ 總虧損' },
+      { label: 'Consistency', score: consistencyScore, raw: Math.round(consistencyScore) + '/100', desc: lang === 'en' ? 'Stability of returns across weeks' : '每週報酬的穩定程度' },
+      { label: 'Max DD', score: ddScore, raw: this.fmt(maxDrawdown), desc: lang === 'en' ? 'Resilience to peak-to-trough loss' : '對高點回落虧損的承受度' },
+      { label: 'Avg W/L', score: Math.max(0, Math.min(100, (avgWL / 3) * 100)), raw: avgWL.toFixed(1) + 'R', desc: lang === 'en' ? 'Average win size vs average loss' : '平均獲利與平均虧損的比值' },
+      { label: 'Recovery', score: recoveryScore, raw: Math.round(recoveryScore) + '/100', desc: lang === 'en' ? 'Speed of rebound after drawdowns' : '回撤後的恢復速度' },
+    ];
+    const tradeScoreRaw = radarAxes.reduce((s, a) => s + a.score, 0) / radarAxes.length;
+    const tradeScoreText = tradeScoreRaw.toFixed(2);
+    const tradeScoreRounded = Math.round(tradeScoreRaw);
+    const radar = this.buildRadar(radarAxes, c);
+
+    const weekdayLabels = lang === 'en' ? ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] : ['日', '一', '二', '三', '四', '五', '六'];
+
+    const { cells, weeks } = this.buildCalendar();
+    const cellFmt = cell => ({
+      day: cell.day,
+      hasData: cell.hasData,
+      dateColor: cell.hasData ? c.ink : c.faint,
+      bg: !cell.hasData ? (cell.day === '' ? 'transparent' : c.pillBg) : cell.pnl >= 0 ? (this.state.theme === 'light' ? 'rgba(22,163,74,.10)' : 'rgba(52,211,153,.14)') : (this.state.theme === 'light' ? 'rgba(220,38,38,.09)' : 'rgba(248,113,113,.14)'),
+      border: !cell.hasData ? c.line : cell.pnl >= 0 ? (this.state.theme === 'light' ? 'rgba(22,163,74,.28)' : 'rgba(52,211,153,.32)') : (this.state.theme === 'light' ? 'rgba(220,38,38,.25)' : 'rgba(248,113,113,.32)'),
+      pnlColor: cell.pnl >= 0 ? c.green : c.red,
+      pnlText: cell.hasData ? this.fmt(cell.pnl) : '',
+      winRateText: cell.hasData ? Math.round((cell.wins / cell.tradesCount) * 100) + '% · ' + cell.tradesCount : '',
+      onClick: cell.hasData ? (() => this.openDayDetail(cell.day, cell)) : null,
+      cursor: cell.hasData ? 'pointer' : 'default',
+    });
+    const calendarCells = cells.map(cellFmt);
+
+    const calendarWeeks = weeks.map((wk, i) => {
+      const withData = wk.filter(c2 => c2.hasData);
+      const pnlSum = withData.reduce((s, c2) => s + c2.pnl, 0);
+      const tradesSum = withData.reduce((s, c2) => s + c2.tradesCount, 0);
+      const winsSum = withData.reduce((s, c2) => s + c2.wins, 0);
+      const wr = tradesSum ? Math.round((winsSum / tradesSum) * 100) : 0;
+      const statBg = !withData.length ? c.pillBg : pnlSum >= 0 ? (this.state.theme === 'light' ? 'rgba(22,163,74,.14)' : 'rgba(52,211,153,.18)') : (this.state.theme === 'light' ? 'rgba(220,38,38,.12)' : 'rgba(248,113,113,.18)');
+      const statBorder = !withData.length ? c.line : pnlSum >= 0 ? (this.state.theme === 'light' ? 'rgba(22,163,74,.32)' : 'rgba(52,211,153,.38)') : (this.state.theme === 'light' ? 'rgba(220,38,38,.3)' : 'rgba(248,113,113,.38)');
+      return {
+        cells: wk.map(cellFmt),
+        stat: {
+          label: lang === 'en' ? ('Week ' + (i + 1)) : (t.wk_label + this.CN_NUM[i] + '週'),
+          pnlText: withData.length ? this.fmt(pnlSum) : '—',
+          pnlColor: pnlSum >= 0 ? c.green : c.red,
+          winRateText: withData.length ? wr + '% ' + t.win : '',
+          bg: statBg,
+          border: statBorder,
+        },
+      };
+    });
+
+    const recentTrades = trades.slice(0, 6).map((tr, i) => ({
+      sym: tr.sym,
+      sideLetter: tr.side === 'Long' ? 'L' : 'S',
+      badgeBg: tr.side === 'Long' ? (this.state.theme === 'light' ? 'rgba(42,95,214,.12)' : 'rgba(122,162,247,.18)') : c.purpleFill,
+      badgeColor: tr.side === 'Long' ? c.blue : c.purple,
+      rText: tr.r.toFixed(1) + 'R',
+      pnlColor: tr.pnl >= 0 ? c.green : c.red,
+      pnlText: this.fmt(tr.pnl),
+      borderTop: i ? '1px solid ' + c.line : 'none',
+    }));
+
+    const filterItems = ['all', 'long', 'short'].map(f => ({
+      key: f,
+      label: f === 'all' ? t.filter_all : f === 'long' ? t.filter_long : t.filter_short,
+      color: this.state.tradeFilter === f ? c.navActiveText : c.sub,
+      bg: this.state.tradeFilter === f ? c.navActiveBg : 'transparent',
+      onClick: () => this.setFilter(f),
+    }));
+
+    const allTags = this.state.tagsList;
+    const tagFilterItems = [{ key: 'all', label: t.filter_all }, ...allTags.map(tg => ({ key: tg, label: tg }))].map(item => ({
+      key: item.key, label: item.label,
+      color: this.state.tagFilter === item.key ? c.navActiveText : c.sub,
+      bg: this.state.tagFilter === item.key ? c.navActiveBg : 'transparent',
+      border: this.state.tagFilter === item.key ? c.navActiveBg : c.line,
+      onClick: () => this.setTagFilter(item.key),
+    }));
+
+    const todayISO = '2026-07-04';
+    const filteredTrades = trades
+      .filter(tr => this.state.tradeFilter === 'all' || tr.side.toLowerCase() === this.state.tradeFilter)
+      .filter(tr => this.state.tagFilter === 'all' || tr.tags.includes(this.state.tagFilter))
+      .filter(tr => !this.state.dateFrom || this.dayToISO(tr.day) >= this.state.dateFrom)
+      .filter(tr => !this.state.dateTo || this.dayToISO(tr.day) <= this.state.dateTo)
+      .map(tr => ({
+        id: tr.id,
+        date: 'Jul ' + tr.day,
+        sym: tr.sym,
+        sideLabel: tr.side === 'Long' ? t.side_long : t.side_short,
+        sideColor: tr.side === 'Long' ? c.green : c.red,
+        entry: tr.entry.toFixed(2),
+        exit: tr.exit.toFixed(2),
+        qty: tr.qty,
+        pnlText: this.fmt(tr.pnl),
+        pnlColor: tr.pnl >= 0 ? c.green : c.red,
+        rText: tr.r.toFixed(1) + 'R',
+        tagsText: tr.tags.join(', '),
+        onClick: () => this.openJournalModal(tr.id),
+        editOnClick: e => { e.stopPropagation(); this.openEditTrade(tr); },
+      }));
+
+    const pageSize = this.state.tlPageSize;
+    const totalFiltered = filteredTrades.length;
+    const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize));
+    const tlPage = Math.min(this.state.tlPage, totalPages - 1);
+    const pagedTrades = filteredTrades.slice(tlPage * pageSize, tlPage * pageSize + pageSize);
+    const rangeStart = totalFiltered === 0 ? 0 : tlPage * pageSize + 1;
+    const rangeEnd = Math.min(totalFiltered, tlPage * pageSize + pageSize);
+    const pageSizeOptions = [10, 20, 50].map(sz => ({
+      key: sz, label: '' + sz,
+      color: pageSize === sz ? c.navActiveText : c.sub,
+      bg: pageSize === sz ? c.navActiveBg : 'transparent',
+      onClick: () => this.setTlPageSize(sz),
+    }));
+
+    const monthOffset = this.state.monthOffset || 0;
+    const baseDate = new Date(2026, 6, 1);
+    baseDate.setMonth(baseDate.getMonth() + monthOffset);
+    const mYear = baseDate.getFullYear(), mMonthIdx = baseDate.getMonth();
+    const monthLabel = lang === 'en' ? (this.MONTHS_EN[mMonthIdx] + ' ' + mYear) : (mYear + ' 年 ' + (mMonthIdx + 1) + ' 月');
+
+    // reports data
+    const winRateByWeekday = weekdayLabels.map((label, i) => {
+      const v = 30 + this.seededRand((i + 1) * 5.5) * 65;
+      return { label, h: Math.round(v) + '%' };
+    });
+    const symTotals = {};
+    trades.forEach(tr => { symTotals[tr.sym] = (symTotals[tr.sym] || 0) + tr.pnl; });
+    const symArr = Object.entries(symTotals).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 6);
+    const maxSym = Math.max(...symArr.map(x => Math.abs(x[1])), 1);
+    const pnlBySymbol = symArr.map(([label, val]) => ({
+      label, color: val >= 0 ? c.green : c.red, h: Math.max(8, Math.round(Math.abs(val) / maxSym * 100)) + '%',
+    }));
+    const rBuckets = [-2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2, 2.5];
+    const rDistribution = rBuckets.map((b, i) => {
+      const v = 15 + this.seededRand((i + 1) * 6.6) * 85;
+      return { color: b >= 0 ? c.green : c.red, h: Math.round(v) + '%' };
+    });
+
+    const totalTrades = trades.length;
+
+    // holding time distribution
+    const holdingBucketDefs = lang === 'en'
+      ? [{ max: 15, label: '<15m' }, { max: 60, label: '15-60m' }, { max: 240, label: '1-4h' }, { max: 480, label: '4-8h' }, { max: Infinity, label: '1d+' }]
+      : [{ max: 15, label: '<15分' }, { max: 60, label: '15-60分' }, { max: 240, label: '1-4時' }, { max: 480, label: '4-8時' }, { max: Infinity, label: '1天+' }];
+    const holdingCounts = holdingBucketDefs.map(() => 0);
+    trades.forEach(tr => {
+      const idx = holdingBucketDefs.findIndex(b => tr.holdingMinutes <= b.max);
+      holdingCounts[idx === -1 ? holdingCounts.length - 1 : idx]++;
+    });
+    const maxHoldingCount = Math.max(...holdingCounts, 1);
+    const holdingBuckets = holdingBucketDefs.map((b, i) => ({
+      label: b.label, h: Math.max(6, Math.round(holdingCounts[i] / maxHoldingCount * 100)) + '%',
+    }));
+    const avgHoldingMin = trades.length ? trades.reduce((s, tr) => s + tr.holdingMinutes, 0) / trades.length : 0;
+    const avgHoldingText = avgHoldingMin >= 60 ? (avgHoldingMin / 60).toFixed(1) + (lang === 'en' ? 'h' : '時') : Math.round(avgHoldingMin) + (lang === 'en' ? 'm' : '分');
+
+    // monthly performance comparison (synthetic trailing 6 months incl. current)
+    const monthNamesEnShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const monthlyPerf = [];
+    for (let m = 5; m >= 0; m--) {
+      const idx = (6 - m) * 1.0;
+      const mDate = new Date(2026, 6 - m, 1);
+      const seed = (6 - m) * 17.3;
+      const pnl = Math.round((this.seededRand(seed * 3.1) - 0.35) * 6000);
+      monthlyPerf.push({ pnl, mIdx: mDate.getMonth() });
+    }
+    const maxMonthlyAbs = Math.max(...monthlyPerf.map(x => Math.abs(x.pnl)), 1);
+    const monthlyPerfFinal = monthlyPerf.map(mp => ({
+      label: lang === 'en' ? monthNamesEnShort[mp.mIdx] : (mp.mIdx + 1) + '月',
+      pnlText: this.fmt(mp.pnl),
+      pnlColor: mp.pnl >= 0 ? c.green : c.red,
+      color: mp.pnl >= 0 ? c.green : c.red,
+      h: Math.max(8, Math.round(Math.abs(mp.pnl) / maxMonthlyAbs * 100)) + '%',
+    }));
+
+    // strategy tag performance stats
+    const tagGroups = {};
+    trades.forEach(tr => {
+      tr.tags.forEach(tag => {
+        if (!tagGroups[tag]) tagGroups[tag] = [];
+        tagGroups[tag].push(tr);
+      });
+    });
+    const strategyStats = Object.entries(tagGroups).map(([tag, list]) => {
+      const winCount = list.filter(x => x.pnl >= 0).length;
+      const avgPnl = list.reduce((s, x) => s + x.pnl, 0) / list.length;
+      return {
+        tag, count: list.length,
+        winRateText: Math.round((winCount / list.length) * 100) + '%',
+        avgPnlText: this.fmt(avgPnl),
+        avgColor: avgPnl >= 0 ? c.green : c.red,
+      };
+    }).sort((a, b) => b.count - a.count);
+
+    // journal (opened as a modal from a Trade Log row click)
+    const selTrade = trades.find(tr => tr.id === this.state.journalTradeId) || trades[0] || { id: -1, sym: '—', side: 'Long', r: 0, pnl: 0, entry: 0, exit: 0, qty: 0, day: 1, tags: [], holdingMinutes: 0 };
+    const idKey = (selTrade.accountId || '') + '-' + selTrade.sym + '-' + selTrade.day;
+    this.currentIdKey = idKey;
+
+    const emotionsList = this.getEmotionsFor(idKey, lang);
+    const mistakesList = this.getMistakesFor(idKey, lang);
+
+    const selected = {
+      sym: selTrade.sym,
+      sideLabel: selTrade.side === 'Long' ? t.side_long : t.side_short,
+      date: 'Jul ' + selTrade.day + ', 2026',
+      pnlText: this.fmt(selTrade.pnl),
+      pnlColor: selTrade.pnl >= 0 ? c.green : c.red,
+      entry: selTrade.entry.toFixed(2),
+      exit: selTrade.exit.toFixed(2),
+      qty: selTrade.qty,
+      rText: selTrade.r.toFixed(1) + 'R',
+      tagList: selTrade.tags,
+      idKey,
+      emotionChips: emotionsList.map(label => ({
+        label,
+        onRemove: () => this.removeEmotion(idKey, lang, label),
+      })),
+      mistakeChecklist: mistakesList.map((m, i) => ({
+        label: m.label,
+        boxBg: m.checked ? c.red : 'transparent',
+        boxBorder: m.checked ? c.red : c.line,
+        mark: m.checked ? '✓' : '',
+        markColor: '#fff',
+        textColor: m.checked ? c.ink : c.faint,
+        onToggle: () => this.toggleMistake(idKey, lang, i),
+        onRemove: () => this.removeMistake(idKey, lang, i),
+      })),
+    };
+
+    return {
+      t, c, tab,
+      isDashboard: tab === 'dashboard',
+      isTradeLog: tab === 'tradelog',
+      isCalendarPage: tab === 'calendarpage',
+      isReports: tab === 'reports',
+      isSettings: tab === 'settings',
+      journalModalOpen: this.state.journalModalOpen,
+      closeJournalModal: () => this.closeJournalModal(),
+      openJournalModal: (id) => this.openJournalModal(id),
+      navItems,
+      toggleLang: () => this.toggleLang(),
+      toggleTheme: () => this.toggleTheme(),
+      isLightTheme: this.state.theme === 'light',
+      isDarkTheme: this.state.theme === 'dark',
+      loggedOut: this.state.loggedOut,
+      isLoggedIn: !this.state.loggedOut,
+      loginEmail: this.state.loginEmail,
+      loginPassword: this.state.loginPassword,
+      onLoginEmailChange: e => this.setLoginEmail(e.target.value),
+      onLoginPasswordChange: e => this.setLoginPassword(e.target.value),
+      onLoginKeyDown: e => { if (e.key === 'Enter') this.logBackIn(); },
+      rememberMe: this.state.rememberMe,
+      rememberMeBg: this.state.rememberMe ? c.navActiveBg : 'transparent',
+      toggleRememberMe: () => this.toggleRememberMe(),
+      logBackIn: () => this.logBackIn(),
+      userMenuOpen: this.state.userMenuOpen,
+      toggleUserMenu: () => this.toggleUserMenu(),
+      goToSettingsFromMenu: () => this.goToSettingsFromMenu(),
+      logOut: () => this.logOut(),
+      userName: this.state.userName,
+      userEmail: this.state.userEmail,
+      userInitials: this.state.userName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(),
+      accountSwitcherOpen: this.state.accountSwitcherOpen,
+      toggleAccountSwitcher: () => this.toggleAccountSwitcher(),
+      activeAccountLabel: (() => {
+        const count = this.state.activeAccountIds.length;
+        if (count === 0) return t.no_account_label;
+        if (count === 1) {
+          for (const p of this.state.platforms) {
+            const acc = p.accounts.find(a => a.id === this.state.activeAccountIds[0]);
+            if (acc) return this.displayName(p.name, lang) + ' · ' + this.displayName(acc.name, lang);
+          }
+          return t.no_account_label;
+        }
+        return count + ' ' + t.accounts_selected_label;
+      })(),
+      switcherPlatforms: this.state.platforms.map(p => ({
+        id: p.id, name: this.displayName(p.name, lang),
+        accounts: p.accounts.map(a => {
+          const checked = this.state.activeAccountIds.includes(a.id);
+          return {
+            id: a.id, name: this.displayName(a.name, lang), checked,
+            boxBg: checked ? c.navActiveBg : 'transparent',
+            boxBorder: checked ? c.navActiveBg : c.line,
+            onClick: () => this.toggleAccountSelected(a.id),
+          };
+        }),
+      })),
+      goToSettingsFromSwitcher: () => { this.setState({ accountSwitcherOpen: false, tab: 'settings' }); },
+      newPlatformText: this.state.newPlatformText,
+      onNewPlatformChange: e => this.setNewPlatformText(e.target.value),
+      onNewPlatformKeyDown: e => { if (e.key === 'Enter') this.addPlatform(); },
+      addPlatform: () => this.addPlatform(),
+      settingsPlatforms: this.state.platforms.map(p => ({
+        id: p.id, name: this.displayName(p.name, lang),
+        onRemove: () => this.removePlatform(p.id),
+        accounts: p.accounts.map(a => ({
+          id: a.id, name: this.displayName(a.name, lang),
+          onRemove: () => this.removeAccount(p.id, a.id),
+        })),
+        newAccountText: this.state.newAccountTextByPlatform[p.id] || '',
+        onNewAccountChange: e => this.setNewAccountText(p.id, e.target.value),
+        onNewAccountKeyDown: e => { if (e.key === 'Enter') this.addAccount(p.id); },
+        onAddAccount: () => this.addAccount(p.id),
+      })),
+      kpis,
+      dashboardKpis,
+      kpiGridCols,
+      kpiToggleItems,
+      kpiPanelOpen: this.state.kpiPanelOpen,
+      toggleKpiPanel: () => this.toggleKpiPanel(),
+      equityPath, equityArea,
+      equityCurrentText, equityHighText, equityLowText,
+      equityYAxis, equityXAxis, equityW, equityH, equityBars,
+      equityRangeItems: ['all', 'month', 'quarter', 'year'].map(r => ({
+        key: r, label: t['eq_range_' + r],
+        color: this.state.equityRange === r ? c.navActiveText : c.sub,
+        bg: this.state.equityRange === r ? c.navActiveBg : 'transparent',
+        onClick: () => this.setEquityRange(r),
+      })),
+      equitySvgRefCallback: this.equitySvgRefCallback,
+      onEquityMouseMove: e => this.onEquityMouseMove(e),
+      onEquityMouseDown: e => this.onEquityMouseDown(e),
+      onEquityMouseUp: () => this.onEquityMouseUp(),
+      onEquityMouseLeave: () => this.onEquityMouseLeave(),
+      clearEquitySelection: () => this.clearEquitySelection(),
+      hasEquityHover, equityHoverTooltip, equityHoverLineX,
+      hasEquitySelection, equitySelection,
+      radar, tradeScoreText, tradeScoreRounded,
+      weekdayLabels,
+      calendarCells,
+      calendarWeeks,
+      prevMonth: () => this.prevMonth(),
+      nextMonth: () => this.nextMonth(),
+      dayDetailOpen: this.state.dayDetailOpen,
+      closeDayDetail: () => this.closeDayDetail(),
+      dayDetail: (() => {
+        if (!this.state.dayDetailOpen || !this.state.dayDetailCell) return null;
+        const cell = this.state.dayDetailCell, day = this.state.dayDetailDay;
+        const wr = cell.tradesCount ? Math.round((cell.wins / cell.tradesCount) * 100) : 0;
+        const realTrades = trades.filter(tr => tr.day === day);
+        const useReal = realTrades.length > 0;
+        const dayTrades = useReal ? realTrades : this.buildDayTrades(day, cell);
+        const weekdayNames = lang === 'en' ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] : ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+        const wd = new Date(2026, 6, day).getDay();
+        const avgR = dayTrades.length ? (dayTrades.reduce((s, tr) => s + tr.r, 0) / dayTrades.length) : 0;
+        const ring = (() => {
+          const r16 = 16, circ = 2 * Math.PI * r16, gap = circ * 0.035;
+          const f = Math.max(0.02, Math.min(0.98, wr / 100));
+          const greenLen = Math.max(0, circ * f - gap / 2);
+          const redLen = Math.max(0, circ * (1 - f) - gap / 2);
+          return {
+            greenDash: greenLen.toFixed(1) + ' ' + (circ - greenLen).toFixed(1),
+            redDash: redLen.toFixed(1) + ' ' + (circ - redLen).toFixed(1),
+            redOffset: (-(greenLen + gap)).toFixed(1),
+          };
+        })();
+        return {
+          dateText: (lang === 'en' ? 'July ' + day + ', 2026' : '2026 年 7 月 ' + day + ' 日'),
+          weekdayText: weekdayNames[wd],
+          pnlText: this.fmt(cell.pnl),
+          pnlColor: cell.pnl >= 0 ? c.green : c.red,
+          winRateText: wr + '%',
+          tradesCountText: '' + cell.tradesCount,
+          avgRText: avgR.toFixed(1) + 'R',
+          ring,
+          hint: useReal ? t.day_detail_hint : '',
+          trades: dayTrades.map(tr => ({
+            sym: tr.sym,
+            sideLabel: tr.side === 'Long' ? t.side_long : t.side_short,
+            sideLetter: tr.side === 'Long' ? 'L' : 'S',
+            badgeBg: tr.side === 'Long' ? (this.state.theme === 'light' ? 'rgba(42,95,214,.12)' : 'rgba(122,162,247,.18)') : c.purpleFill,
+            badgeColor: tr.side === 'Long' ? c.blue : c.purple,
+            entryExitText: tr.entry.toFixed(2) + ' → ' + tr.exit.toFixed(2),
+            qtyText: 'x' + tr.qty,
+            rText: (tr.r >= 0 ? '+' : '') + tr.r.toFixed(1) + 'R',
+            pnlText: this.fmt(tr.pnl),
+            pnlColor: tr.pnl >= 0 ? c.green : c.red,
+            clickable: useReal,
+            cursor: useReal ? 'pointer' : 'default',
+            onClick: useReal ? () => { this.closeDayDetail(); this.openJournalModal(tr.id); } : null,
+          })),
+        };
+      })(),
+      recentTrades,
+      filterItems,
+      tagFilterItems,
+      filteredTrades,
+      pagedTrades,
+      pageSizeOptions,
+      rangeStart, rangeEnd, totalFiltered,
+      tlPage, totalPages,
+      prevOpacity: tlPage > 0 ? '1' : '.35',
+      nextOpacity: tlPage < totalPages - 1 ? '1' : '.35',
+      goPrevPage: () => tlPage > 0 && this.setTlPage(tlPage - 1),
+      goNextPage: () => tlPage < totalPages - 1 && this.setTlPage(tlPage + 1),
+      pageLabel: (tlPage + 1) + ' / ' + totalPages,
+      openAddTrade: () => this.openAddTrade(),
+      exportCSV: () => this.exportCSV(),
+      triggerImportFile: () => this.triggerImportFile(),
+      downloadSampleCSV: () => this.downloadSampleCSV(),
+      importFileRefCallback: this.importFileRefCallback,
+      onImportFileChange: e => this.onImportFileChange(e),
+      tradeModalOpen: this.state.tradeModalOpen,
+      isEditingTrade: this.state.editingTradeId != null,
+      tradeModalTitle: this.state.editingTradeId != null ? t.edit_trade : t.add_trade,
+      stopPropagation: e => e.stopPropagation(),
+      closeTradeModal: () => this.closeTradeModal(),
+      saveTrade: () => this.saveTrade(),
+      deleteTrade: () => this.deleteTrade(),
+      tradeForm: this.state.tradeForm,
+      onFormSymChange: e => this.setTradeFormField('sym', e.target.value),
+      onFormEntryChange: e => this.setTradeFormField('entry', e.target.value),
+      onFormExitChange: e => this.setTradeFormField('exit', e.target.value),
+      onFormQtyChange: e => this.setTradeFormField('qty', e.target.value),
+      onFormDayChange: e => this.setTradeFormField('day', e.target.value),
+      onFormTagsChange: e => this.setTradeFormField('tags', e.target.value),
+      tagDropdownOpen: this.state.tagDropdownOpen,
+      toggleTagDropdown: () => this.toggleTagDropdown(),
+      tagOptionItems: this.state.tagsList.map(tg => ({
+        label: tg,
+        color: this.state.tradeForm.tags === tg ? c.navActiveText : c.ink,
+        bg: this.state.tradeForm.tags === tg ? c.navActiveBg : 'transparent',
+        onClick: () => this.selectTagOption(tg),
+      })),
+      symbolDropdownOpen: this.state.symbolDropdownOpen,
+      toggleSymbolDropdown: () => this.toggleSymbolDropdown(),
+      symbolOptionItems: this.state.symbolsList.map(sym => ({
+        label: sym,
+        color: this.state.tradeForm.sym === sym ? c.navActiveText : c.ink,
+        bg: this.state.tradeForm.sym === sym ? c.navActiveBg : 'transparent',
+        onClick: () => this.selectSymbolOption(sym),
+      })),
+      settingsSymbols: this.state.symbolsList.map(sym => ({
+        label: sym,
+        onRemove: () => this.removeSymbol(sym),
+      })),
+      settingsTags: this.state.tagsList.map(tg => ({
+        label: tg,
+        onRemove: () => this.removeSettingsTag(tg),
+      })),
+      newSettingsTagText: this.state.newSettingsTagText,
+      onNewSettingsTagChange: e => this.setNewSettingsTagText(e.target.value),
+      onNewSettingsTagKeyDown: e => { if (e.key === 'Enter') this.addSettingsTag(); },
+      newSymbolText: this.state.newSymbolText,
+      onNewSymbolChange: e => this.setNewSymbolText(e.target.value),
+      onNewSymbolKeyDown: e => { if (e.key === 'Enter') this.addSymbol(); },
+      addSymbol: () => this.addSymbol(),
+      initialCapital: this.state.initialCapital,
+      onInitialCapitalChange: e => this.setInitialCapital(e.target.value),
+      formSideItems: ['Long', 'Short'].map(sd => ({
+        key: sd, label: sd === 'Long' ? t.side_long : t.side_short,
+        color: this.state.tradeForm.side === sd ? c.navActiveText : c.sub,
+        bg: this.state.tradeForm.side === sd ? c.navActiveBg : 'transparent',
+        onClick: () => this.setTradeFormField('side', sd),
+      })),
+      dayOptions: Array.from({ length: 31 }, (_, i) => ({ value: this.dayToISO(i + 1), label: (lang === 'en' ? 'Jul ' : '7/') + (i + 1) })),
+      dateFrom: this.state.dateFrom,
+      dateTo: this.state.dateTo,
+      dateRangeButtonText: (() => {
+        if (!this.state.dateFrom && !this.state.dateTo) return t.date_range_label;
+        const fmt1 = iso => { if (!iso) return ''; const d = new Date(iso + 'T00:00:00'); return (lang === 'en' ? this.MONTHS_EN[d.getMonth()].slice(0, 3) : (d.getMonth() + 1) + '/') + ' ' + d.getDate(); };
+        return fmt1(this.state.dateFrom) + ' – ' + fmt1(this.state.dateTo || this.state.dateFrom);
+      })(),
+      toggleDatePicker: () => this.toggleDatePicker(),
+      datePickerOpen: this.state.datePickerOpen,
+      pickerPrevMonth: () => this.pickerPrevMonth(),
+      pickerNextMonth: () => this.pickerNextMonth(),
+      pickerCancel: () => this.pickerCancel(),
+      pickerDone: () => this.pickerDone(),
+      pickerWeekdayLabels: lang === 'en' ? ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'] : ['日', '一', '二', '三', '四', '五', '六'],
+      pickerMonthLabel: (() => {
+        const d = new Date(2026, 6, 1); d.setMonth(d.getMonth() + this.state.pickerMonthOffset);
+        return lang === 'en' ? (this.MONTHS_EN[d.getMonth()] + ', ' + d.getFullYear()) : (d.getFullYear() + ' 年 ' + (d.getMonth() + 1) + ' 月');
+      })(),
+      pickerDays: (() => {
+        const base = new Date(2026, 6, 1); base.setMonth(base.getMonth() + this.state.pickerMonthOffset);
+        const y = base.getFullYear(), m = base.getMonth();
+        const firstDow = new Date(y, m, 1).getDay();
+        const daysInMonth = new Date(y, m + 1, 0).getDate();
+        const daysInPrevMonth = new Date(y, m, 0).getDate();
+        const cells = [];
+        for (let i = 0; i < 35; i++) {
+          const dayNum = i - firstDow + 1;
+          let cellDate, inMonth;
+          if (dayNum < 1) { cellDate = new Date(y, m - 1, daysInPrevMonth + dayNum); inMonth = false; }
+          else if (dayNum > daysInMonth) { cellDate = new Date(y, m + 1, dayNum - daysInMonth); inMonth = false; }
+          else { cellDate = new Date(y, m, dayNum); inMonth = true; }
+          const iso = cellDate.getFullYear() + '-' + this.pad2(cellDate.getMonth() + 1) + '-' + this.pad2(cellDate.getDate());
+          const isStart = this.state.pickerTempFrom === iso;
+          const isEnd = this.state.pickerTempTo === iso;
+          const inRange = this.state.pickerTempFrom && this.state.pickerTempTo && iso > this.state.pickerTempFrom && iso < this.state.pickerTempTo;
+          cells.push({
+            day: cellDate.getDate(),
+            opacity: inMonth ? '1' : '.3',
+            bg: (isStart || isEnd) ? c.purple : inRange ? c.purpleFill : 'transparent',
+            color: (isStart || isEnd) ? '#fff' : c.ink,
+            onClick: () => this.pickerPickDay(iso),
+          });
+        }
+        return cells;
+      })(),
+      hasDateFilter: !!(this.state.dateFrom || this.state.dateTo),
+      onDateFromChange: e => this.setDateFrom(e.target.value),
+      onDateToChange: e => this.setDateTo(e.target.value),
+      clearDateFilter: () => this.clearDateFilter(),
+      monthLabel,
+      newTagText: this.state.newTagText,
+      onNewTagChange: e => this.setNewTagText(e.target.value),
+      onNewTagKeyDown: e => { if (e.key === 'Enter') this.addCustomTag(); },
+      quickRanges: (() => {
+        const today = new Date(2026, 6, 4);
+        const iso = d => d.getFullYear() + '-' + this.pad2(d.getMonth() + 1) + '-' + this.pad2(d.getDate());
+        const dow = (today.getDay() + 6) % 7; // Mon=0
+        const monday = new Date(today); monday.setDate(today.getDate() - dow);
+        const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+        const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+        const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        const qStartMonth = Math.floor(today.getMonth() / 3) * 3;
+        const qStart = new Date(today.getFullYear(), qStartMonth, 1);
+        const qEnd = new Date(today.getFullYear(), qStartMonth + 3, 0);
+        return [
+          { key: 'today', label: t.range_today, onClick: () => this.setDateRange(iso(today), iso(today)) },
+          { key: 'week', label: t.range_week, onClick: () => this.setDateRange(iso(monday), iso(sunday)) },
+          { key: 'month', label: t.range_month, onClick: () => this.setDateRange(iso(monthStart), iso(monthEnd)) },
+          { key: 'quarter', label: t.range_quarter, onClick: () => this.setDateRange(iso(qStart), iso(qEnd)) },
+        ];
+      })(),
+      winRateByWeekday,
+      pnlBySymbol,
+      rDistribution,
+      totalTrades,
+      holdingBuckets,
+      avgHoldingText,
+      monthlyPerf: monthlyPerfFinal,
+      strategyStats,
+      selected,
+      newEmotionText: this.state.newEmotionText,
+      onNewEmotionChange: e => this.setNewEmotionText(e.target.value),
+      onNewEmotionKeyDown: e => { if (e.key === 'Enter') this.addEmotion(idKey, lang); },
+      newMistakeText: this.state.newMistakeText,
+      onNewMistakeChange: e => this.setNewMistakeText(e.target.value),
+      onNewMistakeKeyDown: e => { if (e.key === 'Enter') this.addMistake(idKey, lang); },
+      notesRefCallback: this.notesRefCallback,
+      onNotesInput: e => this.onNotesInput(e),
+      onNotesPaste: e => this.onNotesPaste(e),
+      applyTemplate: () => this.applyTemplate(),
+      setTemplate: () => this.setTemplate(),
+      clearNotes: () => this.clearNotes(),
+      toggleBold: () => this.toggleBold(),
+      toggleItalic: () => this.toggleItalic(),
+      toggleUnderline: () => this.toggleUnderline(),
+      increaseFontSize: () => this.increaseFontSize(),
+      decreaseFontSize: () => this.decreaseFontSize(),
+      noteFontSize: this.state.noteFontSize,
+      noteFontSizePx: this.state.noteFontSize + 'px',
+      noteBoldWeight: this.state.noteBold ? '800' : '400',
+      noteItalicStyle: this.state.noteItalic ? 'italic' : 'normal',
+      noteUnderlineDeco: this.state.noteUnderline ? 'underline' : 'none',
+      boldColor: this.state.noteBold ? c.navActiveText : c.sub,
+      boldBg: this.state.noteBold ? c.navActiveBg : c.card,
+      italicColor: this.state.noteItalic ? c.navActiveText : c.sub,
+      italicBg: this.state.noteItalic ? c.navActiveBg : c.card,
+      underlineColor: this.state.noteUnderline ? c.navActiveText : c.sub,
+      underlineBg: this.state.noteUnderline ? c.navActiveBg : c.card,
+      savedLabel: this.state.savedStatus === 'saved' ? t.saved_label : t.editing_label,
+      savedColor: this.state.savedStatus === 'saved' ? c.green : c.faint,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

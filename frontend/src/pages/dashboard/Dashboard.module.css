@@ -1,0 +1,52 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--sub);
+  margin-top: 4px;
+}
+
+.kpiRow {
+  display: grid;
+  gap: 16px;
+}
+
+.chartsRow {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 16px;
+}
+
+.loading {
+  padding: 60px;
+  text-align: center;
+  color: var(--faint);
+  font-size: 24px;
+}
+
+@media (max-width: 1080px) {
+  .chartsRow {
+    grid-template-columns: 1fr;
+  }
+  .kpiRow {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}

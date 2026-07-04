@@ -1,0 +1,59 @@
+{
+  "nav": {
+    "dashboard": "儀表板",
+    "tradelog": "交易日誌",
+    "calendar": "日曆",
+    "reports": "分析報表",
+    "settings": "設定"
+  },
+  "shell": {
+    "langToggle": "EN",
+    "managePlatforms": "管理平台",
+    "accountSettings": "帳戶設定",
+    "logOut": "登出",
+    "accountsSelected": "個帳戶已選取"
+  },
+  "dashboard": {
+    "title": "總覽",
+    "subtitle": "過去 30 天 · 2026 年 7 月",
+    "customize": "自訂",
+    "equityCurve": "權益曲線",
+    "tradeScore": "交易評分",
+    "calendar": "月曆檢視",
+    "calendarSubtitle": "每日損益、勝率與每週統計",
+    "recentTrades": "最近交易",
+    "current": "目前",
+    "high": "最高",
+    "low": "最低",
+    "vsLastMonth": "較上月",
+    "week": "第",
+    "win": "勝"
+  },
+  "range": {
+    "all": "全部",
+    "month": "本月",
+    "quarter": "本季",
+    "year": "本年"
+  },
+  "kpi": {
+    "netpnl": "淨損益",
+    "winrate": "勝率",
+    "pf": "獲利因子",
+    "avgwl": "平均賺賠比",
+    "maxdd": "最大回撤",
+    "balance": "帳戶總額",
+    "subMonth": "本月累積",
+    "subTrades": "{{count}} 筆交易",
+    "subPf": "獲利因子",
+    "subAvgwl": "平均 R 倍數",
+    "subMaxdd": "高點至低點",
+    "subBalance": "初始資金 + 淨損益"
+  },
+  "dayDetail": {
+    "netPnl": "淨損益",
+    "winRate": "勝率",
+    "trades": "交易",
+    "hint": "點擊交易可開啟該筆日記"
+  },
+  "side": { "long": "多", "short": "空" }
+}

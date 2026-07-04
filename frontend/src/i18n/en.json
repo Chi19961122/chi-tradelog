@@ -1,0 +1,59 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "tradelog": "Trade Log",
+    "calendar": "Calendar",
+    "reports": "Reports",
+    "settings": "Settings"
+  },
+  "shell": {
+    "langToggle": "中文",
+    "managePlatforms": "Manage Platforms",
+    "accountSettings": "Account Settings",
+    "logOut": "Log Out",
+    "accountsSelected": "accounts selected"
+  },
+  "dashboard": {
+    "title": "Overview",
+    "subtitle": "Last 30 days · Jul 2026",
+    "customize": "Customize",
+    "equityCurve": "Equity Curve",
+    "tradeScore": "Trade Score",
+    "calendar": "Calendar",
+    "calendarSubtitle": "Daily P&L, win rate & weekly totals",
+    "recentTrades": "Recent Trades",
+    "current": "Current",
+    "high": "High",
+    "low": "Low",
+    "vsLastMonth": "vs last month",
+    "week": "Week",
+    "win": "win"
+  },
+  "range": {
+    "all": "All",
+    "month": "This Month",
+    "quarter": "This Quarter",
+    "year": "This Year"
+  },
+  "kpi": {
+    "netpnl": "Net P&L",
+    "winrate": "Win Rate",
+    "pf": "Profit Factor",
+    "avgwl": "Avg Win/Loss",
+    "maxdd": "Max Drawdown",
+    "balance": "Account Balance",
+    "subMonth": "This month",
+    "subTrades": "{{count}} trades",
+    "subPf": "Profit factor",
+    "subAvgwl": "Avg R multiple",
+    "subMaxdd": "Peak-to-trough",
+    "subBalance": "Initial capital + net P&L"
+  },
+  "dayDetail": {
+    "netPnl": "Net P&L",
+    "winRate": "Win Rate",
+    "trades": "Trades",
+    "hint": "Tap a trade to open its journal"
+  },
+  "side": { "long": "Long", "short": "Short" }
+}

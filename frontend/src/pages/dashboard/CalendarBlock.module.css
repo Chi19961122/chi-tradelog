@@ -1,0 +1,100 @@
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 20px 22px;
+}
+
+.header {
+  margin-bottom: 14px;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: var(--sub);
+  margin-top: 2px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr) 1.1fr;
+  gap: 8px;
+}
+
+.weekdayLabel {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--faint);
+  text-align: center;
+  padding-bottom: 2px;
+}
+
+.weekRow {
+  display: contents;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 74px;
+  padding: 8px 9px;
+  border-radius: 10px;
+  text-align: left;
+}
+
+.dayNum {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cellPnl {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: auto;
+}
+
+.cellSub {
+  font-size: 11px;
+  color: var(--faint);
+}
+
+.statCell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-height: 74px;
+  padding: 8px 11px;
+  border-radius: 10px;
+}
+
+.statLabel {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.statPnl {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.statSub {
+  font-size: 12px;
+  color: var(--faint);
+  font-family: var(--font-mono);
+}

@@ -1,0 +1,89 @@
+/*
+ * Design tokens — 對應 DESIGN_GUIDELINES.md 第 2 節。
+ * 預設為暗色（dark）；[data-theme="light"] 覆蓋為亮色。
+ * 所有顏色一律取自這些 CSS 變數，禁止硬寫色值。
+ */
+
+:root,
+:root[data-theme='dark'] {
+  --bg: #0b0f0d;
+  --card: #121613;
+  --pill: #171c18;
+  --ink: #f2f4f1;
+  --sub: rgba(242, 244, 241, 0.62);
+  --faint: rgba(242, 244, 241, 0.42);
+  --line: rgba(255, 255, 255, 0.09);
+
+  --green: #34d399;
+  --red: #f87171;
+  --blue: #7aa2f7;
+  --purple: #a78bfa;
+
+  --nav-active-bg: #1f3a26;
+  --nav-active-text: #effff2;
+
+  --purple-fill: rgba(167, 139, 250, 0.26);
+  --radar-line: rgba(255, 255, 255, 0.16);
+
+  /* 語意色的 rgb 版本，供淡色填充（日曆 / 圖表）用 rgb(var(--green-rgb) / .14) */
+  --green-rgb: 52 211 153;
+  --red-rgb: 248 113 113;
+  --blue-rgb: 122 162 247;
+  --purple-rgb: 167 139 250;
+
+  /* 方向徽章底色 */
+  --long-badge-bg: rgba(122, 162, 247, 0.18);
+  --short-badge-bg: rgba(167, 139, 250, 0.26);
+
+  /* 彈窗陰影 / 遮罩 */
+  --modal-shadow: 0 24px 64px rgba(0, 0, 0, 0.3);
+  --dropdown-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+  --overlay: rgba(0, 0, 0, 0.45);
+}
+
+:root[data-theme='light'] {
+  --bg: #fbfaf8;
+  --card: #ffffff;
+  --pill: #f1efea;
+  --ink: #14171a;
+  --sub: rgba(20, 23, 26, 0.55);
+  --faint: rgba(20, 23, 26, 0.38);
+  --line: rgba(20, 23, 26, 0.09);
+
+  --green: #16a34a;
+  --red: #dc2626;
+  --blue: #2a5fd6;
+  --purple: #7c3aed;
+
+  --nav-active-bg: #16341f;
+  --nav-active-text: #ffffff;
+
+  --purple-fill: rgba(124, 58, 237, 0.2);
+  --radar-line: rgba(20, 23, 26, 0.16);
+
+  --green-rgb: 22 163 74;
+  --red-rgb: 220 38 38;
+  --blue-rgb: 42 95 214;
+  --purple-rgb: 124 58 237;
+
+  --long-badge-bg: rgba(42, 95, 214, 0.12);
+  --short-badge-bg: rgba(124, 58, 237, 0.2);
+
+  --modal-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
+  --dropdown-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  --overlay: rgba(0, 0, 0, 0.45);
+}
+
+:root {
+  /* 分數條固定漸層（不隨主題變） */
+  --score-gradient: linear-gradient(90deg, #ef4444, #f59e0b, #22c55e);
+
+  --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --radius-pill: 999px;
+  --radius-card: 16px;
+  --radius-input: 9px;
+
+  --maxw: 1440px;
+}

@@ -1,0 +1,84 @@
+.root {
+  position: relative;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--sub);
+}
+
+.btn:hover {
+  color: var(--ink);
+}
+
+.popover {
+  position: absolute;
+  right: 0;
+  top: 44px;
+  z-index: 30;
+  width: 220px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: var(--dropdown-shadow);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.row:hover {
+  background: var(--pill);
+}
+
+.rowLabel {
+  text-align: left;
+}
+
+.track {
+  position: relative;
+  width: 34px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--pill);
+  border: 1px solid var(--line);
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.trackOn {
+  background: var(--nav-active-bg);
+  border-color: var(--nav-active-bg);
+}
+
+.knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: #fff;
+  transition: left 0.15s;
+}
+
+.trackOn .knob {
+  left: 16px;
+}
