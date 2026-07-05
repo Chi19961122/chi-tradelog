@@ -17,6 +17,8 @@ interface Props {
   subtitle?: string;
   /** 標題右側內容（例如整頁 Calendar 的月份切換）。 */
   headerRight?: React.ReactNode;
+  /** 覆寫每格最小高度（px）；整頁 Calendar 可調高。預設 74。 */
+  cellMinHeight?: number;
 }
 
 /** 日曆格子的語意色淡填充。 */
@@ -40,10 +42,11 @@ function statStyle(stat: CalendarWeek['stat']): React.CSSProperties {
   return { background: `rgb(${rgb} / 0.18)`, border: `1px solid rgb(${rgb} / 0.38)` };
 }
 
-export function CalendarBlock({ weeks, onDayClick, title, subtitle, headerRight }: Props) {
+export function CalendarBlock({ weeks, onDayClick, title, subtitle, headerRight, cellMinHeight }: Props) {
   const { t, i18n } = useTranslation();
   const isZh = toMetricsLang(i18n.language) === 'zh';
   const weekdays = isZh ? WEEKDAYS_ZH : WEEKDAYS_EN;
+  const gridStyle = cellMinHeight ? ({ '--cal-cell-h': `${cellMinHeight}px` } as React.CSSProperties) : undefined;
 
   return (
     <div className={styles.card}>
@@ -55,7 +58,7 @@ export function CalendarBlock({ weeks, onDayClick, title, subtitle, headerRight 
         {headerRight}
       </div>
 
-      <div className={styles.grid}>
+      <div className={styles.grid} style={gridStyle}>
         {weekdays.map((d) => (
           <div key={d} className={styles.weekdayLabel}>
             {d}

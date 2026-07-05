@@ -76,6 +76,7 @@ export function Dashboard() {
       {/* Calendar */}
       <CalendarBlock
         weeks={calendar.weeks}
+        cellMinHeight={96}
         onDayClick={(day, cell) => setDayDetail({ open: true, day, cell })}
       />
 

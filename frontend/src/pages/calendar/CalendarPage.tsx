@@ -58,6 +58,7 @@ export function CalendarPage() {
         title={monthLabel}
         subtitle={t('calendar.subtitle')}
         headerRight={monthNav}
+        cellMinHeight={112}
         onDayClick={(day, cell) => setDayDetail({ open: true, day, cell })}
       />
 
