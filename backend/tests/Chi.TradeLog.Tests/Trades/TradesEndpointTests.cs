@@ -160,6 +160,9 @@ public class TradesEndpointTests : IClassFixture<TradesEndpointTests.TestApiFact
         public Task<long> InsertAsync(TradeDataModel trade, CancellationToken cancellationToken = default)
             => Task.FromResult(123L);
 
+        public Task<int> InsertManyAsync(IReadOnlyList<TradeDataModel> trades, CancellationToken cancellationToken = default)
+            => Task.FromResult(trades.Count);
+
         public Task<int> UpdateAsync(TradeDataModel trade, CancellationToken cancellationToken = default)
             => Task.FromResult(1);
 

@@ -23,6 +23,14 @@ public interface ITradeService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 批次匯入多筆交易到指定帳戶，回傳實際新增筆數。
+    /// </summary>
+    Task<int> ImportTradesAsync(
+        string accountId,
+        IReadOnlyList<SaveTradeInfo> infos,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 更新指定交易；找不到時回傳 <c>null</c>。
     /// </summary>
     Task<TradeDto?> UpdateTradeAsync(

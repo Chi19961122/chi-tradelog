@@ -103,6 +103,25 @@ public class TradeRepository : ITradeRepository
     }
 
     /// <summary>
+    /// 於單一 transaction 中批次新增多筆交易，回傳新增筆數。
+    /// </summary>
+    public async Task<int> InsertManyAsync(IReadOnlyList<TradeDataModel> trades, CancellationToken cancellationToken = default)
+    {
+        if (trades.Count == 0)
+        {
+            return 0;
+        }
+
+        await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        // Dapper 對清單參數會於同一連線／交易內逐筆執行同一段 SQL。
+        var command = new CommandDefinition(InsertSql, trades, transaction, cancellationToken: cancellationToken);
+        var affected = await connection.ExecuteAsync(command);
+        await transaction.CommitAsync(cancellationToken);
+        return affected;
+    }
+
+    /// <summary>
     /// 更新指定交易，回傳受影響的列數。
     /// </summary>
     public async Task<int> UpdateAsync(TradeDataModel trade, CancellationToken cancellationToken = default)

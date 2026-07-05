@@ -21,6 +21,11 @@ public interface ITradeRepository
     Task<long> InsertAsync(TradeDataModel trade, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 於單一交易（transaction）中批次新增多筆交易，回傳新增筆數。
+    /// </summary>
+    Task<int> InsertManyAsync(IReadOnlyList<TradeDataModel> trades, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 更新指定交易，回傳受影響的列數。
     /// </summary>
     Task<int> UpdateAsync(TradeDataModel trade, CancellationToken cancellationToken = default);

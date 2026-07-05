@@ -22,6 +22,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  /* 固定與 donut 環同高，讓有無環的卡片大數字都垂直對齊 */
+  min-height: 44px;
 }
 
 .value {
@@ -41,10 +43,4 @@
 .avgSep {
   color: var(--faint);
   margin: 0 4px;
-}
-
-.delta {
-  font-size: 11.5px;
-  font-weight: 600;
-  font-family: var(--font-mono);
 }

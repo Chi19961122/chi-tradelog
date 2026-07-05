@@ -21,6 +21,7 @@ public class TradesController : ApiControllerBase
     private readonly IValidator<TradeQueryParameter> _queryValidator;
     private readonly IValidator<CreateTradeParameter> _createValidator;
     private readonly IValidator<UpdateTradeParameter> _updateValidator;
+    private readonly IValidator<ImportTradesParameter> _importValidator;
 
     /// <summary>
     /// 建立交易 Controller。
@@ -30,13 +31,15 @@ public class TradesController : ApiControllerBase
         IMapper mapper,
         IValidator<TradeQueryParameter> queryValidator,
         IValidator<CreateTradeParameter> createValidator,
-        IValidator<UpdateTradeParameter> updateValidator)
+        IValidator<UpdateTradeParameter> updateValidator,
+        IValidator<ImportTradesParameter> importValidator)
     {
         _tradeService = tradeService;
         _mapper = mapper;
         _queryValidator = queryValidator;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
+        _importValidator = importValidator;
     }
 
     /// <summary>
@@ -93,6 +96,33 @@ public class TradesController : ApiControllerBase
         var viewModel = _mapper.Map<TradeViewModel>(dto);
 
         return Created($"/api/trades/{viewModel.Id}", viewModel);
+    }
+
+    /// <summary>
+    /// 批次匯入多筆交易到指定帳戶。
+    /// </summary>
+    /// <param name="parameter">匯入參數（帳戶 ID 與交易列）。</param>
+    /// <param name="cancellationToken">取消權杖。</param>
+    /// <returns>匯入結果（新增筆數）。</returns>
+    /// <response code="200">匯入成功。</response>
+    /// <response code="400">參數驗證失敗。</response>
+    [HttpPost("import")]
+    [ProducesResponseType(typeof(ImportResultViewModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ImportResultViewModel>> ImportTradesAsync(
+        [FromBody] ImportTradesParameter parameter,
+        CancellationToken cancellationToken)
+    {
+        var validationResult = await _importValidator.ValidateAsync(parameter, cancellationToken);
+        if (validationResult.IsValid is false)
+        {
+            return ValidationProblemFrom(validationResult);
+        }
+
+        var infos = parameter.Trades.Select(row => _mapper.Map<SaveTradeInfo>(row)).ToList();
+        var imported = await _tradeService.ImportTradesAsync(parameter.AccountId, infos, cancellationToken);
+
+        return Ok(new ImportResultViewModel { Imported = imported });
     }
 
     /// <summary>

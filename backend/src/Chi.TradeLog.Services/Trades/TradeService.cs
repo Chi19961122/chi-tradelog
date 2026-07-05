@@ -56,6 +56,31 @@ public class TradeService : ITradeService
     }
 
     /// <summary>
+    /// 批次匯入多筆交易：逐筆計算衍生欄位後，於單一 transaction 內新增，回傳新增筆數。
+    /// </summary>
+    public async Task<int> ImportTradesAsync(
+        string accountId,
+        IReadOnlyList<SaveTradeInfo> infos,
+        CancellationToken cancellationToken = default)
+    {
+        if (infos.Count == 0)
+        {
+            return 0;
+        }
+
+        var dataModels = infos
+            .Select(info =>
+            {
+                var dataModel = BuildDataModel(info);
+                dataModel.AccountId = accountId;
+                return dataModel;
+            })
+            .ToList();
+
+        return await _repository.InsertManyAsync(dataModels, cancellationToken);
+    }
+
+    /// <summary>
     /// 更新指定交易：重新計算衍生欄位並保留原帳戶；找不到時回傳 <c>null</c>。
     /// </summary>
     public async Task<TradeDto?> UpdateTradeAsync(

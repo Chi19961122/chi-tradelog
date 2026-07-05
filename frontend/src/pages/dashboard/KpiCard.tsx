@@ -1,6 +1,4 @@
-import { useTranslation } from 'react-i18next';
 import { DonutRing } from '@/components/DonutRing/DonutRing';
-import type { KpiDelta } from '@/lib/metrics';
 import styles from './KpiCard.module.css';
 
 export interface KpiCardVM {
@@ -8,14 +6,12 @@ export interface KpiCardVM {
   label: string;
   value: string;
   valueColor: 'ink' | 'green' | 'red';
-  delta: KpiDelta;
   ringFraction?: number;
   avgWinText?: string;
   avgLossText?: string;
 }
 
 export function KpiCard({ vm }: { vm: KpiCardVM }) {
-  const { t } = useTranslation();
   const valueColorVar =
     vm.valueColor === 'green' ? 'var(--green)' : vm.valueColor === 'red' ? 'var(--red)' : 'var(--ink)';
 
@@ -37,10 +33,6 @@ export function KpiCard({ vm }: { vm: KpiCardVM }) {
           <span style={{ color: 'var(--red)' }}>{vm.avgLossText}</span>
         </div>
       )}
-
-      <div className={styles.delta} style={{ color: vm.delta.good ? 'var(--green)' : 'var(--red)' }}>
-        {vm.delta.up ? '▲' : '▼'} {vm.delta.pct}% {t('dashboard.vsLastMonth')}
-      </div>
     </div>
   );
 }

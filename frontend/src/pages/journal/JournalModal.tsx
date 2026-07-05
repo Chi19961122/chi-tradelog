@@ -42,12 +42,16 @@ export function JournalModal({ open, onClose, trade }: Props) {
   const [fontSize, setFontSize] = useState(15);
   const [newEmotion, setNewEmotion] = useState('');
   const [newMistake, setNewMistake] = useState('');
-  // contentEditable 為非受控，用計數在 notes 變更時觸發儲存 effect。
-  const [notesVersion, setNotesVersion] = useState(0);
+  // contentEditable 為非受控，但把最新 HTML 鏡射到 state，儲存時一律讀 state（避免關閉後 ref 為 null 而存成空字串）。
+  const [notes, setNotes] = useState('');
 
   const notesRef = useRef<HTMLDivElement>(null);
   const initedKeyRef = useRef<string | null>(null);
   const skipSaveRef = useRef(false);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dirtyRef = useRef(false); // 有未寫入的變更
+
+  const syncNotes = () => setNotes(notesRef.current?.innerHTML ?? '');
 
   // 開啟且資料就緒時，以儲存值或預設值初始化。
   useEffect(() => {
@@ -56,38 +60,50 @@ export function JournalModal({ open, onClose, trade }: Props) {
     const base = stored ?? defaultJournalEntry(key, lang);
     setEmotions(base.emotions);
     setMistakes(base.mistakes);
+    setNotes(base.notes);
     setSavedStatus('saved');
     skipSaveRef.current = true;
+    dirtyRef.current = false;
     initedKeyRef.current = key;
     if (notesRef.current) notesRef.current.innerHTML = base.notes;
   }, [open, trade, isFetched, stored, key, lang]);
 
-  // 關閉時重置，以便重新開啟時重新初始化。
-  useEffect(() => {
-    if (!open) initedKeyRef.current = null;
-  }, [open]);
+  const saveEntry = () => {
+    if (!trade) return;
+    saveTimerRef.current = null;
+    dirtyRef.current = false;
+    mutation.mutate({ accountId, symbol, day, entry: { notes, emotions, mistakes } });
+    setSavedStatus('saved');
+  };
 
-  // 內容變更時 debounce 儲存。
+  // 內容變更時標記 dirty 並 debounce 儲存。
   useEffect(() => {
-    if (!open || !trade || initedKeyRef.current !== key) return;
+    if (!trade || initedKeyRef.current !== key) return;
     if (skipSaveRef.current) {
       skipSaveRef.current = false;
       return;
     }
+    dirtyRef.current = true;
+    if (!open) return; // 關閉中的變更由關閉 effect flush
     setSavedStatus('editing');
-    const timer = setTimeout(() => {
-      mutation.mutate({
-        accountId,
-        symbol,
-        day,
-        entry: { notes: notesRef.current?.innerHTML ?? '', emotions, mistakes },
-      });
-      setSavedStatus('saved');
-    }, 700);
+    const timer = setTimeout(saveEntry, 700);
+    saveTimerRef.current = timer;
     return () => clearTimeout(timer);
-    // 僅在使用者變更 emotions / mistakes / notes 時觸發（notes 透過 notesVersion）。
+    // 僅在使用者變更 emotions / mistakes / notes 時觸發。
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [emotions, mistakes, notesVersion]);
+  }, [notes, emotions, mistakes]);
+
+  // 關閉時：把尚未寫入的變更立即 flush，並重置以便重新開啟時重新初始化。
+  useEffect(() => {
+    if (open) return;
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = null;
+    }
+    if (dirtyRef.current) saveEntry();
+    initedKeyRef.current = null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   if (!trade) return null;
 
@@ -117,20 +133,20 @@ export function JournalModal({ open, onClose, trade }: Props) {
   const exec = (cmd: string) => {
     notesRef.current?.focus();
     document.execCommand(cmd);
-    setNotesVersion((v) => v + 1);
+    syncNotes();
   };
 
   const applyTemplate = () => {
     const tpl = sessionTemplate ?? defaultTemplate(lang);
     if (notesRef.current) notesRef.current.innerHTML = tpl;
-    setNotesVersion((v) => v + 1);
+    syncNotes();
   };
   const setTemplate = () => {
     sessionTemplate = notesRef.current?.innerHTML ?? '';
   };
   const clearNotes = () => {
     if (notesRef.current) notesRef.current.innerHTML = '';
-    setNotesVersion((v) => v + 1);
+    syncNotes();
   };
 
   const onNotesPaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
@@ -150,7 +166,7 @@ export function JournalModal({ open, onClose, trade }: Props) {
             img.style.display = 'block';
             img.style.margin = '10px 0';
           });
-          setNotesVersion((v) => v + 1);
+          syncNotes();
         };
         reader.readAsDataURL(file);
         return;
@@ -284,7 +300,7 @@ export function JournalModal({ open, onClose, trade }: Props) {
           style={{ fontSize }}
           contentEditable
           suppressContentEditableWarning
-          onInput={() => setNotesVersion((v) => v + 1)}
+          onInput={syncNotes}
           onPaste={onNotesPaste}
         />
       </Section>

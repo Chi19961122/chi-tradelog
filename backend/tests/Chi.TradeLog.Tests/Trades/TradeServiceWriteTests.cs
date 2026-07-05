@@ -89,6 +89,26 @@ public class TradeServiceWriteTests
     }
 
     [Fact]
+    public async Task ImportTradesAsync_BuildsDataModelsWithAccountAndReturnsCount()
+    {
+        var repository = new CapturingTradeRepository(newId: 1);
+        var service = new TradeService(repository, CreateMapper());
+        var infos = new[]
+        {
+            new SaveTradeInfo { Sym = "aapl", Side = "Long", Entry = 100m, Exit = 110m, Qty = 10, Day = 5, Tags = ["breakout"] },
+            new SaveTradeInfo { Sym = "tsla", Side = "Short", Entry = 200m, Exit = 190m, Qty = 5, Day = 8, Tags = [] },
+        };
+
+        var imported = await service.ImportTradesAsync("a1", infos);
+
+        imported.Should().Be(2);
+        repository.InsertedMany.Should().HaveCount(2);
+        repository.InsertedMany!.Should().OnlyContain(t => t.AccountId == "a1");
+        repository.InsertedMany![0].Symbol.Should().Be("AAPL"); // 正規化為大寫
+        repository.InsertedMany![0].Pnl.Should().Be(100m); // (110 - 100) * 10
+    }
+
+    [Fact]
     public async Task DeleteTradeAsync_ReturnsTrue_WhenRowAffected()
     {
         var repository = new CapturingTradeRepository(newId: 1) { DeleteAffected = 1 };
@@ -109,6 +129,7 @@ public class TradeServiceWriteTests
         }
 
         public TradeDataModel? Inserted { get; private set; }
+        public IReadOnlyList<TradeDataModel>? InsertedMany { get; private set; }
         public TradeDataModel? ExistingById { get; set; } = new() { Id = 1, AccountId = "a1" };
         public int DeleteAffected { get; set; }
 
@@ -120,6 +141,12 @@ public class TradeServiceWriteTests
         {
             Inserted = trade;
             return Task.FromResult(_newId);
+        }
+
+        public Task<int> InsertManyAsync(IReadOnlyList<TradeDataModel> trades, CancellationToken cancellationToken = default)
+        {
+            InsertedMany = trades;
+            return Task.FromResult(trades.Count);
         }
 
         public Task<int> UpdateAsync(TradeDataModel trade, CancellationToken cancellationToken = default)

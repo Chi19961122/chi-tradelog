@@ -5,6 +5,7 @@ import { Icon } from '@/components/Icon/Icon';
 import { DateRangePicker, QuickRangePills } from '@/components/DateRangePicker/DateRangePicker';
 import { useTrades } from '@/features/trades/useTrades';
 import { useTradeMutations } from '@/features/trades/useTradeMutations';
+import { useSettingsController } from '@/features/settings/useSettingsController';
 import { useUiStore } from '@/store/uiStore';
 import { fmtMoney } from '@/lib/format';
 import { dayToISO, downloadTextFile, parseTradesCsv, sampleCsv, tradesToCsv } from '@/lib/csv';
@@ -23,10 +24,10 @@ export function TradeLog() {
   const isZh = toMetricsLang(i18n.language) === 'zh';
   const activeAccountIds = useUiStore((s) => s.activeAccountIds);
   const tagsList = useUiStore((s) => s.tagsList);
-  const addSymbol = useUiStore((s) => s.addSymbol);
-  const addTag = useUiStore((s) => s.addTag);
+  const symbolsList = useUiStore((s) => s.symbolsList);
   const { data: trades = [] } = useTrades(activeAccountIds);
-  const { create } = useTradeMutations();
+  const { importTrades } = useTradeMutations();
+  const settings = useSettingsController();
 
   const [sideFilter, setSideFilter] = useState<SideFilter>('all');
   const [tagFilter, setTagFilter] = useState<string>('');
@@ -84,12 +85,18 @@ export function TradeLog() {
     const reader = new FileReader();
     reader.onload = () => {
       const inputs = parseTradesCsv(String(reader.result));
-      for (const input of inputs) {
-        if (accountId) create.mutate({ accountId, input });
-        // 匯入的新商品／標籤加入下拉清單
-        addSymbol(input.sym);
-        input.tags.forEach((tag) => addTag(tag));
+      if (accountId && inputs.length) {
+        importTrades.mutate({ accountId, trades: inputs });
       }
+      // 匯入的新商品／標籤（去重、僅新的）加入清單並持久化（API 模式打 settings API）
+      const existingSymbols = new Set(symbolsList);
+      const existingTags = new Set(tagsList);
+      [...new Set(inputs.map((i) => i.sym))]
+        .filter((sym) => existingSymbols.has(sym) === false)
+        .forEach((sym) => settings.addSymbol(sym));
+      [...new Set(inputs.flatMap((i) => i.tags))]
+        .filter((tag) => existingTags.has(tag) === false)
+        .forEach((tag) => settings.addTag(tag));
       resetPage();
     };
     reader.readAsText(file);

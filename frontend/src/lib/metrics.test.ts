@@ -6,7 +6,6 @@ import {
   buildRadarAxes,
   computeKpis,
   computeMaxDrawdown,
-  deltaFor,
 } from './metrics';
 
 const trades = [
@@ -84,11 +83,5 @@ describe('buildCalendar', () => {
     expect(cal.monthIdx).toBe(6);
     expect(cal.weeks).toHaveLength(5);
     expect(cal.cells).toHaveLength(35);
-  });
-});
-
-describe('deltaFor', () => {
-  it('is deterministic for the same seed', () => {
-    expect(deltaFor(1.1, true)).toEqual(deltaFor(1.1, true));
   });
 });

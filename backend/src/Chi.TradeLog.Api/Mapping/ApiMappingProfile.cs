@@ -19,6 +19,7 @@ public class ApiMappingProfile : Profile
         CreateMap<TradeQueryParameter, TradeQueryInfo>();
         CreateMap<CreateTradeParameter, SaveTradeInfo>();
         CreateMap<UpdateTradeParameter, SaveTradeInfo>();
+        CreateMap<ImportTradeRow, SaveTradeInfo>();
 
         CreateMap<TradeDto, TradeViewModel>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))

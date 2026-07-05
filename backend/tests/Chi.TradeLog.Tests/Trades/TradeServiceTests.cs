@@ -84,6 +84,9 @@ public class TradeServiceTests
         public Task<long> InsertAsync(TradeDataModel trade, CancellationToken cancellationToken = default)
             => Task.FromResult(0L);
 
+        public Task<int> InsertManyAsync(IReadOnlyList<TradeDataModel> trades, CancellationToken cancellationToken = default)
+            => Task.FromResult(trades.Count);
+
         public Task<int> UpdateAsync(TradeDataModel trade, CancellationToken cancellationToken = default)
             => Task.FromResult(0);
 

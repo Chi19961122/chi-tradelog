@@ -278,21 +278,3 @@ export function buildDayTrades(
   }
   return list;
 }
-
-/* ------------------------------------------------------------------ */
-/* KPI delta（裝飾性「較上月」）                                        */
-/* ------------------------------------------------------------------ */
-
-export interface KpiDelta {
-  up: boolean;
-  pct: number;
-  good: boolean;
-}
-
-/** 與原型一致的確定性「較上月」增減。betterIsUp: 上升是否代表變好。 */
-export function deltaFor(seed: number, betterIsUp: boolean): KpiDelta {
-  const pct = Math.round((seededRand(seed * 4.4) - 0.4) * 40);
-  const up = pct >= 0;
-  const good = betterIsUp ? up : !up;
-  return { up, pct: Math.abs(pct), good };
-}

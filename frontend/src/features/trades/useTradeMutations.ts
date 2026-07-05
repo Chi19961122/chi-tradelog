@@ -15,6 +15,11 @@ interface UpdateVars {
   input: TradeFormInput;
 }
 
+interface ImportVars {
+  accountId: string;
+  trades: TradeFormInput[];
+}
+
 async function apiCreate(vars: CreateVars): Promise<Trade> {
   const res = await apiFetch('/api/trades', {
     method: 'POST',
@@ -38,6 +43,15 @@ async function apiUpdate(vars: UpdateVars): Promise<Trade> {
 async function apiDelete(id: string): Promise<void> {
   const res = await apiFetch(`/api/trades/${id}`, { method: 'DELETE' });
   if (res.ok === false) throw new Error(`刪除交易失敗：${res.status}`);
+}
+
+async function apiImport(vars: ImportVars): Promise<void> {
+  const res = await apiFetch('/api/trades/import', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ accountId: vars.accountId, trades: vars.trades }),
+  });
+  if (res.ok === false) throw new Error(`匯入交易失敗：${res.status}`);
 }
 
 /**
@@ -72,5 +86,13 @@ export function useTradeMutations() {
     onSuccess: invalidate,
   });
 
-  return { create, update, remove };
+  const importTrades = useMutation({
+    mutationFn: async (vars: ImportVars) => {
+      if (API_BASE_URL) return apiImport(vars);
+      for (const input of vars.trades) mockTradeStore.create(vars.accountId, input);
+    },
+    onSuccess: invalidate,
+  });
+
+  return { create, update, remove, importTrades };
 }
