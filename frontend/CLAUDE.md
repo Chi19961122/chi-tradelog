@@ -24,6 +24,10 @@ src/
 - **features**：領域邏輯（query hooks、mutation、領域 store）。
 - **lib**：無 React 相依的純函式（可獨立單元測試），交易衍生指標計算放這裡。
 
+## 測試
+- **Vitest**（`npm test`，node 環境）測 `lib/` 純函式：metrics、reports、csv、dateRange、journal 預設、tradeForm、seededTrades。測試檔為 `src/**/*.test.ts`，測試工廠放 `src/test/`。
+- 新增或修改 `lib/` 計算邏輯時，一併補（或更新）對應的 `*.test.ts`。
+
 ## 樣式規範
 > 視覺與版面的完整基準見 [`DESIGN_GUIDELINES.md`](DESIGN_GUIDELINES.md)（色彩 tokens、字體、間距、元件、互動慣例、新畫面檢查清單）。動任何 UI 前先讀它。
 
