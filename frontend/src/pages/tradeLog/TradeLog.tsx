@@ -1,10 +1,14 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SegmentedControl } from '@/components/SegmentedControl/SegmentedControl';
 import { Icon } from '@/components/Icon/Icon';
+import { DateRangePicker, QuickRangePills } from '@/components/DateRangePicker/DateRangePicker';
 import { useTrades } from '@/features/trades/useTrades';
+import { useTradeMutations } from '@/features/trades/useTradeMutations';
 import { useUiStore } from '@/store/uiStore';
 import { fmtMoney } from '@/lib/format';
+import { dayToISO, downloadTextFile, parseTradesCsv, sampleCsv, tradesToCsv } from '@/lib/csv';
+import { EMPTY_RANGE, isoInRange, type DateRange } from '@/lib/dateRange';
 import { toMetricsLang } from '@/i18n';
 import type { Trade } from '@/types/trade';
 import { AddEditTradeModal } from './AddEditTradeModal';
@@ -19,25 +23,31 @@ export function TradeLog() {
   const isZh = toMetricsLang(i18n.language) === 'zh';
   const activeAccountIds = useUiStore((s) => s.activeAccountIds);
   const tagsList = useUiStore((s) => s.tagsList);
+  const addSymbol = useUiStore((s) => s.addSymbol);
+  const addTag = useUiStore((s) => s.addTag);
   const { data: trades = [] } = useTrades(activeAccountIds);
+  const { create } = useTradeMutations();
 
   const [sideFilter, setSideFilter] = useState<SideFilter>('all');
   const [tagFilter, setTagFilter] = useState<string>('');
+  const [dateRange, setDateRange] = useState<DateRange>(EMPTY_RANGE);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(20);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Trade | null>(null);
   const [journalOpen, setJournalOpen] = useState(false);
   const [journalTrade, setJournalTrade] = useState<Trade | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filtered = useMemo(() => {
     return trades.filter((tr) => {
       if (sideFilter === 'long' && tr.side !== 'Long') return false;
       if (sideFilter === 'short' && tr.side !== 'Short') return false;
       if (tagFilter && tr.tags.includes(tagFilter) === false) return false;
+      if (isoInRange(dayToISO(tr.day), dateRange) === false) return false;
       return true;
     });
-  }, [trades, sideFilter, tagFilter]);
+  }, [trades, sideFilter, tagFilter, dateRange]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const clampedPage = Math.min(page, pageCount - 1);
@@ -59,6 +69,33 @@ export function TradeLog() {
     setJournalOpen(true);
   };
 
+  const applyDateRange = (range: DateRange) => {
+    setDateRange(range);
+    resetPage();
+  };
+
+  const handleExport = () => downloadTextFile('trades.csv', tradesToCsv(filtered));
+  const handleSample = () => downloadTextFile('trades-sample.csv', sampleCsv());
+
+  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const accountId = activeAccountIds[0];
+    const reader = new FileReader();
+    reader.onload = () => {
+      const inputs = parseTradesCsv(String(reader.result));
+      for (const input of inputs) {
+        if (accountId) create.mutate({ accountId, input });
+        // 匯入的新商品／標籤加入下拉清單
+        addSymbol(input.sym);
+        input.tags.forEach((tag) => addTag(tag));
+      }
+      resetPage();
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   return (
     <div className={styles.page}>
       <div className={styles.header}>
@@ -69,6 +106,27 @@ export function TradeLog() {
         <button type="button" className={styles.addBtn} onClick={openAdd}>
           {t('tradelog.addTrade')}
         </button>
+      </div>
+
+      <div className={styles.toolbar}>
+        <div className={styles.ioGroup}>
+          <button type="button" className={styles.ioBtn} onClick={() => fileInputRef.current?.click()}>
+            {t('tradelog.importCsv')}
+          </button>
+          <button type="button" className={styles.ioBtn} onClick={handleExport}>
+            {t('tradelog.exportCsv')}
+          </button>
+        </div>
+        <button type="button" className={styles.sampleLink} onClick={handleSample}>
+          {t('tradelog.downloadSample')}
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv,text/csv"
+          style={{ display: 'none' }}
+          onChange={handleImportFile}
+        />
       </div>
 
       <div className={styles.filters}>
@@ -110,6 +168,11 @@ export function TradeLog() {
             </button>
           ))}
         </div>
+      </div>
+
+      <div className={styles.dateRow}>
+        <DateRangePicker value={dateRange} onApply={applyDateRange} onClear={() => applyDateRange(EMPTY_RANGE)} />
+        <QuickRangePills onApply={applyDateRange} />
       </div>
 
       <div className={styles.tableCard}>

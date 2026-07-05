@@ -103,7 +103,17 @@
     "of": "of",
     "perPage": "per page",
     "prev": "Prev",
-    "next": "Next"
+    "next": "Next",
+    "importCsv": "Import CSV",
+    "exportCsv": "Export CSV",
+    "downloadSample": "Download sample",
+    "dateRange": "Date",
+    "clearDate": "Clear",
+    "done": "Done",
+    "q_today": "Today",
+    "q_week": "This Week",
+    "q_month": "This Month",
+    "q_quarter": "This Quarter"
   },
   "reports": {
     "title": "Reports",
