@@ -13,7 +13,8 @@
   justify-self: stretch;
   justify-content: flex-start;
   min-width: 0;
-  overflow: hidden;
+  /* 不裁切：帳戶切換器的下拉選單會延伸到 topbar 之外。
+     帳戶標籤本身已用 .switcherLabel 的 max-width + ellipsis 防止蓋到中間導覽。 */
 }
 
 .wordmark {

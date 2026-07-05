@@ -84,6 +84,7 @@ function AccountSwitcher({
   const [open, setOpen] = useState(false);
   const platforms = useUiStore((s) => s.platforms);
   const activeAccountIds = useUiStore((s) => s.activeAccountIds);
+  const setTab = useUiStore((s) => s.setTab);
   const ref = useOutsideClick<HTMLDivElement>(open, () => setOpen(false));
 
   return (
@@ -110,7 +111,14 @@ function AccountSwitcher({
               })}
             </div>
           ))}
-          <button type="button" className={styles.menuLink}>
+          <button
+            type="button"
+            className={styles.menuLink}
+            onClick={() => {
+              setTab('settings');
+              setOpen(false);
+            }}
+          >
             {t('shell.managePlatforms')}
           </button>
         </div>
@@ -123,6 +131,7 @@ function UserMenu() {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useOutsideClick<HTMLDivElement>(open, () => setOpen(false));
+  const setTab = useUiStore((s) => s.setTab);
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const userName = user?.name ?? 'Trader';
@@ -143,7 +152,16 @@ function UserMenu() {
               <div className={styles.userEmail}>{userEmail}</div>
             </div>
           </div>
-          <button type="button" className={styles.menuItem}>{t('shell.accountSettings')}</button>
+          <button
+            type="button"
+            className={styles.menuItem}
+            onClick={() => {
+              setTab('settings');
+              setOpen(false);
+            }}
+          >
+            {t('shell.accountSettings')}
+          </button>
           <button type="button" className={styles.menuItem} onClick={logout}>{t('shell.logOut')}</button>
         </div>
       )}
