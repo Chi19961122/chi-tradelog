@@ -8,7 +8,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useSettingsController } from '@/features/settings/useSettingsController';
 import { API_BASE_URL } from '@/lib/apiConfig';
 import { toMetricsLang } from '@/i18n';
-import { ChangePasswordSection, UserManagementSection } from './AccountSecuritySections';
+import { ChangePasswordSection, ProfileSection, UserManagementSection } from './AccountSecuritySections';
 import styles from './Settings.module.css';
 
 export function Settings() {
@@ -39,6 +39,10 @@ export function Settings() {
         <div className={styles.subtitle}>{t('settings.subtitle')}</div>
       </div>
 
+      {/* 個人檔案（mock/API 皆可用）＋ 密碼（僅 API） */}
+      <ProfileSection />
+      {API_BASE_URL && <ChangePasswordSection />}
+
       {/* Account */}
       <Section title={t('settings.accountTitle')} subtitle={t('settings.accountSubtitle')}>
         <label className={styles.field}>
@@ -57,7 +61,7 @@ export function Settings() {
       </Section>
 
       {/* Platforms & Accounts */}
-      <Section title={t('settings.platformsTitle')} subtitle={t('settings.platformsSubtitle')}>
+      <Section wide title={t('settings.platformsTitle')} subtitle={t('settings.platformsSubtitle')}>
         <div className={styles.platforms}>
           {platforms.map((platform) => (
             <div key={platform.id} className={styles.platform}>
@@ -128,9 +132,12 @@ export function Settings() {
         />
       </Section>
 
-      {/* 帳號安全（僅 API 模式）：變更密碼；管理員另有使用者管理 */}
-      {API_BASE_URL && <ChangePasswordSection />}
-      {API_BASE_URL && user?.isAdmin && <UserManagementSection />}
+      {/* 使用者管理（僅 API 模式的管理員） */}
+      {API_BASE_URL && user?.isAdmin && (
+        <div className={styles.wide}>
+          <UserManagementSection />
+        </div>
+      )}
 
       <ConfirmDialog
         open={confirming !== null}
@@ -147,9 +154,20 @@ export function Settings() {
   );
 }
 
-function Section({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
+function Section({
+  title,
+  subtitle,
+  wide,
+  children,
+}: {
+  title: string;
+  subtitle: string;
+  /** 於雙欄網格中跨滿整列。 */
+  wide?: boolean;
+  children: React.ReactNode;
+}) {
   return (
-    <div className={styles.card}>
+    <div className={`${styles.card} ${wide ? styles.wide : ''}`}>
       <div className={styles.cardHeader}>
         <div className={styles.cardTitle}>{title}</div>
         <div className={styles.cardSubtitle}>{subtitle}</div>

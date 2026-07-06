@@ -143,6 +143,40 @@ public class UserServiceTests
     }
 
     [Fact]
+    public async Task UpdateOwnProfileAsync_KeepsAdminFlag_AndNormalizesEmail()
+    {
+        var repository = new FakeUserRepository
+        {
+            Existing = new UserDataModel { Id = 3, Email = "me@example.com", DisplayName = "Me", IsAdmin = true },
+            EmailExists = false,
+        };
+        var service = CreateService(repository);
+
+        var result = await service.UpdateOwnProfileAsync("me@example.com", "  New Name ", "New@Example.com");
+
+        result.Should().Be(Chi.TradeLog.Common.Enums.UserMutationResult.Ok);
+        repository.UpdatedProfile!.Value.Email.Should().Be("new@example.com");
+        repository.UpdatedProfile.Value.Name.Should().Be("New Name");
+        repository.UpdatedProfile.Value.IsAdmin.Should().BeTrue(); // 本人不得自改權限，沿用原值
+    }
+
+    [Fact]
+    public async Task UpdateOwnProfileAsync_Conflict_WhenEmailTakenByOther()
+    {
+        var repository = new FakeUserRepository
+        {
+            Existing = new UserDataModel { Id = 3, Email = "me@example.com", DisplayName = "Me" },
+            EmailExists = true,
+        };
+        var service = CreateService(repository);
+
+        var result = await service.UpdateOwnProfileAsync("me@example.com", "Me", "taken@example.com");
+
+        result.Should().Be(Chi.TradeLog.Common.Enums.UserMutationResult.EmailConflict);
+        repository.UpdatedProfile.Should().BeNull();
+    }
+
+    [Fact]
     public async Task ResetPasswordAsync_ReturnsDefault_ForExistingUser()
     {
         var repository = new FakeUserRepository { Existing = new UserDataModel { Id = 5, Email = "u@example.com" } };

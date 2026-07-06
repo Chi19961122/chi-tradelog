@@ -1,14 +1,27 @@
+/* 雙欄網格：窄卡各佔一欄、寬卡（.wide）跨兩欄；900px 以下退單欄 */
 .page {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  max-width: 760px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  max-width: 960px;
+  align-items: start;
 }
 
 .header {
+  grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.wide {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 900px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
 }
 
 .title {

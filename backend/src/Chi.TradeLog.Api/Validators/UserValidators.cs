@@ -43,6 +43,24 @@ public class UpdateUserParameterValidator : AbstractValidator<UpdateUserParamete
 }
 
 /// <summary>
+/// <see cref="UpdateProfileParameter"/> 的驗證規則。
+/// </summary>
+public class UpdateProfileParameterValidator : AbstractValidator<UpdateProfileParameter>
+{
+    /// <summary>
+    /// 建立驗證器。
+    /// </summary>
+    public UpdateProfileParameterValidator()
+    {
+        RuleFor(parameter => parameter.Email)
+            .NotEmpty().WithMessage("電子郵件為必填。")
+            .EmailAddress().WithMessage("電子郵件格式不正確。");
+        RuleFor(parameter => parameter.Name)
+            .NotEmpty().WithMessage("名稱為必填。");
+    }
+}
+
+/// <summary>
 /// <see cref="RenameParameter"/> 的驗證規則。
 /// </summary>
 public class RenameParameterValidator : AbstractValidator<RenameParameter>

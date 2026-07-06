@@ -1,8 +1,73 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ConfirmDialog } from '@/components/ConfirmDialog/ConfirmDialog';
+import { useAuthStore } from '@/store/authStore';
 import { useChangePassword, useUsers, useUserMutations, type AdminUser } from '@/features/users/useUsers';
 import styles from './AccountSecuritySections.module.css';
+
+/** 個人檔案：使用者自行修改顯示名稱與電子郵件（mock 與 API 模式皆可用）。 */
+export function ProfileSection() {
+  const { t } = useTranslation();
+  const user = useAuthStore((s) => s.user);
+  const updateProfile = useAuthStore((s) => s.updateProfile);
+
+  const [name, setName] = useState(user?.name ?? '');
+  const [email, setEmail] = useState(user?.email ?? '');
+  const [status, setStatus] = useState<'idle' | 'ok' | 'conflict' | 'error' | 'saving'>('idle');
+
+  const dirty = name.trim() !== (user?.name ?? '') || email.trim() !== (user?.email ?? '');
+
+  const save = async () => {
+    setStatus('saving');
+    const result = await updateProfile(name, email);
+    setStatus(result);
+  };
+
+  return (
+    <div className={styles.card}>
+      <div className={styles.head}>
+        <div className={styles.title}>{t('settings.profileTitle')}</div>
+        <div className={styles.subtitle}>{t('settings.profileSubtitle')}</div>
+      </div>
+      <div className={styles.row2}>
+        <label className={styles.field}>
+          <span className={styles.label}>{t('settings.profileName')}</span>
+          <input
+            className={styles.input}
+            value={name}
+            onChange={(e) => {
+              setName(e.target.value);
+              setStatus('idle');
+            }}
+          />
+        </label>
+        <label className={styles.field}>
+          <span className={styles.label}>{t('settings.profileEmail')}</span>
+          <input
+            className={styles.input}
+            type="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setStatus('idle');
+            }}
+          />
+        </label>
+      </div>
+      {status === 'ok' && <div className={styles.ok}>{t('settings.profileSaved')}</div>}
+      {status === 'conflict' && <div className={styles.err}>{t('settings.emailExists')}</div>}
+      {status === 'error' && <div className={styles.err}>{t('state.error')}</div>}
+      <button
+        type="button"
+        className={styles.primaryBtn}
+        disabled={!dirty || !name.trim() || !email.trim() || status === 'saving'}
+        onClick={() => void save()}
+      >
+        {t('settings.saveProfile')}
+      </button>
+    </div>
+  );
+}
 
 /** 變更自己的密碼（所有登入使用者）。 */
 export function ChangePasswordSection() {

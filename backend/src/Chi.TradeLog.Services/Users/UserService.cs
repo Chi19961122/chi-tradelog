@@ -140,6 +140,29 @@ public class UserService : IUserService
     }
 
     /// <summary>
+    /// 由本人更新自己的個人檔案（顯示名稱／電子郵件）。
+    /// 管理員旗標沿用原值（本人不得自改權限）；電子郵件重複時拒絕。
+    /// </summary>
+    public async Task<UserMutationResult> UpdateOwnProfileAsync(
+        string currentEmail, string name, string newEmail, CancellationToken cancellationToken = default)
+    {
+        var user = await _userRepository.GetByEmailAsync(currentEmail.Trim().ToLowerInvariant(), cancellationToken);
+        if (user is null)
+        {
+            return UserMutationResult.NotFound;
+        }
+
+        var email = newEmail.Trim().ToLowerInvariant();
+        if (email != user.Email && await _userRepository.ExistsByEmailAsync(email, cancellationToken))
+        {
+            return UserMutationResult.EmailConflict;
+        }
+
+        await _userRepository.UpdateProfileAsync(user.Id, email, name.Trim(), user.IsAdmin, cancellationToken);
+        return UserMutationResult.Ok;
+    }
+
+    /// <summary>
     /// 刪除使用者（其所有資料由外鍵串接刪除）；會使系統失去最後一位管理員時拒絕。
     /// </summary>
     public async Task<UserMutationResult> DeleteAsync(long id, CancellationToken cancellationToken = default)

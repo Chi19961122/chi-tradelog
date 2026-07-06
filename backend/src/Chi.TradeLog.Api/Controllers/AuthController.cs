@@ -3,6 +3,7 @@ using System.Security.Claims;
 using AutoMapper;
 using Chi.TradeLog.Api.Models.Parameters;
 using Chi.TradeLog.Api.Models.ViewModels;
+using Chi.TradeLog.Common.Enums;
 using Chi.TradeLog.Common.Models.InfoModels;
 using Chi.TradeLog.Services.Auth;
 using Chi.TradeLog.Services.Users;
@@ -23,6 +24,7 @@ public class AuthController : ApiControllerBase
     private readonly IMapper _mapper;
     private readonly IValidator<LoginParameter> _loginValidator;
     private readonly IValidator<ChangePasswordParameter> _changePasswordValidator;
+    private readonly IValidator<UpdateProfileParameter> _updateProfileValidator;
 
     /// <summary>
     /// 建立認證 Controller。
@@ -32,13 +34,15 @@ public class AuthController : ApiControllerBase
         IUserService userService,
         IMapper mapper,
         IValidator<LoginParameter> loginValidator,
-        IValidator<ChangePasswordParameter> changePasswordValidator)
+        IValidator<ChangePasswordParameter> changePasswordValidator,
+        IValidator<UpdateProfileParameter> updateProfileValidator)
     {
         _authService = authService;
         _userService = userService;
         _mapper = mapper;
         _loginValidator = loginValidator;
         _changePasswordValidator = changePasswordValidator;
+        _updateProfileValidator = updateProfileValidator;
     }
 
     /// <summary>
@@ -142,5 +146,58 @@ public class AuthController : ApiControllerBase
         }
 
         return NoContent();
+    }
+
+    /// <summary>
+    /// 由登入的使用者更新自己的個人檔案（顯示名稱／電子郵件）。
+    /// 電子郵件是權杖的身分鍵，成功後回發新的 JWT 與使用者資訊。
+    /// </summary>
+    /// <param name="parameter">新的名稱與電子郵件。</param>
+    /// <param name="cancellationToken">取消權杖。</param>
+    /// <returns>新的權杖與使用者。</returns>
+    /// <response code="200">更新成功（含新權杖）。</response>
+    /// <response code="400">參數驗證失敗。</response>
+    /// <response code="401">權杖無效。</response>
+    /// <response code="409">電子郵件已被使用。</response>
+    [HttpPut("profile")]
+    [Authorize]
+    [ProducesResponseType(typeof(AuthViewModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<AuthViewModel>> UpdateProfileAsync(
+        [FromBody] UpdateProfileParameter parameter,
+        CancellationToken cancellationToken)
+    {
+        var validation = await _updateProfileValidator.ValidateAsync(parameter, cancellationToken);
+        if (validation.IsValid is false)
+        {
+            return ValidationProblemFrom(validation);
+        }
+
+        var email = User.FindFirstValue(JwtRegisteredClaimNames.Email);
+        if (string.IsNullOrEmpty(email))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _userService.UpdateOwnProfileAsync(email, parameter.Name, parameter.Email, cancellationToken);
+        if (result == UserMutationResult.EmailConflict)
+        {
+            return Conflict(new ProblemDetails { Title = "電子郵件已被使用", Status = StatusCodes.Status409Conflict });
+        }
+        if (result != UserMutationResult.Ok)
+        {
+            return Unauthorized();
+        }
+
+        // 以新 email 重新發權杖（舊權杖的 email claim 已失效）。
+        var auth = await _authService.RefreshAsync(parameter.Email, cancellationToken);
+        if (auth is null)
+        {
+            return Unauthorized();
+        }
+
+        return Ok(_mapper.Map<AuthViewModel>(auth));
     }
 }

@@ -57,9 +57,9 @@ function persist(token: string | null, user: AuthUser | null, remember = true) {
   else target.removeItem(AUTH_USER_KEY);
 }
 
-/** 目前工作階段是否存在 localStorage（即登入時勾了「記住我」）。 */
+/** 目前工作階段是否存在 localStorage（即登入時勾了「記住我」；mock 模式看 user key）。 */
 function isRemembered(): boolean {
-  return localStorage.getItem(AUTH_TOKEN_KEY) !== null;
+  return localStorage.getItem(AUTH_TOKEN_KEY) !== null || localStorage.getItem(AUTH_USER_KEY) !== null;
 }
 
 interface AuthState {
@@ -68,6 +68,8 @@ interface AuthState {
   loginError: string | null;
   login: (email: string, password: string, remember?: boolean) => Promise<boolean>;
   logout: () => void;
+  /** 更新自己的個人檔案（API 模式成功會換發新權杖）。 */
+  updateProfile: (name: string, email: string) => Promise<'ok' | 'conflict' | 'error'>;
 }
 
 /**
@@ -92,7 +94,7 @@ function initialState(): { user: AuthUser | null; isAuthenticated: boolean } {
   return { user: storedUser ?? DEMO_USER, isAuthenticated: true };
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   ...initialState(),
   loginError: null,
 
@@ -137,6 +139,38 @@ export const useAuthStore = create<AuthState>((set) => ({
     persist(null, null, true);
     persist(null, null, false);
     set({ user: null, isAuthenticated: false, loginError: null });
+  },
+
+  updateProfile: async (name, email) => {
+    const cleanName = name.trim();
+    const cleanEmail = email.trim();
+    if (!cleanName || !cleanEmail) return 'error';
+
+    if (API_BASE_URL) {
+      try {
+        const res = await apiFetch('/api/auth/profile', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: cleanName, email: cleanEmail }),
+        });
+        if (res.status === 409) return 'conflict';
+        if (res.ok === false) return 'error';
+        // email 是權杖身分鍵：改完後端回發新權杖，沿用原儲存區。
+        const data = (await res.json()) as { token: string; user: AuthUser };
+        persist(data.token, data.user, isRemembered());
+        set({ user: data.user });
+        scheduleRefresh(data.token);
+        return 'ok';
+      } catch {
+        return 'error';
+      }
+    }
+
+    // mock 模式：本地更新
+    const user: AuthUser = { ...get().user, name: cleanName, email: cleanEmail };
+    persist(null, user, isRemembered());
+    set({ user });
+    return 'ok';
   },
 }));
 

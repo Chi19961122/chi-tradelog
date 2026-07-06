@@ -38,4 +38,10 @@ public interface IUserService
     /// 刪除使用者（其所有資料由外鍵串接刪除），回傳結果代碼。
     /// </summary>
     Task<UserMutationResult> DeleteAsync(long id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 由本人更新自己的個人檔案（顯示名稱／電子郵件），回傳結果代碼。
+    /// </summary>
+    Task<UserMutationResult> UpdateOwnProfileAsync(
+        string currentEmail, string name, string newEmail, CancellationToken cancellationToken = default);
 }
