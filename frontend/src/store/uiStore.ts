@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Account, Platform } from '@/types/trade';
+import type { Account, Platform, Trade } from '@/types/trade';
 import type { Lang } from '@/i18n';
 import i18n from '@/i18n';
 import { SYMBOLS_LIST } from '@/lib/seededTrades';
@@ -44,8 +44,12 @@ interface UiState {
   monthOffset: number;
   symbolsList: string[];
   tagsList: string[];
+  /** 整頁 Journal 目前編輯的交易（null 代表未開啟整頁模式）。 */
+  journalPageTrade: Trade | null;
 
   setTab: (tab: TabKey) => void;
+  openJournalPage: (trade: Trade) => void;
+  closeJournalPage: () => void;
   toggleTheme: () => void;
   toggleLang: () => void;
   setActiveAccountIds: (ids: string[]) => void;
@@ -93,8 +97,12 @@ export const useUiStore = create<UiState>((set, get) => ({
   monthOffset: 0,
   symbolsList: [...SYMBOLS_LIST],
   tagsList: [...DEFAULT_TAGS],
+  journalPageTrade: null,
 
-  setTab: (tab) => set({ tab }),
+  // 切換分頁時一併關閉整頁 Journal，避免畫面卡在日記。
+  setTab: (tab) => set({ tab, journalPageTrade: null }),
+  openJournalPage: (trade) => set({ journalPageTrade: trade }),
+  closeJournalPage: () => set({ journalPageTrade: null }),
   toggleTheme: () => {
     const theme = get().theme === 'dark' ? 'light' : 'dark';
     applyTheme(theme);

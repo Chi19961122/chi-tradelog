@@ -93,7 +93,9 @@
     "setTemplate": "Set Template",
     "clear": "Clear",
     "saved": "Saved",
-    "editing": "Editing…"
+    "editing": "Editing…",
+    "openFullPage": "Open full page",
+    "back": "Back"
   },
   "tradelog": {
     "title": "Trade Log",
@@ -120,6 +122,7 @@
     "next": "Next",
     "importCsv": "Import CSV",
     "exportCsv": "Export CSV",
+    "pasteImport": "Paste Import",
     "downloadSample": "Download sample",
     "dateRange": "Date",
     "clearDate": "Clear",
@@ -148,6 +151,15 @@
   "calendar": {
     "title": "Calendar",
     "subtitle": "Monthly performance breakdown"
+  },
+  "pasteImport": {
+    "title": "Paste Import",
+    "subtitle": "Paste your broker's trade report — trades are detected automatically",
+    "placeholder": "Paste the copied trade table here (Broker / Instrument / Open time / … / Net P&L / Charges)",
+    "preview": "Preview",
+    "parsed": "{{count}} trades detected",
+    "empty": "No trades detected — check the pasted format.",
+    "confirm": "Import {{count}} trades"
   },
   "settings": {
     "title": "Settings",

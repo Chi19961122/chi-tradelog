@@ -93,7 +93,9 @@
     "setTemplate": "設定範本",
     "clear": "清空內容",
     "saved": "已儲存",
-    "editing": "編輯中…"
+    "editing": "編輯中…",
+    "openFullPage": "整頁編輯",
+    "back": "返回"
   },
   "tradelog": {
     "title": "交易日誌",
@@ -120,6 +122,7 @@
     "next": "下一頁",
     "importCsv": "匯入 CSV",
     "exportCsv": "匯出 CSV",
+    "pasteImport": "貼上匯入",
     "downloadSample": "下載範例檔",
     "dateRange": "日期",
     "clearDate": "清除",
@@ -148,6 +151,15 @@
   "calendar": {
     "title": "日曆",
     "subtitle": "每月績效總覽"
+  },
+  "pasteImport": {
+    "title": "貼上匯入",
+    "subtitle": "貼上券商交易報表文字，系統會自動辨識交易",
+    "placeholder": "把複製的交易表格貼在這裡（Broker / Instrument / Open time / … / Net P&L / Charges）",
+    "preview": "預覽",
+    "parsed": "已辨識 {{count}} 筆交易",
+    "empty": "未辨識到交易，請確認貼上的格式。",
+    "confirm": "匯入 {{count}} 筆"
   },
   "settings": {
     "title": "設定",
