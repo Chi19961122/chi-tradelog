@@ -227,11 +227,9 @@ Git Bash 中多行 `python -c` 管線會異常（exit 49），改用檔案或內
 
 ## 6. 結構債 Backlog（依優先序，動工前先在 docs/plans/ 開計畫）
 
-1. **完整日期模型遷移**（最高優先，跨月即爆）：
-   後端 `TradeViewModel` 已可回傳 `TradedOn` 完整日期 → 前端 `Trade` 以 `date: string`（ISO）取代
-   `day`，`metrics/reports/csv/calendar/dateRange` 改用完整日期聚合（月曆各月都有真資料、權益曲線
-   跨月、CSV 不再由 day 拼日期）；`AddEditTradeModal` 改日期選擇器；mock seed 同步。
-   估計是一次中型全端重構，值得單獨一份計畫檔。
+1. **完整日期模型遷移**（最高優先，跨月即爆）：計畫已就緒 →
+   **`docs/plans/2026-07-date-model-migration.md`**（含探索發現的 Journal 唯一鍵連鎖遷移，
+   接手者照該檔實作）。新功能優先序另見 `docs/plans/2026-07-product-roadmap.md`。
 2. **Playwright 冒煙測試**：把 1.3 的 checklist 自動化（登入 → 六頁載入 → 新增交易 → 日記存讀
    → mock/API 兩模式），CI 掛 mock 模式即可先行。完成後 1.3 降級為備援。
 3. **編輯交易保留明確 pnl**：編輯表單帶回原 pnl，或後端 update 時「entry/exit/qty 未變就不重算」。
