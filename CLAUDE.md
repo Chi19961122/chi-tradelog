@@ -3,6 +3,11 @@
 > 本檔是 Monorepo 根目錄的總覽規範。改哪一區，就先讀那一區的 `CLAUDE.md`：
 > - 後端 → [`backend/CLAUDE.md`](backend/CLAUDE.md)
 > - 前端 → [`frontend/CLAUDE.md`](frontend/CLAUDE.md)
+>
+> **開工前必讀 [`docs/ENGINEERING_SYSTEM.md`](docs/ENGINEERING_SYSTEM.md)**（軟體開發系統）：
+> 開發循環與驗證梯、commit 制度、架構不變量（多租戶鐵律、前後端計算鏡射）、
+> 領域陷阱（期貨損益、報表負號、日期模型債）、結構債 backlog、未完成工作的交接都在那裡。
+> 接手任務前另查 [`docs/plans/README.md`](docs/plans/README.md) 的計畫索引。
 
 ## 專案定位
 Chi.TradeLog 是一個**交易日記 / 績效分析 Web App**。使用者可跨帳戶檢視績效、記錄與編輯交易、檢視 P&L 月曆、分析報表，並針對每筆交易寫日誌（筆記／截圖）。
