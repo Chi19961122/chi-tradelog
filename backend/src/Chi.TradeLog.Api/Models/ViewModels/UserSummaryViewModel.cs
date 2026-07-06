@@ -1,10 +1,15 @@
 namespace Chi.TradeLog.Api.Models.ViewModels;
 
 /// <summary>
-/// 使用者回應模型（ViewModel）。
+/// 使用者摘要回應模型（ViewModel）。
 /// </summary>
-public class UserViewModel
+public class UserSummaryViewModel
 {
+    /// <summary>
+    /// 使用者 id。
+    /// </summary>
+    public long Id { get; init; }
+
     /// <summary>
     /// 顯示名稱。
     /// </summary>

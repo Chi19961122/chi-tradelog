@@ -54,20 +54,21 @@ public class AuthService : IAuthService
     /// </summary>
     private AuthResultDto BuildResult(Common.Models.DataModels.UserDataModel user) => new()
     {
-        Token = CreateToken(user.Id, user.Email, user.DisplayName),
-        User = new UserDto { Name = user.DisplayName, Email = user.Email },
+        Token = CreateToken(user.Id, user.Email, user.DisplayName, user.IsAdmin),
+        User = new UserDto { Name = user.DisplayName, Email = user.Email, IsAdmin = user.IsAdmin },
     };
 
     /// <summary>
     /// 依使用者資訊建立簽章後的 JWT。
     /// </summary>
-    private string CreateToken(long userId, string email, string displayName)
+    private string CreateToken(long userId, string email, string displayName, bool isAdmin)
     {
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, email),
             new Claim("name", displayName),
+            new Claim("admin", isAdmin ? "true" : "false"),
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Key));

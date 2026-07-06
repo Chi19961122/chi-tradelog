@@ -24,4 +24,9 @@ public class UserDataModel
     /// 顯示名稱。
     /// </summary>
     public string DisplayName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 是否為管理員。
+    /// </summary>
+    public bool IsAdmin { get; set; }
 }

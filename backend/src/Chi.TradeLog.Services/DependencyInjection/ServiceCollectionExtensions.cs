@@ -2,6 +2,7 @@ using Chi.TradeLog.Services.Auth;
 using Chi.TradeLog.Services.Journal;
 using Chi.TradeLog.Services.Settings;
 using Chi.TradeLog.Services.Trades;
+using Chi.TradeLog.Services.Users;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Chi.TradeLog.Services.DependencyInjection;
@@ -20,6 +21,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISettingsService, SettingsService>();
         services.AddScoped<IJournalService, JournalService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IUserService, UserService>();
         return services;
     }
 }

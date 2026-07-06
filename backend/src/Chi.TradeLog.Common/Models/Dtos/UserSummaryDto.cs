@@ -1,10 +1,15 @@
 namespace Chi.TradeLog.Common.Models.Dtos;
 
 /// <summary>
-/// 使用者資料傳輸物件（Dto）。
+/// 使用者摘要資料傳輸物件（Dto）— 供管理員列表使用。
 /// </summary>
-public class UserDto
+public class UserSummaryDto
 {
+    /// <summary>
+    /// 使用者主鍵。
+    /// </summary>
+    public long Id { get; set; }
+
     /// <summary>
     /// 顯示名稱。
     /// </summary>

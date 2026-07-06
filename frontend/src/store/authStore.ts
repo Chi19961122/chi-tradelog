@@ -5,6 +5,7 @@ import { apiFetch, AUTH_TOKEN_KEY, AUTH_USER_KEY, getStoredToken } from '@/lib/a
 export interface AuthUser {
   name: string;
   email: string;
+  isAdmin?: boolean;
 }
 
 const DEMO_USER: AuthUser = { name: 'Alex Chen', email: 'alex@chitradelog.com' };

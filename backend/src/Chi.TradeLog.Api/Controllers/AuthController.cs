@@ -3,7 +3,9 @@ using System.Security.Claims;
 using AutoMapper;
 using Chi.TradeLog.Api.Models.Parameters;
 using Chi.TradeLog.Api.Models.ViewModels;
+using Chi.TradeLog.Common.Models.InfoModels;
 using Chi.TradeLog.Services.Auth;
+using Chi.TradeLog.Services.Users;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,26 +13,32 @@ using Microsoft.AspNetCore.Mvc;
 namespace Chi.TradeLog.Api.Controllers;
 
 /// <summary>
-/// 認證 API（登入、換發權杖）。
+/// 認證 API（登入、換發權杖、變更密碼）。
 /// </summary>
 [Route("api/[controller]")]
 public class AuthController : ApiControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly IUserService _userService;
     private readonly IMapper _mapper;
     private readonly IValidator<LoginParameter> _loginValidator;
+    private readonly IValidator<ChangePasswordParameter> _changePasswordValidator;
 
     /// <summary>
     /// 建立認證 Controller。
     /// </summary>
     public AuthController(
         IAuthService authService,
+        IUserService userService,
         IMapper mapper,
-        IValidator<LoginParameter> loginValidator)
+        IValidator<LoginParameter> loginValidator,
+        IValidator<ChangePasswordParameter> changePasswordValidator)
     {
         _authService = authService;
+        _userService = userService;
         _mapper = mapper;
         _loginValidator = loginValidator;
+        _changePasswordValidator = changePasswordValidator;
     }
 
     /// <summary>
@@ -92,5 +100,47 @@ public class AuthController : ApiControllerBase
         }
 
         return Ok(_mapper.Map<AuthViewModel>(result));
+    }
+
+    /// <summary>
+    /// 由登入的使用者變更自己的密碼。
+    /// </summary>
+    /// <param name="parameter">目前密碼與新密碼。</param>
+    /// <param name="cancellationToken">取消權杖。</param>
+    /// <response code="204">變更成功。</response>
+    /// <response code="400">參數驗證失敗，或目前密碼錯誤。</response>
+    [HttpPut("password")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ChangePasswordAsync(
+        [FromBody] ChangePasswordParameter parameter,
+        CancellationToken cancellationToken)
+    {
+        var validation = await _changePasswordValidator.ValidateAsync(parameter, cancellationToken);
+        if (validation.IsValid is false)
+        {
+            return ValidationProblemFrom(validation);
+        }
+
+        var email = User.FindFirstValue(JwtRegisteredClaimNames.Email);
+        if (string.IsNullOrEmpty(email))
+        {
+            return Unauthorized();
+        }
+
+        var info = new ChangePasswordInfo
+        {
+            Email = email,
+            CurrentPassword = parameter.CurrentPassword,
+            NewPassword = parameter.NewPassword,
+        };
+        var changed = await _userService.ChangePasswordAsync(info, cancellationToken);
+        if (changed is false)
+        {
+            return BadRequest(new ProblemDetails { Title = "目前密碼錯誤", Status = StatusCodes.Status400BadRequest });
+        }
+
+        return NoContent();
     }
 }

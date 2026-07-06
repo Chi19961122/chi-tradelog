@@ -3,8 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { Icon } from '@/components/Icon/Icon';
 import { ChipEditor } from '@/components/ChipEditor/ChipEditor';
 import { useUiStore, NAME_TRANSLATIONS } from '@/store/uiStore';
+import { useAuthStore } from '@/store/authStore';
 import { useSettingsController } from '@/features/settings/useSettingsController';
+import { API_BASE_URL } from '@/lib/apiConfig';
 import { toMetricsLang } from '@/i18n';
+import { ChangePasswordSection, UserManagementSection } from './AccountSecuritySections';
 import styles from './Settings.module.css';
 
 export function Settings() {
@@ -14,6 +17,7 @@ export function Settings() {
   const platforms = useUiStore((s) => s.platforms);
   const symbolsList = useUiStore((s) => s.symbolsList);
   const tagsList = useUiStore((s) => s.tagsList);
+  const user = useAuthStore((s) => s.user);
   const controller = useSettingsController();
 
   const displayName = (name: string) => (isZh ? (NAME_TRANSLATIONS[name] ?? name) : name);
@@ -104,6 +108,10 @@ export function Settings() {
           placeholder={t('settings.addTag')}
         />
       </Section>
+
+      {/* 帳號安全（僅 API 模式）：變更密碼；管理員另有使用者管理 */}
+      {API_BASE_URL && <ChangePasswordSection />}
+      {API_BASE_URL && user?.isAdmin && <UserManagementSection />}
     </div>
   );
 }

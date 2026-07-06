@@ -99,5 +99,20 @@ public class AuthServiceTests
 
         public Task<UserDataModel?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
             => Task.FromResult(_user);
+
+        public Task<UserDataModel?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
+            => Task.FromResult(_user);
+
+        public Task<IReadOnlyList<UserDataModel>> GetAllAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<UserDataModel>>(_user is null ? [] : [_user]);
+
+        public Task<bool> ExistsByEmailAsync(string email, CancellationToken cancellationToken = default)
+            => Task.FromResult(_user is not null);
+
+        public Task<long> InsertAsync(UserDataModel user, CancellationToken cancellationToken = default)
+            => Task.FromResult(1L);
+
+        public Task<int> UpdatePasswordAsync(long id, string passwordHash, CancellationToken cancellationToken = default)
+            => Task.FromResult(1);
     }
 }

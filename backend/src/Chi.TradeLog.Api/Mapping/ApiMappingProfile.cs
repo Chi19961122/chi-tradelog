@@ -43,5 +43,10 @@ public class ApiMappingProfile : Profile
         // 認證：Dto → ViewModel
         CreateMap<UserDto, UserViewModel>();
         CreateMap<AuthResultDto, AuthViewModel>();
+
+        // 使用者管理：Parameter → InfoModel、Dto → ViewModel
+        CreateMap<CreateUserParameter, CreateUserInfo>();
+        CreateMap<UserSummaryDto, UserSummaryViewModel>();
+        CreateMap<CreateUserResultDto, CreateUserResultViewModel>();
     }
 }

@@ -67,7 +67,8 @@ builder.Services
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
         };
     });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+    options.AddPolicy("Admin", policy => policy.RequireClaim("admin", "true")));
 
 // 應用層與資料層。
 builder.Services.AddApplicationServices();
