@@ -17,7 +17,8 @@ public class ImportTradesParameter
 }
 
 /// <summary>
-/// 匯入交易的單一列（損益、R 值、持倉時間由後端計算）。
+/// 匯入交易的單一列。損益可由券商報表明確帶入（期貨等有合約乘數的商品），
+/// 未帶入時由後端以價差計算；R 值與持倉時間由後端推導。
 /// </summary>
 public class ImportTradeRow
 {
@@ -55,4 +56,24 @@ public class ImportTradeRow
     /// 標籤清單。
     /// </summary>
     public string[] Tags { get; init; } = [];
+
+    /// <summary>
+    /// 明確指定的淨損益（選填；<c>null</c> 時由後端以價差計算）。
+    /// </summary>
+    public decimal? Pnl { get; init; }
+
+    /// <summary>
+    /// 手續費（選填）。
+    /// </summary>
+    public decimal? Charges { get; init; }
+
+    /// <summary>
+    /// 進場時間（選填）。
+    /// </summary>
+    public DateTimeOffset? OpenedAt { get; init; }
+
+    /// <summary>
+    /// 出場時間（選填）。
+    /// </summary>
+    public DateTimeOffset? ClosedAt { get; init; }
 }

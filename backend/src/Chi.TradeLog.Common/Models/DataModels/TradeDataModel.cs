@@ -69,4 +69,19 @@ public class TradeDataModel
     /// 標籤清單。
     /// </summary>
     public string[] Tags { get; set; } = [];
+
+    /// <summary>
+    /// 手續費（來自券商報表；手動輸入的交易為 <c>null</c>）。
+    /// </summary>
+    public decimal? Charges { get; set; }
+
+    /// <summary>
+    /// 進場時間（來自券商報表；手動輸入的交易為 <c>null</c>）。
+    /// </summary>
+    public DateTimeOffset? OpenedAt { get; set; }
+
+    /// <summary>
+    /// 出場時間（來自券商報表；手動輸入的交易為 <c>null</c>）。
+    /// </summary>
+    public DateTimeOffset? ClosedAt { get; set; }
 }

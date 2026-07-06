@@ -64,4 +64,19 @@ public class TradeDto
     /// 標籤清單。
     /// </summary>
     public IReadOnlyList<string> Tags { get; set; } = [];
+
+    /// <summary>
+    /// 手續費（無資料時為 <c>null</c>）。
+    /// </summary>
+    public decimal? Charges { get; set; }
+
+    /// <summary>
+    /// 進場時間（無資料時為 <c>null</c>）。
+    /// </summary>
+    public DateTimeOffset? OpenedAt { get; set; }
+
+    /// <summary>
+    /// 出場時間（無資料時為 <c>null</c>）。
+    /// </summary>
+    public DateTimeOffset? ClosedAt { get; set; }
 }

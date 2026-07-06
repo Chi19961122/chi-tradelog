@@ -64,4 +64,19 @@ public class TradeViewModel
     /// 持倉分鐘數。
     /// </summary>
     public int HoldingMinutes { get; init; }
+
+    /// <summary>
+    /// 手續費（無資料時為 <c>null</c>）。
+    /// </summary>
+    public decimal? Charges { get; init; }
+
+    /// <summary>
+    /// 進場時間（無資料時為 <c>null</c>）。
+    /// </summary>
+    public DateTimeOffset? OpenedAt { get; init; }
+
+    /// <summary>
+    /// 出場時間（無資料時為 <c>null</c>）。
+    /// </summary>
+    public DateTimeOffset? ClosedAt { get; init; }
 }

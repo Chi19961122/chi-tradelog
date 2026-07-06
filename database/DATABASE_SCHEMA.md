@@ -45,6 +45,9 @@
 | `traded_on` | date | NOT NULL | 交易日期 |
 | `holding_minutes` | integer | NOT NULL | 持倉分鐘數 |
 | `tags` | text[] | NOT NULL, default `{}` | 標籤陣列 |
+| `charges` | numeric(18,2) | NULL | 手續費（Migration 0009；貼上匯入才有值） |
+| `opened_at` | timestamptz | NULL | 進場時間（Migration 0009；貼上匯入才有值） |
+| `closed_at` | timestamptz | NULL | 出場時間（Migration 0009；貼上匯入才有值） |
 | `created_at` | timestamptz | NOT NULL, default now() | 建立時間 |
 | `updated_at` | timestamptz | NOT NULL, default now() | 更新時間 |
 

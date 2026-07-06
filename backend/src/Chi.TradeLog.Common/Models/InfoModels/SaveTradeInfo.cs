@@ -50,4 +50,24 @@ public class SaveTradeInfo
     /// 標籤清單。
     /// </summary>
     public IReadOnlyList<string> Tags { get; set; } = [];
+
+    /// <summary>
+    /// 明確指定的淨損益（券商報表匯入用；<c>null</c> 時由後端以價差計算）。
+    /// </summary>
+    public decimal? Pnl { get; set; }
+
+    /// <summary>
+    /// 手續費（選填）。
+    /// </summary>
+    public decimal? Charges { get; set; }
+
+    /// <summary>
+    /// 進場時間（選填；與 <see cref="ClosedAt"/> 同時提供時用於推導持倉分鐘數）。
+    /// </summary>
+    public DateTimeOffset? OpenedAt { get; set; }
+
+    /// <summary>
+    /// 出場時間（選填）。
+    /// </summary>
+    public DateTimeOffset? ClosedAt { get; set; }
 }

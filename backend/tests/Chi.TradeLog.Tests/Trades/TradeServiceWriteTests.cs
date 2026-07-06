@@ -144,6 +144,52 @@ public class TradeServiceWriteTests
     }
 
     [Fact]
+    public async Task ImportTradesAsync_UsesProvidedPnl_AndDerivesHoldingFromTimestamps()
+    {
+        var repository = new CapturingTradeRepository(newId: 1);
+        var service = CreateService(repository);
+        var opened = new DateTimeOffset(2026, 7, 3, 14, 24, 25, TimeSpan.Zero);
+        var closed = new DateTimeOffset(2026, 7, 3, 15, 3, 21, TimeSpan.Zero);
+        var infos = new[]
+        {
+            // 期貨（YM 有合約乘數）：pnl 由券商報表帶入，不可用價差重算。
+            new SaveTradeInfo
+            {
+                Sym = "YM", Side = "Short", Entry = 53287m, Exit = 53214m, Qty = 2, Day = 3,
+                Pnl = 723m, Charges = 7m, OpenedAt = opened, ClosedAt = closed, Tags = [],
+            },
+        };
+
+        var imported = await service.ImportTradesAsync(UserId, "a1", infos);
+
+        imported.Should().Be(1);
+        var row = repository.InsertedMany![0];
+        row.Pnl.Should().Be(723m); // 採用帶入值，而非 (53287-53214)*2 = 146
+        row.Charges.Should().Be(7m);
+        row.OpenedAt.Should().Be(opened);
+        row.ClosedAt.Should().Be(closed);
+        row.HoldingMinutes.Should().Be(39); // 14:24:25 → 15:03:21 ≈ 39 分鐘
+    }
+
+    [Fact]
+    public async Task ImportTradesAsync_ComputesPnl_WhenNotProvided()
+    {
+        var repository = new CapturingTradeRepository(newId: 1);
+        var service = CreateService(repository);
+        var infos = new[]
+        {
+            new SaveTradeInfo { Sym = "AAPL", Side = "Long", Entry = 100m, Exit = 110m, Qty = 10, Day = 5, Tags = [] },
+        };
+
+        await service.ImportTradesAsync(UserId, "a1", infos);
+
+        var row = repository.InsertedMany![0];
+        row.Pnl.Should().Be(100m); // (110 - 100) * 10
+        row.Charges.Should().BeNull();
+        row.OpenedAt.Should().BeNull();
+    }
+
+    [Fact]
     public async Task ImportTradesAsync_ReturnsNull_WhenAccountNotOwnedByUser()
     {
         var repository = new CapturingTradeRepository(newId: 1);

@@ -13,11 +13,17 @@ export interface Trade {
   entry: number;
   exit: number;
   qty: number;
-  /** 當月第幾天（1–31，本原型以 2026 年 7 月為基準） */
+  /** 當月第幾天（1–31，以執行期的本月為基準） */
   day: number;
   tags: string[];
   /** 持倉分鐘數 */
   holdingMinutes: number;
+  /** 手續費（券商報表匯入才有值） */
+  charges?: number | null;
+  /** 進場時間（ISO 字串；券商報表匯入才有值） */
+  openedAt?: string | null;
+  /** 出場時間（ISO 字串；券商報表匯入才有值） */
+  closedAt?: string | null;
 }
 
 export interface Account {

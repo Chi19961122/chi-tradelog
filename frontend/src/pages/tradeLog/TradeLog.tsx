@@ -15,8 +15,10 @@ import { nextSort, searchTrades, sortTrades, type TradeSort, type TradeSortKey }
 import { toMetricsLang } from '@/i18n';
 import type { Trade } from '@/types/trade';
 import { AddEditTradeModal } from './AddEditTradeModal';
+import { PasteImportModal } from './PasteImportModal';
 import { JournalModal } from '@/pages/journal/JournalModal';
 import { ErrorState, LoadingState } from '@/components/QueryState/QueryState';
+import type { TradeFormInput } from '@/lib/tradeForm';
 import styles from './TradeLog.module.css';
 
 type SideFilter = 'all' | 'long' | 'short';
@@ -40,6 +42,7 @@ export function TradeLog() {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(20);
   const [modalOpen, setModalOpen] = useState(false);
+  const [pasteOpen, setPasteOpen] = useState(false);
   const [editing, setEditing] = useState<Trade | null>(null);
   const [journalOpen, setJournalOpen] = useState(false);
   const [journalTrade, setJournalTrade] = useState<Trade | null>(null);
@@ -96,27 +99,29 @@ export function TradeLog() {
   const handleExport = () => downloadTextFile('trades.csv', tradesToCsv(filtered));
   const handleSample = () => downloadTextFile('trades-sample.csv', sampleCsv());
 
+  /** 批次匯入（CSV 與貼上匯入共用）：寫入交易 + 持久化新商品／標籤。 */
+  const runImport = (inputs: TradeFormInput[]) => {
+    const accountId = activeAccountIds[0];
+    if (accountId && inputs.length) {
+      importTrades.mutate({ accountId, trades: inputs });
+    }
+    // 匯入的新商品／標籤（去重、僅新的）加入清單並持久化（API 模式打 settings API）
+    const existingSymbols = new Set(symbolsList);
+    const existingTags = new Set(tagsList);
+    [...new Set(inputs.map((i) => i.sym))]
+      .filter((sym) => existingSymbols.has(sym) === false)
+      .forEach((sym) => settings.addSymbol(sym));
+    [...new Set(inputs.flatMap((i) => i.tags))]
+      .filter((tag) => existingTags.has(tag) === false)
+      .forEach((tag) => settings.addTag(tag));
+    resetPage();
+  };
+
   const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const accountId = activeAccountIds[0];
     const reader = new FileReader();
-    reader.onload = () => {
-      const inputs = parseTradesCsv(String(reader.result));
-      if (accountId && inputs.length) {
-        importTrades.mutate({ accountId, trades: inputs });
-      }
-      // 匯入的新商品／標籤（去重、僅新的）加入清單並持久化（API 模式打 settings API）
-      const existingSymbols = new Set(symbolsList);
-      const existingTags = new Set(tagsList);
-      [...new Set(inputs.map((i) => i.sym))]
-        .filter((sym) => existingSymbols.has(sym) === false)
-        .forEach((sym) => settings.addSymbol(sym));
-      [...new Set(inputs.flatMap((i) => i.tags))]
-        .filter((tag) => existingTags.has(tag) === false)
-        .forEach((tag) => settings.addTag(tag));
-      resetPage();
-    };
+    reader.onload = () => runImport(parseTradesCsv(String(reader.result)));
     reader.readAsText(file);
     e.target.value = '';
   };
@@ -143,6 +148,9 @@ export function TradeLog() {
           </button>
           <button type="button" className={styles.ioBtn} onClick={handleExport}>
             {t('tradelog.exportCsv')}
+          </button>
+          <button type="button" className={styles.ioBtn} onClick={() => setPasteOpen(true)}>
+            {t('tradelog.pasteImport')}
           </button>
         </div>
         <button type="button" className={styles.sampleLink} onClick={handleSample}>
@@ -323,6 +331,7 @@ export function TradeLog() {
       </div>
 
       <AddEditTradeModal open={modalOpen} onClose={() => setModalOpen(false)} editing={editing} />
+      <PasteImportModal open={pasteOpen} onClose={() => setPasteOpen(false)} onImport={runImport} />
       <JournalModal open={journalOpen} onClose={() => setJournalOpen(false)} trade={journalTrade} />
     </div>
   );

@@ -1,7 +1,7 @@
 import type { Trade, TradeSide } from '@/types/trade';
 import { seededRand } from './seededTrades';
 
-/** Add/Edit Trade 表單的輸入。 */
+/** Add/Edit Trade 表單的輸入（選填欄位供券商報表匯入帶入原始值）。 */
 export interface TradeFormInput {
   sym: string;
   side: TradeSide;
@@ -10,6 +10,14 @@ export interface TradeFormInput {
   qty: number;
   day: number;
   tags: string[];
+  /** 明確帶入的淨損益（期貨等有合約乘數的商品；未帶入時以價差計算）。 */
+  pnl?: number;
+  /** 手續費（選填）。 */
+  charges?: number;
+  /** 進場時間（ISO 字串，選填）。 */
+  openedAt?: string;
+  /** 出場時間（ISO 字串，選填）。 */
+  closedAt?: string;
 }
 
 export const EMPTY_TRADE_FORM: TradeFormInput = {
@@ -37,10 +45,14 @@ export function computeTradeFields(input: TradeFormInput): {
 } {
   const side: TradeSide = input.side === 'Short' ? 'Short' : 'Long';
   const sym = input.sym.trim().toUpperCase();
-  const pnl = (side === 'Long' ? input.exit - input.entry : input.entry - input.exit) * input.qty;
+  // 淨損益優先採用明確帶入的值（與後端 TradeService 一致）。
+  const pnl = input.pnl ?? (side === 'Long' ? input.exit - input.entry : input.entry - input.exit) * input.qty;
   const r = Math.round((pnl / 100) * 100) / 100;
   const day = Math.max(1, Math.min(31, input.day || 1));
-  const holdingMinutes = 30 + Math.round(seededRand((input.entry + input.exit + input.qty) * 7.7) * 400);
+  // 持倉分鐘數優先由進／出場時間戳推導。
+  const holdingMinutes = input.openedAt && input.closedAt
+    ? Math.max(0, Math.round((new Date(input.closedAt).getTime() - new Date(input.openedAt).getTime()) / 60000))
+    : 30 + Math.round(seededRand((input.entry + input.exit + input.qty) * 7.7) * 400);
   const tags = input.tags.map((tag) => tag.trim()).filter(Boolean);
   return { pnl: Math.round(pnl * 100) / 100, r, holdingMinutes, tags: tags.length ? tags : ['manual'], day, sym, side };
 }
@@ -61,5 +73,8 @@ export function buildMockTrade(accountId: string, input: TradeFormInput, id: str
     pnl: c.pnl,
     tags: c.tags,
     holdingMinutes: c.holdingMinutes,
+    charges: input.charges ?? null,
+    openedAt: input.openedAt ?? null,
+    closedAt: input.closedAt ?? null,
   };
 }

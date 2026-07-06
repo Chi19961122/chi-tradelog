@@ -26,7 +26,10 @@ public class TradeRepository : ITradeRepository
         r_multiple      AS RMultiple,
         traded_on       AS TradedOn,
         holding_minutes AS HoldingMinutes,
-        tags            AS Tags
+        tags            AS Tags,
+        charges         AS Charges,
+        opened_at       AS OpenedAt,
+        closed_at       AS ClosedAt
         """;
 
     private const string SelectByAccountsSql = $"""
@@ -44,9 +47,9 @@ public class TradeRepository : ITradeRepository
 
     private const string InsertSql = """
         INSERT INTO trades
-            (user_id, account_id, symbol, side, entry_price, exit_price, quantity, pnl, r_multiple, traded_on, holding_minutes, tags)
+            (user_id, account_id, symbol, side, entry_price, exit_price, quantity, pnl, r_multiple, traded_on, holding_minutes, tags, charges, opened_at, closed_at)
         VALUES
-            (@UserId, @AccountId, @Symbol, @Side, @EntryPrice, @ExitPrice, @Quantity, @Pnl, @RMultiple, @TradedOn, @HoldingMinutes, @Tags)
+            (@UserId, @AccountId, @Symbol, @Side, @EntryPrice, @ExitPrice, @Quantity, @Pnl, @RMultiple, @TradedOn, @HoldingMinutes, @Tags, @Charges, @OpenedAt, @ClosedAt)
         RETURNING id;
         """;
 
@@ -62,6 +65,9 @@ public class TradeRepository : ITradeRepository
             traded_on = @TradedOn,
             holding_minutes = @HoldingMinutes,
             tags = @Tags,
+            charges = @Charges,
+            opened_at = @OpenedAt,
+            closed_at = @ClosedAt,
             updated_at = now()
         WHERE id = @Id AND user_id = @UserId;
         """;

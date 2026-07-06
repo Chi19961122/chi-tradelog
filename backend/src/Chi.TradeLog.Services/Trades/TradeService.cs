@@ -113,6 +113,10 @@ public class TradeService : ITradeService
         dataModel.Id = id;
         dataModel.UserId = info.UserId;
         dataModel.AccountId = existing.AccountId; // 帳戶不因編輯而改變
+        // 手動編輯不帶券商報表欄位，保留原值。
+        dataModel.Charges = info.Charges ?? existing.Charges;
+        dataModel.OpenedAt = info.OpenedAt ?? existing.OpenedAt;
+        dataModel.ClosedAt = info.ClosedAt ?? existing.ClosedAt;
         await _repository.UpdateAsync(dataModel, cancellationToken);
         return _mapper.Map<TradeDto>(dataModel);
     }
@@ -128,18 +132,22 @@ public class TradeService : ITradeService
 
     /// <summary>
     /// 由輸入資訊計算衍生欄位並組出 DataModel（不含 Id / UserId / AccountId）。
+    /// 淨損益優先採用明確帶入的值（期貨等有合約乘數的商品由券商報表提供），
+    /// 未帶入時以價差計算；持倉分鐘數優先由進／出場時間戳推導。
     /// </summary>
     private static TradeDataModel BuildDataModel(SaveTradeInfo info)
     {
         var side = info.Side == "Short" ? "Short" : "Long";
         var symbol = info.Sym.Trim().ToUpperInvariant();
-        var pnl = (side == "Long" ? info.Exit - info.Entry : info.Entry - info.Exit) * info.Qty;
+        var pnl = info.Pnl ?? (side == "Long" ? info.Exit - info.Entry : info.Entry - info.Exit) * info.Qty;
         var rMultiple = Math.Round(pnl / 100m, 2);
         // day 對應「本月」第幾天（以執行當下的年月為基準，短月自動夾住）。
         var now = DateTime.UtcNow;
         var day = Math.Clamp(info.Day, 1, DateTime.DaysInMonth(now.Year, now.Month));
-        var holdingMinutes = 30 + (int)Math.Floor(
-            SeededRand((double)(info.Entry + info.Exit + info.Qty) * 7.7) * 400 + 0.5);
+        var holdingMinutes = info.OpenedAt.HasValue && info.ClosedAt.HasValue
+            ? Math.Max(0, (int)Math.Round((info.ClosedAt.Value - info.OpenedAt.Value).TotalMinutes))
+            : 30 + (int)Math.Floor(
+                SeededRand((double)(info.Entry + info.Exit + info.Qty) * 7.7) * 400 + 0.5);
         var tags = info.Tags.Where(tag => string.IsNullOrWhiteSpace(tag) is false).ToArray();
 
         return new TradeDataModel
@@ -154,6 +162,9 @@ public class TradeService : ITradeService
             TradedOn = new DateOnly(now.Year, now.Month, day),
             HoldingMinutes = holdingMinutes,
             Tags = tags.Length > 0 ? tags : ["manual"],
+            Charges = info.Charges,
+            OpenedAt = info.OpenedAt,
+            ClosedAt = info.ClosedAt,
         };
     }
 
