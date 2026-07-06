@@ -119,6 +119,18 @@
   font-weight: 700;
 }
 
+/* 雙擊改名時的行內輸入框 */
+.renameInput {
+  padding: 4px 8px;
+  border-radius: var(--radius-input);
+  border: 1px solid var(--line);
+  background: var(--pill);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  max-width: 180px;
+}
+
 .iconRemove {
   display: flex;
   align-items: center;

@@ -6,6 +6,11 @@ namespace Chi.TradeLog.Common.Models.DataModels;
 public class PlatformDataModel
 {
     /// <summary>
+    /// 資料所屬使用者 ID。
+    /// </summary>
+    public long UserId { get; set; }
+
+    /// <summary>
     /// 平台 id（如 <c>p1</c>）。
     /// </summary>
     public string Id { get; set; } = string.Empty;

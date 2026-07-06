@@ -16,7 +16,7 @@ public class JournalServiceTests
         var repository = new FakeJournalRepository { Stored = null };
         var service = new JournalService(repository);
 
-        var result = await service.GetJournalAsync("a1", "AAPL", 5);
+        var result = await service.GetJournalAsync(1, "a1", "AAPL", 5);
 
         result.Should().BeNull();
     }
@@ -38,7 +38,7 @@ public class JournalServiceTests
         };
         var service = new JournalService(repository);
 
-        var result = await service.GetJournalAsync("a1", "AAPL", 5);
+        var result = await service.GetJournalAsync(1, "a1", "AAPL", 5);
 
         result.Should().NotBeNull();
         result!.Notes.Should().Be("<b>note</b>");
@@ -55,6 +55,7 @@ public class JournalServiceTests
         var service = new JournalService(repository);
         var info = new SaveJournalInfo
         {
+            UserId = 1,
             AccountId = "a1",
             Symbol = "AAPL",
             Day = 5,
@@ -69,6 +70,7 @@ public class JournalServiceTests
         repository.Upserted!.Emotions.Should().ContainSingle().Which.Should().Be("Confident");
         repository.Upserted.Mistakes.Should().Contain("Oversized position");
         repository.Upserted.Mistakes.Should().Contain("checked");
+        repository.Upserted.UserId.Should().Be(1); // 寫入帶入使用者範圍
     }
 
     private class FakeJournalRepository : IJournalRepository
@@ -77,7 +79,7 @@ public class JournalServiceTests
         public JournalEntryDataModel? Upserted { get; private set; }
 
         public Task<JournalEntryDataModel?> GetAsync(
-            string accountId, string symbol, int day, CancellationToken cancellationToken = default)
+            long userId, string accountId, string symbol, int day, CancellationToken cancellationToken = default)
             => Task.FromResult(Stored);
 
         public Task UpsertAsync(JournalEntryDataModel entry, CancellationToken cancellationToken = default)

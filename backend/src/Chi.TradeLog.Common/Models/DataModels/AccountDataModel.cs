@@ -6,6 +6,11 @@ namespace Chi.TradeLog.Common.Models.DataModels;
 public class AccountDataModel
 {
     /// <summary>
+    /// 資料所屬使用者 ID。
+    /// </summary>
+    public long UserId { get; set; }
+
+    /// <summary>
     /// 帳戶 id（如 <c>a1</c>）。
     /// </summary>
     public string Id { get; set; } = string.Empty;

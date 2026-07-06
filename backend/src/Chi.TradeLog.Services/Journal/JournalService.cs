@@ -25,12 +25,12 @@ public class JournalService : IJournalService
     }
 
     /// <summary>
-    /// 依帳戶/商品/日期取得日記，並將 mistakes JSON 反序列化為清單。
+    /// 依使用者/帳戶/商品/日期取得日記，並將 mistakes JSON 反序列化為清單。
     /// </summary>
     public async Task<JournalDto?> GetJournalAsync(
-        string accountId, string symbol, int day, CancellationToken cancellationToken = default)
+        long userId, string accountId, string symbol, int day, CancellationToken cancellationToken = default)
     {
-        var data = await _repository.GetAsync(accountId, symbol, day, cancellationToken);
+        var data = await _repository.GetAsync(userId, accountId, symbol, day, cancellationToken);
         if (data is null)
         {
             return null;
@@ -54,6 +54,7 @@ public class JournalService : IJournalService
     {
         var data = new JournalEntryDataModel
         {
+            UserId = info.UserId,
             AccountId = info.AccountId,
             Symbol = info.Symbol,
             Day = info.Day,

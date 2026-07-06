@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { makeTrade } from '@/test/factories';
 import {
   buildHoldingDistribution,
@@ -8,6 +8,11 @@ import {
   buildSymbolPnl,
   buildWeekdayWinRate,
 } from './reports';
+import { setTodayForTesting } from './today';
+
+// 注入固定「今天」（2026-07-04）讓測試具確定性。
+beforeAll(() => setTodayForTesting(new Date(2026, 6, 4)));
+afterAll(() => setTodayForTesting(null));
 
 const trades = [
   makeTrade({ sym: 'AAPL', pnl: 100, r: 1, tags: ['breakout'], holdingMinutes: 10 }),
@@ -60,9 +65,10 @@ describe('buildWeekdayWinRate', () => {
 });
 
 describe('buildMonthlyPerformance', () => {
-  it('returns 6 months with the current month equal to net P&L', () => {
+  it('returns only real months (current) with pnl equal to net P&L', () => {
     const perf = buildMonthlyPerformance(trades, 'en');
-    expect(perf).toHaveLength(6);
-    expect(perf[perf.length - 1].pnl).toBe(250); // 100 - 50 + 200
+    expect(perf).toHaveLength(1); // 不再合成歷史假月份
+    expect(perf[0].label).toBe('Jul');
+    expect(perf[0].pnl).toBe(250); // 100 - 50 + 200
   });
 });

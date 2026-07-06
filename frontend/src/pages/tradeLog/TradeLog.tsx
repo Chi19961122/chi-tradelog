@@ -10,10 +10,13 @@ import { useUiStore } from '@/store/uiStore';
 import { fmtMoney } from '@/lib/format';
 import { dayToISO, downloadTextFile, parseTradesCsv, sampleCsv, tradesToCsv } from '@/lib/csv';
 import { EMPTY_RANGE, isoInRange, type DateRange } from '@/lib/dateRange';
+import { currentMonthIdx } from '@/lib/today';
+import { nextSort, searchTrades, sortTrades, type TradeSort, type TradeSortKey } from '@/lib/tradeSort';
 import { toMetricsLang } from '@/i18n';
 import type { Trade } from '@/types/trade';
 import { AddEditTradeModal } from './AddEditTradeModal';
 import { JournalModal } from '@/pages/journal/JournalModal';
+import { ErrorState, LoadingState } from '@/components/QueryState/QueryState';
 import styles from './TradeLog.module.css';
 
 type SideFilter = 'all' | 'long' | 'short';
@@ -25,12 +28,14 @@ export function TradeLog() {
   const activeAccountIds = useUiStore((s) => s.activeAccountIds);
   const tagsList = useUiStore((s) => s.tagsList);
   const symbolsList = useUiStore((s) => s.symbolsList);
-  const { data: trades = [] } = useTrades(activeAccountIds);
+  const { data: trades = [], isLoading, isError, refetch } = useTrades(activeAccountIds);
   const { importTrades } = useTradeMutations();
   const settings = useSettingsController();
 
   const [sideFilter, setSideFilter] = useState<SideFilter>('all');
   const [tagFilter, setTagFilter] = useState<string>('');
+  const [search, setSearch] = useState('');
+  const [sort, setSort] = useState<TradeSort | null>(null);
   const [dateRange, setDateRange] = useState<DateRange>(EMPTY_RANGE);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(20);
@@ -41,20 +46,33 @@ export function TradeLog() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filtered = useMemo(() => {
-    return trades.filter((tr) => {
+    const base = trades.filter((tr) => {
       if (sideFilter === 'long' && tr.side !== 'Long') return false;
       if (sideFilter === 'short' && tr.side !== 'Short') return false;
       if (tagFilter && tr.tags.includes(tagFilter) === false) return false;
       if (isoInRange(dayToISO(tr.day), dateRange) === false) return false;
       return true;
     });
-  }, [trades, sideFilter, tagFilter, dateRange]);
+    return sortTrades(searchTrades(base, search), sort);
+  }, [trades, sideFilter, tagFilter, dateRange, search, sort]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const clampedPage = Math.min(page, pageCount - 1);
   const start = clampedPage * pageSize;
   const paged = filtered.slice(start, start + pageSize);
-  const monthLabel = isZh ? '7月' : 'Jul';
+  const monthIdx = currentMonthIdx();
+  const monthLabel = isZh
+    ? `${monthIdx + 1}月`
+    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][monthIdx];
+
+  /** 點欄位標題切換排序。 */
+  const toggleSort = (key: TradeSortKey) => {
+    setSort((s) => nextSort(s, key));
+    setPage(0);
+  };
+
+  /** 排序指示符（▲/▼）。 */
+  const sortMark = (key: TradeSortKey) => (sort?.key === key ? (sort.dir === 'asc' ? ' ▲' : ' ▼') : '');
 
   const resetPage = () => setPage(0);
   const openAdd = () => {
@@ -102,6 +120,9 @@ export function TradeLog() {
     reader.readAsText(file);
     e.target.value = '';
   };
+
+  if (isLoading) return <LoadingState />;
+  if (isError) return <ErrorState onRetry={() => void refetch()} />;
 
   return (
     <div className={styles.page}>
@@ -180,22 +201,33 @@ export function TradeLog() {
       <div className={styles.dateRow}>
         <DateRangePicker value={dateRange} onApply={applyDateRange} onClear={() => applyDateRange(EMPTY_RANGE)} />
         <QuickRangePills onApply={applyDateRange} />
+        <input
+          className={styles.searchInput}
+          type="search"
+          placeholder={t('tradelog.search')}
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            resetPage();
+          }}
+          aria-label={t('tradelog.search')}
+        />
       </div>
 
       <div className={styles.tableCard}>
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>{t('tradelog.colDate')}</th>
-              <th>{t('tradelog.colSymbol')}</th>
-              <th>{t('tradelog.colSide')}</th>
-              <th className={styles.num}>{t('tradelog.colEntry')}</th>
-              <th className={styles.num}>{t('tradelog.colExit')}</th>
-              <th className={styles.num}>{t('tradelog.colQty')}</th>
-              <th className={styles.num}>{t('tradelog.colPnl')}</th>
-              <th className={styles.num}>{t('tradelog.colR')}</th>
-              <th>{t('tradelog.colTags')}</th>
-              <th aria-label="edit" />
+              <SortableTh label={t('tradelog.colDate')} sorted={sortMark('day')} onClick={() => toggleSort('day')} />
+              <SortableTh label={t('tradelog.colSymbol')} sorted={sortMark('sym')} onClick={() => toggleSort('sym')} />
+              <th scope="col">{t('tradelog.colSide')}</th>
+              <SortableTh label={t('tradelog.colEntry')} sorted={sortMark('entry')} onClick={() => toggleSort('entry')} num />
+              <SortableTh label={t('tradelog.colExit')} sorted={sortMark('exit')} onClick={() => toggleSort('exit')} num />
+              <SortableTh label={t('tradelog.colQty')} sorted={sortMark('qty')} onClick={() => toggleSort('qty')} num />
+              <SortableTh label={t('tradelog.colPnl')} sorted={sortMark('pnl')} onClick={() => toggleSort('pnl')} num />
+              <SortableTh label={t('tradelog.colR')} sorted={sortMark('r')} onClick={() => toggleSort('r')} num />
+              <th scope="col">{t('tradelog.colTags')}</th>
+              <th scope="col" aria-label="edit" />
             </tr>
           </thead>
           <tbody>
@@ -293,5 +325,31 @@ export function TradeLog() {
       <AddEditTradeModal open={modalOpen} onClose={() => setModalOpen(false)} editing={editing} />
       <JournalModal open={journalOpen} onClose={() => setJournalOpen(false)} trade={journalTrade} />
     </div>
+  );
+}
+
+/** 可點擊排序的表頭欄（含 aria-sort）。 */
+function SortableTh({
+  label,
+  sorted,
+  onClick,
+  num,
+}: {
+  label: string;
+  /** 排序指示符（空字串代表未排序）。 */
+  sorted: string;
+  onClick: () => void;
+  num?: boolean;
+}) {
+  return (
+    <th
+      scope="col"
+      className={`${num ? styles.num : ''} ${styles.sortable}`}
+      aria-sort={sorted === ' ▲' ? 'ascending' : sorted === ' ▼' ? 'descending' : 'none'}
+      onClick={onClick}
+    >
+      {label}
+      {sorted}
+    </th>
   );
 }

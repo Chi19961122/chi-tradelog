@@ -7,6 +7,11 @@ namespace Chi.TradeLog.Common.Models.DataModels;
 public class JournalEntryDataModel
 {
     /// <summary>
+    /// 資料所屬使用者 ID。
+    /// </summary>
+    public long UserId { get; set; }
+
+    /// <summary>
     /// 所屬帳戶 id。
     /// </summary>
     public string AccountId { get; set; } = string.Empty;

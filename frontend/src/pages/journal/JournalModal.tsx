@@ -11,6 +11,7 @@ import {
   type MistakeItem,
 } from '@/lib/journal';
 import { fmtMoney } from '@/lib/format';
+import { currentMonthIdx, currentYear } from '@/lib/today';
 import { toMetricsLang } from '@/i18n';
 import type { Trade } from '@/types/trade';
 import styles from './JournalModal.module.css';
@@ -107,7 +108,10 @@ export function JournalModal({ open, onClose, trade }: Props) {
 
   if (!trade) return null;
 
-  const monthLabel = lang === 'zh' ? '7月' : 'Jul';
+  const monthIdx = currentMonthIdx();
+  const monthLabel = lang === 'zh'
+    ? `${monthIdx + 1}月`
+    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][monthIdx];
   const sideLabel = trade.side === 'Long' ? t('side.long') : t('side.short');
 
   const addEmotion = () => {
@@ -186,7 +190,7 @@ export function JournalModal({ open, onClose, trade }: Props) {
       <div className={styles.summary}>
         <div>
           <div className={styles.summaryDate}>
-            {monthLabel} {trade.day}, 2026
+            {monthLabel} {trade.day}, {currentYear()}
           </div>
           <div className={styles.summaryMeta}>
             {trade.sym} · {sideLabel}

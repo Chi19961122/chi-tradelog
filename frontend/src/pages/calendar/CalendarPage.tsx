@@ -5,6 +5,8 @@ import { CalendarBlock } from '@/pages/dashboard/CalendarBlock';
 import { DayDetailModal } from '@/pages/dashboard/DayDetailModal';
 import { JournalModal } from '@/pages/journal/JournalModal';
 import { buildCalendar, type CalendarCell } from '@/lib/metrics';
+import { ErrorState, LoadingState } from '@/components/QueryState/QueryState';
+import { useTrades } from '@/features/trades/useTrades';
 import { useUiStore } from '@/store/uiStore';
 import { toMetricsLang } from '@/i18n';
 import type { Trade } from '@/types/trade';
@@ -20,6 +22,8 @@ export function CalendarPage() {
   const isZh = toMetricsLang(i18n.language) === 'zh';
   const monthOffset = useUiStore((s) => s.monthOffset);
   const setMonthOffset = useUiStore((s) => s.setMonthOffset);
+  const activeAccountIds = useUiStore((s) => s.activeAccountIds);
+  const { data: trades = [], isLoading, isError, refetch } = useTrades(activeAccountIds);
 
   const [dayDetail, setDayDetail] = useState<{ open: boolean; day: number | null; cell: CalendarCell | null }>({
     open: false,
@@ -28,7 +32,7 @@ export function CalendarPage() {
   });
   const [journal, setJournal] = useState<{ open: boolean; trade: Trade | null }>({ open: false, trade: null });
 
-  const calendar = useMemo(() => buildCalendar(monthOffset), [monthOffset]);
+  const calendar = useMemo(() => buildCalendar(monthOffset, trades), [monthOffset, trades]);
   const monthLabel = isZh
     ? `${calendar.year} 年 ${calendar.monthIdx + 1} 月`
     : `${MONTHS_EN[calendar.monthIdx]} ${calendar.year}`;
@@ -45,6 +49,9 @@ export function CalendarPage() {
       </button>
     </div>
   );
+
+  if (isLoading) return <LoadingState />;
+  if (isError) return <ErrorState onRetry={() => void refetch()} />;
 
   return (
     <div className={styles.page}>
@@ -68,6 +75,7 @@ export function CalendarPage() {
         day={dayDetail.day}
         cell={dayDetail.cell}
         monthLabel={shortMonth}
+        trades={trades}
         onTradeClick={(trade) => {
           setDayDetail((d) => ({ ...d, open: false }));
           setJournal({ open: true, trade });

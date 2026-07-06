@@ -50,3 +50,13 @@
     grid-template-columns: repeat(2, 1fr) !important;
   }
 }
+
+/* 行動裝置：KPI 單欄 */
+@media (max-width: 640px) {
+  .kpiRow {
+    grid-template-columns: 1fr !important;
+  }
+  .page {
+    padding: 16px 12px;
+  }
+}

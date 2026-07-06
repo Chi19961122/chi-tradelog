@@ -5,3 +5,6 @@ dist-ssr
 .vite
 .DS_Store
 *.tsbuildinfo
+
+# 環境變數（本機設定不進版控；.env.example 保留）
+.env

@@ -26,7 +26,7 @@ function jwtExpMs(token: string): number | null {
 }
 
 function readStoredUser(): AuthUser | null {
-  const raw = localStorage.getItem(AUTH_USER_KEY);
+  const raw = localStorage.getItem(AUTH_USER_KEY) ?? sessionStorage.getItem(AUTH_USER_KEY);
   if (!raw) return null;
   try {
     return JSON.parse(raw) as AuthUser;
@@ -42,18 +42,31 @@ function deriveName(email: string): string {
   return local.charAt(0).toUpperCase() + local.slice(1);
 }
 
-function persist(token: string | null, user: AuthUser | null) {
-  if (token) localStorage.setItem(AUTH_TOKEN_KEY, token);
-  else localStorage.removeItem(AUTH_TOKEN_KEY);
-  if (user) localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
-  else localStorage.removeItem(AUTH_USER_KEY);
+/**
+ * 儲存工作階段。「記住我」存 localStorage（跨瀏覽器工作階段保留），
+ * 否則存 sessionStorage（關閉瀏覽器即登出）；另一個儲存區一律清除。
+ */
+function persist(token: string | null, user: AuthUser | null, remember = true) {
+  const target = remember ? localStorage : sessionStorage;
+  const other = remember ? sessionStorage : localStorage;
+  other.removeItem(AUTH_TOKEN_KEY);
+  other.removeItem(AUTH_USER_KEY);
+  if (token) target.setItem(AUTH_TOKEN_KEY, token);
+  else target.removeItem(AUTH_TOKEN_KEY);
+  if (user) target.setItem(AUTH_USER_KEY, JSON.stringify(user));
+  else target.removeItem(AUTH_USER_KEY);
+}
+
+/** 目前工作階段是否存在 localStorage（即登入時勾了「記住我」）。 */
+function isRemembered(): boolean {
+  return localStorage.getItem(AUTH_TOKEN_KEY) !== null;
 }
 
 interface AuthState {
   user: AuthUser | null;
   isAuthenticated: boolean;
   loginError: string | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string, remember?: boolean) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -65,10 +78,14 @@ interface AuthState {
 function initialState(): { user: AuthUser | null; isAuthenticated: boolean } {
   const storedUser = readStoredUser();
   if (API_BASE_URL) {
-    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    const token = getStoredToken();
     const exp = token ? jwtExpMs(token) : null;
     const valid = !!token && exp !== null && exp > Date.now();
-    if (!valid && token) persist(null, null); // 清除過期權杖
+    if (!valid && token) {
+      // 清除兩個儲存區的過期權杖
+      persist(null, null, true);
+      persist(null, null, false);
+    }
     return { user: valid ? storedUser : null, isAuthenticated: valid };
   }
   // mock 模式：預設已登入
@@ -79,7 +96,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   ...initialState(),
   loginError: null,
 
-  login: async (email, password) => {
+  login: async (email, password, remember = true) => {
     const cleanEmail = email.trim();
     if (!cleanEmail || !password) {
       set({ loginError: 'invalid' });
@@ -98,7 +115,7 @@ export const useAuthStore = create<AuthState>((set) => ({
           return false;
         }
         const data = (await res.json()) as { token: string; user: AuthUser };
-        persist(data.token, data.user);
+        persist(data.token, data.user, remember);
         set({ user: data.user, isAuthenticated: true, loginError: null });
         scheduleRefresh(data.token);
         return true;
@@ -110,14 +127,15 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     // mock 模式：接受任意帳密
     const user: AuthUser = { name: deriveName(cleanEmail), email: cleanEmail };
-    persist(null, user);
+    persist(null, user, remember);
     set({ user, isAuthenticated: true, loginError: null });
     return true;
   },
 
   logout: () => {
     clearRefreshTimer();
-    persist(null, null);
+    persist(null, null, true);
+    persist(null, null, false);
     set({ user: null, isAuthenticated: false, loginError: null });
   },
 }));
@@ -148,7 +166,8 @@ async function doRefresh() {
       return;
     }
     const data = (await res.json()) as { token: string; user: AuthUser };
-    persist(data.token, data.user);
+    // 換發沿用原本的儲存區（記住我 → localStorage）。
+    persist(data.token, data.user, isRemembered());
     useAuthStore.setState({ user: data.user, isAuthenticated: true });
     scheduleRefresh(data.token);
   } catch {

@@ -16,3 +16,6 @@ Thumbs.db
 
 # Node (frontend has its own .gitignore too)
 node_modules/
+
+# 環境變數（機密不進版控；範例檔 .env.example 保留）
+.env

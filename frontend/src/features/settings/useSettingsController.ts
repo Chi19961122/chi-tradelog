@@ -11,6 +11,8 @@ import {
   apiGetSettings,
   apiRemoveSymbol,
   apiRemoveTag,
+  apiRenameAccount,
+  apiRenamePlatform,
   apiUpdateCapital,
 } from './settingsApi';
 
@@ -65,6 +67,13 @@ export function useSettingsController() {
       if (API_BASE_URL) apiDeletePlatform(id).catch(logError);
     },
 
+    renamePlatform(id: string, name: string) {
+      const clean = name.trim();
+      if (!clean) return;
+      store().renamePlatform(id, clean);
+      if (API_BASE_URL) apiRenamePlatform(id, clean).catch(logError);
+    },
+
     async addAccount(platformId: string, name: string) {
       const clean = name.trim();
       if (!clean) return;
@@ -83,6 +92,13 @@ export function useSettingsController() {
     removeAccount(id: string) {
       store().removeAccount(id);
       if (API_BASE_URL) apiDeleteAccount(id).catch(logError);
+    },
+
+    renameAccount(id: string, name: string) {
+      const clean = name.trim();
+      if (!clean) return;
+      store().renameAccount(id, clean);
+      if (API_BASE_URL) apiRenameAccount(id, clean).catch(logError);
     },
 
     addSymbol(symbol: string) {

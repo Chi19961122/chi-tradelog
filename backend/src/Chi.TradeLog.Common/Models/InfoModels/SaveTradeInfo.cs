@@ -7,6 +7,11 @@ namespace Chi.TradeLog.Common.Models.InfoModels;
 public class SaveTradeInfo
 {
     /// <summary>
+    /// 發出請求的使用者 ID（由 Controller 依 JWT 填入）。
+    /// </summary>
+    public long UserId { get; set; }
+
+    /// <summary>
     /// 寫入的帳戶 ID（新增時必填）。
     /// </summary>
     public string AccountId { get; set; } = string.Empty;

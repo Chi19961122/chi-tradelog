@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '@/components/Icon/Icon';
 import { ChipEditor } from '@/components/ChipEditor/ChipEditor';
+import { ConfirmDialog } from '@/components/ConfirmDialog/ConfirmDialog';
 import { useUiStore, NAME_TRANSLATIONS } from '@/store/uiStore';
 import { useAuthStore } from '@/store/authStore';
 import { useSettingsController } from '@/features/settings/useSettingsController';
@@ -19,8 +20,17 @@ export function Settings() {
   const tagsList = useUiStore((s) => s.tagsList);
   const user = useAuthStore((s) => s.user);
   const controller = useSettingsController();
+  // 待確認的刪除目標（平台或帳戶）。
+  const [confirming, setConfirming] = useState<{ kind: 'platform' | 'account'; id: string; name: string } | null>(null);
 
   const displayName = (name: string) => (isZh ? (NAME_TRANSLATIONS[name] ?? name) : name);
+
+  const runConfirmedDelete = () => {
+    if (!confirming) return;
+    if (confirming.kind === 'platform') controller.removePlatform(confirming.id);
+    else controller.removeAccount(confirming.id);
+    setConfirming(null);
+  };
 
   return (
     <div className={styles.page}>
@@ -52,11 +62,16 @@ export function Settings() {
           {platforms.map((platform) => (
             <div key={platform.id} className={styles.platform}>
               <div className={styles.platformHeader}>
-                <span className={styles.platformName}>{displayName(platform.name)}</span>
+                <EditableName
+                  className={styles.platformName}
+                  display={displayName(platform.name)}
+                  value={platform.name}
+                  onRename={(name) => controller.renamePlatform(platform.id, name)}
+                />
                 <button
                   type="button"
                   className={styles.iconRemove}
-                  onClick={() => controller.removePlatform(platform.id)}
+                  onClick={() => setConfirming({ kind: 'platform', id: platform.id, name: displayName(platform.name) })}
                   aria-label="Remove platform"
                 >
                   <Icon name="close" size={14} />
@@ -66,11 +81,15 @@ export function Settings() {
                 {platform.accounts.length === 0 && <span className={styles.empty}>{t('settings.noAccount')}</span>}
                 {platform.accounts.map((account) => (
                   <span key={account.id} className={styles.accountChip}>
-                    {displayName(account.name)}
+                    <EditableName
+                      display={displayName(account.name)}
+                      value={account.name}
+                      onRename={(name) => controller.renameAccount(account.id, name)}
+                    />
                     <button
                       type="button"
                       className={styles.chipRemove}
-                      onClick={() => controller.removeAccount(account.id)}
+                      onClick={() => setConfirming({ kind: 'account', id: account.id, name: displayName(account.name) })}
                       aria-label={`Remove ${account.name}`}
                     >
                       <Icon name="close" size={11} />
@@ -112,6 +131,18 @@ export function Settings() {
       {/* 帳號安全（僅 API 模式）：變更密碼；管理員另有使用者管理 */}
       {API_BASE_URL && <ChangePasswordSection />}
       {API_BASE_URL && user?.isAdmin && <UserManagementSection />}
+
+      <ConfirmDialog
+        open={confirming !== null}
+        title={confirming?.kind === 'platform' ? t('settings.deletePlatformTitle') : t('settings.deleteAccountTitle')}
+        message={t(
+          confirming?.kind === 'platform' ? 'settings.deletePlatformConfirm' : 'settings.deleteAccountConfirm',
+          { name: confirming?.name ?? '' },
+        )}
+        confirmLabel={t('common.delete')}
+        onConfirm={runConfirmedDelete}
+        onCancel={() => setConfirming(null)}
+      />
     </div>
   );
 }
@@ -125,6 +156,61 @@ function Section({ title, subtitle, children }: { title: string; subtitle: strin
       </div>
       {children}
     </div>
+  );
+}
+
+/** 可雙擊改名的名稱：雙擊進入編輯，Enter/失焦提交，Esc 取消。 */
+function EditableName({
+  display,
+  value,
+  onRename,
+  className,
+}: {
+  /** 顯示文字（可能是翻譯後名稱）。 */
+  display: string;
+  /** 實際名稱（編輯時帶入）。 */
+  value: string;
+  onRename: (name: string) => void;
+  className?: string;
+}) {
+  const { t } = useTranslation();
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState(value);
+
+  if (!editing) {
+    return (
+      <span
+        className={className}
+        style={{ cursor: 'text' }}
+        title={t('settings.renameHint')}
+        onDoubleClick={() => {
+          setText(value);
+          setEditing(true);
+        }}
+      >
+        {display}
+      </span>
+    );
+  }
+
+  const commit = () => {
+    setEditing(false);
+    const clean = text.trim();
+    if (clean && clean !== value) onRename(clean);
+  };
+
+  return (
+    <input
+      className={styles.renameInput}
+      value={text}
+      autoFocus
+      onChange={(e) => setText(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') commit();
+        if (e.key === 'Escape') setEditing(false);
+      }}
+    />
   );
 }
 

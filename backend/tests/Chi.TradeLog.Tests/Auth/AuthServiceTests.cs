@@ -114,5 +114,15 @@ public class AuthServiceTests
 
         public Task<int> UpdatePasswordAsync(long id, string passwordHash, CancellationToken cancellationToken = default)
             => Task.FromResult(1);
+
+        public Task<int> UpdateProfileAsync(
+            long id, string email, string displayName, bool isAdmin, CancellationToken cancellationToken = default)
+            => Task.FromResult(1);
+
+        public Task<int> DeleteAsync(long id, CancellationToken cancellationToken = default)
+            => Task.FromResult(1);
+
+        public Task<int> CountAdminsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(1);
     }
 }

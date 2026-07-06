@@ -1,0 +1,39 @@
+.message {
+  font-size: 13.5px;
+  color: var(--sub);
+  line-height: 1.6;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.cancelBtn {
+  padding: 9px 16px;
+  border-radius: var(--radius-input);
+  border: 1px solid var(--line);
+  background: var(--pill);
+  color: var(--sub);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cancelBtn:hover {
+  color: var(--ink);
+}
+
+.confirmBtn {
+  padding: 9px 16px;
+  border-radius: var(--radius-input);
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--red);
+}
+
+.confirmBtn:hover {
+  opacity: 0.9;
+}

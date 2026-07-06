@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useTrades } from '@/features/trades/useTrades';
 import { useKpiCards } from '@/features/kpi/useKpiCards';
 import { useUiStore } from '@/store/uiStore';
+import { currentMonthIdx, currentYear } from '@/lib/today';
 import { toMetricsLang } from '@/i18n';
 import { buildCalendar, computeKpis, type CalendarCell, type EquityRange } from '@/lib/metrics';
 import { CustomizePopover } from './CustomizePopover';
@@ -13,6 +14,7 @@ import { CalendarBlock } from './CalendarBlock';
 import { DayDetailModal } from './DayDetailModal';
 import { RecentTrades } from './RecentTrades';
 import { JournalModal } from '@/pages/journal/JournalModal';
+import { ErrorState, LoadingState } from '@/components/QueryState/QueryState';
 import type { Trade } from '@/types/trade';
 import styles from './Dashboard.module.css';
 
@@ -34,19 +36,27 @@ export function Dashboard() {
   });
   const [journal, setJournal] = useState<{ open: boolean; trade: Trade | null }>({ open: false, trade: null });
 
-  const { data: trades = [], isLoading } = useTrades(activeAccountIds);
+  const { data: trades = [], isLoading, isError, refetch } = useTrades(activeAccountIds);
 
   const kpis = useMemo(() => computeKpis(trades, initialCapital), [trades, initialCapital]);
-  const calendar = useMemo(() => buildCalendar(monthOffset), [monthOffset]);
+  const calendar = useMemo(() => buildCalendar(monthOffset, trades), [monthOffset, trades]);
 
   const kpiCards = useKpiCards(kpis);
   const visibleKpis = kpiCards.filter((k) => kpiVisible[k.key as keyof typeof kpiVisible]);
 
-  const months = toMetricsLang(i18n.language) === 'zh' ? MONTHS_ZH : MONTHS_EN;
+  const isZh = toMetricsLang(i18n.language) === 'zh';
+  const months = isZh ? MONTHS_ZH : MONTHS_EN;
   const monthLabel = months[calendar.monthIdx];
+  // 副標題以「今天」為準（不受月曆切換影響）。
+  const subtitleLabel = isZh
+    ? `${currentYear()} 年 ${currentMonthIdx() + 1} 月`
+    : `${MONTHS_EN[currentMonthIdx()]} ${currentYear()}`;
 
   if (isLoading) {
-    return <div className={styles.loading}>…</div>;
+    return <LoadingState />;
+  }
+  if (isError) {
+    return <ErrorState onRetry={() => void refetch()} />;
   }
 
   return (
@@ -55,7 +65,7 @@ export function Dashboard() {
       <div className={styles.header}>
         <div>
           <h1 className={styles.title}>{t('dashboard.title')}</h1>
-          <div className={styles.subtitle}>{t('dashboard.subtitle')}</div>
+          <div className={styles.subtitle}>{t('dashboard.subtitle', { label: subtitleLabel })}</div>
         </div>
         <CustomizePopover />
       </div>
@@ -89,6 +99,7 @@ export function Dashboard() {
         day={dayDetail.day}
         cell={dayDetail.cell}
         monthLabel={monthLabel}
+        trades={trades}
         onTradeClick={(trade) => {
           setDayDetail((d) => ({ ...d, open: false }));
           setJournal({ open: true, trade });

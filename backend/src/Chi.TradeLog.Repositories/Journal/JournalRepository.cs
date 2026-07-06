@@ -5,27 +5,28 @@ using Dapper;
 namespace Chi.TradeLog.Repositories.Journal;
 
 /// <summary>
-/// 以 Dapper 實作的交易日記 Repository。
+/// 以 Dapper 實作的交易日記 Repository。所有查詢與寫入皆以 user_id 為範圍（多租戶隔離）。
 /// </summary>
 public class JournalRepository : IJournalRepository
 {
     private readonly IDbConnectionFactory _connectionFactory;
 
     private const string SelectSql = """
-        SELECT account_id  AS AccountId,
+        SELECT user_id     AS UserId,
+               account_id  AS AccountId,
                symbol      AS Symbol,
                day         AS Day,
                notes       AS Notes,
                emotions    AS Emotions,
                mistakes::text AS Mistakes
         FROM journal_entries
-        WHERE account_id = @AccountId AND symbol = @Symbol AND day = @Day;
+        WHERE user_id = @UserId AND account_id = @AccountId AND symbol = @Symbol AND day = @Day;
         """;
 
     private const string UpsertSql = """
-        INSERT INTO journal_entries (account_id, symbol, day, notes, emotions, mistakes, updated_at)
-        VALUES (@AccountId, @Symbol, @Day, @Notes, @Emotions, @Mistakes::jsonb, now())
-        ON CONFLICT (account_id, symbol, day) DO UPDATE SET
+        INSERT INTO journal_entries (user_id, account_id, symbol, day, notes, emotions, mistakes, updated_at)
+        VALUES (@UserId, @AccountId, @Symbol, @Day, @Notes, @Emotions, @Mistakes::jsonb, now())
+        ON CONFLICT (user_id, account_id, symbol, day) DO UPDATE SET
             notes = EXCLUDED.notes,
             emotions = EXCLUDED.emotions,
             mistakes = EXCLUDED.mistakes,
@@ -41,20 +42,20 @@ public class JournalRepository : IJournalRepository
     }
 
     /// <summary>
-    /// 依帳戶/商品/日期取得日記；找不到時回傳 <c>null</c>。
+    /// 依使用者/帳戶/商品/日期取得日記；找不到時回傳 <c>null</c>。
     /// </summary>
     public async Task<JournalEntryDataModel?> GetAsync(
-        string accountId, string symbol, int day, CancellationToken cancellationToken = default)
+        long userId, string accountId, string symbol, int day, CancellationToken cancellationToken = default)
     {
         await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         var command = new CommandDefinition(
-            SelectSql, new { AccountId = accountId, Symbol = symbol, Day = day },
+            SelectSql, new { UserId = userId, AccountId = accountId, Symbol = symbol, Day = day },
             cancellationToken: cancellationToken);
         return await connection.QuerySingleOrDefaultAsync<JournalEntryDataModel>(command);
     }
 
     /// <summary>
-    /// 新增或更新日記（upsert）。
+    /// 新增或更新日記（upsert，衝突鍵含 user_id）。
     /// </summary>
     public async Task UpsertAsync(JournalEntryDataModel entry, CancellationToken cancellationToken = default)
     {

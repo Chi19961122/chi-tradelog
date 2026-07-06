@@ -140,6 +140,48 @@
   color: var(--ink);
 }
 
+.dangerBtn {
+  padding: 7px 12px;
+  border-radius: var(--radius-input);
+  border: 1px solid var(--line);
+  background: var(--pill);
+  color: var(--red);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dangerBtn:hover {
+  border-color: var(--red);
+}
+
+.rowActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.editFields {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.editFields .input {
+  max-width: 180px;
+}
+
+.adminToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--sub);
+  cursor: pointer;
+}
+
 .addRow {
   display: flex;
   gap: 10px;
@@ -161,4 +203,11 @@
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 10px 12px;
+}
+
+/* 行動裝置：欄位改單欄 */
+@media (max-width: 640px) {
+  .row2 {
+    grid-template-columns: 1fr;
+  }
 }

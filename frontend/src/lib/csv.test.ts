@@ -1,6 +1,11 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { makeTrade } from '@/test/factories';
 import { parseTradesCsv, sampleCsv, tradesToCsv } from './csv';
+import { setTodayForTesting } from './today';
+
+// 注入固定「今天」（2026-07-04）讓測試具確定性。
+beforeAll(() => setTodayForTesting(new Date(2026, 6, 4)));
+afterAll(() => setTodayForTesting(null));
 
 describe('tradesToCsv', () => {
   it('emits the expected header and a row per trade', () => {

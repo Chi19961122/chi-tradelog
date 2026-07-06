@@ -4,10 +4,9 @@ export interface DateRange {
   to: string;
 }
 
-export const EMPTY_RANGE: DateRange = { from: '', to: '' };
+import { today } from './today';
 
-// 本原型的「今天」固定為 2026-07-04。
-const TODAY = new Date(2026, 6, 4);
+export const EMPTY_RANGE: DateRange = { from: '', to: '' };
 
 function pad2(n: number): string {
   return String(n).padStart(2, '0');
@@ -46,20 +45,21 @@ export interface QuickRange {
   to: string;
 }
 
-/** 快速區間：今日 / 本週 / 本月 / 本季（以 2026-07-04 為基準）。 */
+/** 快速區間：今日 / 本週 / 本月 / 本季（以執行期的「今天」為基準）。 */
 export function quickRanges(): QuickRange[] {
-  const dow = (TODAY.getDay() + 6) % 7; // Mon = 0
-  const monday = new Date(TODAY);
-  monday.setDate(TODAY.getDate() - dow);
+  const now = today();
+  const dow = (now.getDay() + 6) % 7; // Mon = 0
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - dow);
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
-  const monthStart = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
-  const monthEnd = new Date(TODAY.getFullYear(), TODAY.getMonth() + 1, 0);
-  const qStartMonth = Math.floor(TODAY.getMonth() / 3) * 3;
-  const qStart = new Date(TODAY.getFullYear(), qStartMonth, 1);
-  const qEnd = new Date(TODAY.getFullYear(), qStartMonth + 3, 0);
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const qStartMonth = Math.floor(now.getMonth() / 3) * 3;
+  const qStart = new Date(now.getFullYear(), qStartMonth, 1);
+  const qEnd = new Date(now.getFullYear(), qStartMonth + 3, 0);
   return [
-    { key: 'today', from: iso(TODAY), to: iso(TODAY) },
+    { key: 'today', from: iso(now), to: iso(now) },
     { key: 'week', from: iso(monday), to: iso(sunday) },
     { key: 'month', from: iso(monthStart), to: iso(monthEnd) },
     { key: 'quarter', from: iso(qStart), to: iso(qEnd) },

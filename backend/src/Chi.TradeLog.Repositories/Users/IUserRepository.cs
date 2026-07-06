@@ -36,4 +36,20 @@ public interface IUserRepository
     /// 更新指定使用者的密碼雜湊，回傳受影響列數。
     /// </summary>
     Task<int> UpdatePasswordAsync(long id, string passwordHash, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新指定使用者的基本資料（email／名稱／管理員旗標），回傳受影響列數。
+    /// </summary>
+    Task<int> UpdateProfileAsync(
+        long id, string email, string displayName, bool isAdmin, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 刪除指定使用者（其所有資料由外鍵串接刪除），回傳受影響列數。
+    /// </summary>
+    Task<int> DeleteAsync(long id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 取得管理員人數。
+    /// </summary>
+    Task<int> CountAdminsAsync(CancellationToken cancellationToken = default);
 }

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal } from '@/components/Modal/Modal';
+import { ConfirmDialog } from '@/components/ConfirmDialog/ConfirmDialog';
 import { Dropdown } from '@/components/Dropdown/Dropdown';
 import { SegmentedControl } from '@/components/SegmentedControl/SegmentedControl';
 import { useUiStore } from '@/store/uiStore';
 import { useTradeMutations } from '@/features/trades/useTradeMutations';
+import { currentMonthIdx } from '@/lib/today';
 import type { Trade, TradeSide } from '@/types/trade';
 import styles from './AddEditTradeModal.module.css';
 
@@ -29,6 +31,7 @@ export function AddEditTradeModal({ open, onClose, editing }: Props) {
   const [qty, setQty] = useState('');
   const [day, setDay] = useState('');
   const [tag, setTag] = useState('');
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -78,6 +81,7 @@ export function AddEditTradeModal({ open, onClose, editing }: Props) {
   const handleDelete = () => {
     if (editing) {
       remove.mutate(editing.id);
+      setConfirmingDelete(false);
       onClose();
     }
   };
@@ -85,7 +89,7 @@ export function AddEditTradeModal({ open, onClose, editing }: Props) {
   const footer = (
     <>
       {editing && (
-        <button type="button" className={styles.deleteBtn} onClick={handleDelete}>
+        <button type="button" className={styles.deleteBtn} onClick={() => setConfirmingDelete(true)}>
           {t('tradeForm.delete')}
         </button>
       )}
@@ -136,7 +140,7 @@ export function AddEditTradeModal({ open, onClose, editing }: Props) {
           <Field label={t('tradeForm.qty')}>
             <input className={styles.input} type="number" value={qty} onChange={(e) => setQty(e.target.value)} />
           </Field>
-          <Field label={t('tradeForm.day')}>
+          <Field label={t('tradeForm.day', { month: currentMonthIdx() + 1 })}>
             <input className={styles.input} type="number" min={1} max={31} value={day} onChange={(e) => setDay(e.target.value)} />
           </Field>
         </div>
@@ -145,6 +149,15 @@ export function AddEditTradeModal({ open, onClose, editing }: Props) {
           <Dropdown options={tagsList} value={tag} onChange={setTag} placeholder={t('tradeForm.selectTag')} />
         </Field>
       </div>
+
+      <ConfirmDialog
+        open={confirmingDelete}
+        title={t('tradeForm.deleteTitle')}
+        message={t('tradeForm.deleteConfirm', { sym: editing?.sym ?? '' })}
+        confirmLabel={t('tradeForm.delete')}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmingDelete(false)}
+      />
     </Modal>
   );
 }

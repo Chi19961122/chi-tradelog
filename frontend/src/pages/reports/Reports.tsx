@@ -25,6 +25,7 @@ import {
 import { fmtMoney } from '@/lib/format';
 import { toMetricsLang } from '@/i18n';
 import { KpiCard } from '@/pages/dashboard/KpiCard';
+import { EmptyState, ErrorState, LoadingState } from '@/components/QueryState/QueryState';
 import styles from './Reports.module.css';
 
 const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -42,7 +43,7 @@ export function Reports() {
   const metricsLang = toMetricsLang(i18n.language);
   const activeAccountIds = useUiStore((s) => s.activeAccountIds);
   const initialCapital = useUiStore((s) => s.initialCapital);
-  const { data: trades = [] } = useTrades(activeAccountIds);
+  const { data: trades = [], isLoading, isError, refetch } = useTrades(activeAccountIds);
 
   const kpis = useMemo(() => computeKpis(trades, initialCapital), [trades, initialCapital]);
   const kpiCards = useKpiCards(kpis);
@@ -106,6 +107,10 @@ export function Reports() {
   );
 
   const strategy = useMemo(() => buildStrategyStats(trades), [trades]);
+
+  if (isLoading) return <LoadingState />;
+  if (isError) return <ErrorState onRetry={() => void refetch()} />;
+  if (trades.length === 0) return <EmptyState />;
 
   return (
     <div className={styles.page}>

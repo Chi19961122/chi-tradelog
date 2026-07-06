@@ -46,6 +46,7 @@ public class ApiMappingProfile : Profile
 
         // 使用者管理：Parameter → InfoModel、Dto → ViewModel
         CreateMap<CreateUserParameter, CreateUserInfo>();
+        CreateMap<UpdateUserParameter, UpdateUserInfo>();
         CreateMap<UserSummaryDto, UserSummaryViewModel>();
         CreateMap<CreateUserResultDto, CreateUserResultViewModel>();
     }

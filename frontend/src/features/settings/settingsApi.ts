@@ -40,6 +40,14 @@ export async function apiDeletePlatform(id: string): Promise<void> {
   await send(`/api/settings/platforms/${encodeURIComponent(id)}`, { method: 'DELETE' });
 }
 
+export async function apiRenamePlatform(id: string, name: string): Promise<void> {
+  await send(`/api/settings/platforms/${encodeURIComponent(id)}`, jsonInit('PUT', { name }));
+}
+
+export async function apiRenameAccount(id: string, name: string): Promise<void> {
+  await send(`/api/settings/accounts/${encodeURIComponent(id)}`, jsonInit('PUT', { name }));
+}
+
 export async function apiCreateAccount(platformId: string, name: string): Promise<Account> {
   const res = await send(
     `/api/settings/platforms/${encodeURIComponent(platformId)}/accounts`,

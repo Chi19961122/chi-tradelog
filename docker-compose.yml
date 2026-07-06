@@ -1,9 +1,10 @@
+# 機密可由專案根目錄的 .env 覆寫（參考 .env.example）；未設定時使用開發預設值。
 services:
   postgres:
     image: postgres:17-alpine
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: chitradelog
     ports:
       - "5432:5432"
@@ -20,7 +21,9 @@ services:
       context: ./backend
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      Database__ConnectionString: "Host=postgres;Port=5432;Database=chitradelog;Username=postgres;Password=postgres"
+      Database__ConnectionString: "Host=postgres;Port=5432;Database=chitradelog;Username=postgres;Password=${POSTGRES_PASSWORD:-postgres}"
+      # JWT 簽章金鑰：正式環境務必以 .env 的 JWT_KEY 覆寫（至少 32 bytes）
+      Jwt__Key: ${JWT_KEY:-dev-only-signing-key-change-in-production-min-32-bytes-long!!}
       # 允許容器內 nginx 前端與本機 Vite dev 的來源
       Cors__AllowedOrigins__0: "http://localhost:8080"
       Cors__AllowedOrigins__1: "http://localhost:5173"

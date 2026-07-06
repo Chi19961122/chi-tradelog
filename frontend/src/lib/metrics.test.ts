@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { makeTrade } from '@/test/factories';
 import {
   buildCalendar,
@@ -7,6 +7,11 @@ import {
   computeKpis,
   computeMaxDrawdown,
 } from './metrics';
+import { setTodayForTesting } from './today';
+
+// 注入固定「今天」（2026-07-04）讓測試具確定性。
+beforeAll(() => setTodayForTesting(new Date(2026, 6, 4)));
+afterAll(() => setTodayForTesting(null));
 
 const trades = [
   makeTrade({ day: 1, pnl: 100, r: 1 }),
@@ -78,10 +83,33 @@ describe('buildRadarAxes', () => {
 
 describe('buildCalendar', () => {
   it('builds July 2026 (Sunday-first, 5 weeks)', () => {
-    const cal = buildCalendar(0);
+    const cal = buildCalendar(0, trades);
     expect(cal.year).toBe(2026);
     expect(cal.monthIdx).toBe(6);
     expect(cal.weeks).toHaveLength(5);
     expect(cal.cells).toHaveLength(35);
+  });
+
+  it('aggregates real trades by day for the current month', () => {
+    const cal = buildCalendar(0, [
+      makeTrade({ day: 3, pnl: 100 }),
+      makeTrade({ day: 3, pnl: -30 }),
+      makeTrade({ day: 10, pnl: 50 }),
+    ]);
+    const day3 = cal.cells.find((c) => c.day === 3)!;
+    expect(day3.hasData).toBe(true);
+    expect(day3.pnl).toBe(70);
+    expect(day3.tradesCount).toBe(2);
+    expect(day3.wins).toBe(1);
+    // 沒有交易的日子不應有資料
+    const day4 = cal.cells.find((c) => c.day === 4)!;
+    expect(day4.hasData).toBe(false);
+    expect(day4.pnl).toBeNull();
+  });
+
+  it('shows other months as empty (data model only covers the current month)', () => {
+    const cal = buildCalendar(-1, trades);
+    expect(cal.monthIdx).toBe(5); // June
+    expect(cal.cells.every((c) => c.hasData === false)).toBe(true);
   });
 });

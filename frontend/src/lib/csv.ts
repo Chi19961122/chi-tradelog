@@ -1,5 +1,6 @@
 import type { Trade } from '@/types/trade';
 import type { TradeFormInput } from './tradeForm';
+import { currentMonthIdx, currentYear } from './today';
 
 const HEADER = ['Date', 'Symbol', 'Side', 'Entry', 'Exit', 'Qty', 'PnL', 'R', 'Tags'];
 
@@ -7,9 +8,9 @@ function pad2(n: number): string {
   return String(n).padStart(2, '0');
 }
 
-/** day（本原型的 7 月）→ ISO 日期字串。 */
+/** day（本月第幾天）→ ISO 日期字串（以執行期的本月為基準）。 */
 export function dayToISO(day: number): string {
-  return `2026-07-${pad2(day)}`;
+  return `${currentYear()}-${pad2(currentMonthIdx() + 1)}-${pad2(day)}`;
 }
 
 /** CSV 欄位跳脫。 */
@@ -34,11 +35,11 @@ export function tradesToCsv(trades: Trade[]): string {
   return [HEADER, ...rows].map((r) => r.map(esc).join(',')).join('\n');
 }
 
-/** 範例 CSV（供「下載範例」）。 */
+/** 範例 CSV（供「下載範例」；日期以執行期的本月為準）。 */
 export function sampleCsv(): string {
   const sample = [
-    ['2026-07-05', 'AAPL', 'Long', '210.50', '215.80', '50', '265.00', '2.7', 'breakout'],
-    ['2026-07-08', 'TSLA', 'Short', '260.00', '252.30', '30', '231.00', '1.5', 'reversal'],
+    [dayToISO(5), 'AAPL', 'Long', '210.50', '215.80', '50', '265.00', '2.7', 'breakout'],
+    [dayToISO(8), 'TSLA', 'Short', '260.00', '252.30', '30', '231.00', '1.5', 'reversal'],
   ];
   return [HEADER, ...sample].map((r) => r.join(',')).join('\n');
 }

@@ -23,6 +23,7 @@ public class SettingsController : ApiControllerBase
     private readonly IValidator<CreateAccountParameter> _accountValidator;
     private readonly IValidator<AddSymbolParameter> _symbolValidator;
     private readonly IValidator<AddTagParameter> _tagValidator;
+    private readonly IValidator<RenameParameter> _renameValidator;
 
     /// <summary>
     /// 建立設定 Controller。
@@ -34,7 +35,8 @@ public class SettingsController : ApiControllerBase
         IValidator<CreatePlatformParameter> platformValidator,
         IValidator<CreateAccountParameter> accountValidator,
         IValidator<AddSymbolParameter> symbolValidator,
-        IValidator<AddTagParameter> tagValidator)
+        IValidator<AddTagParameter> tagValidator,
+        IValidator<RenameParameter> renameValidator)
     {
         _settingsService = settingsService;
         _mapper = mapper;
@@ -43,6 +45,7 @@ public class SettingsController : ApiControllerBase
         _accountValidator = accountValidator;
         _symbolValidator = symbolValidator;
         _tagValidator = tagValidator;
+        _renameValidator = renameValidator;
     }
 
     /// <summary>
@@ -55,7 +58,7 @@ public class SettingsController : ApiControllerBase
     [ProducesResponseType(typeof(SettingsViewModel), StatusCodes.Status200OK)]
     public async Task<ActionResult<SettingsViewModel>> GetSettingsAsync(CancellationToken cancellationToken)
     {
-        var dto = await _settingsService.GetSettingsAsync(cancellationToken);
+        var dto = await _settingsService.GetSettingsAsync(CurrentUserId, cancellationToken);
         return Ok(_mapper.Map<SettingsViewModel>(dto));
     }
 
@@ -79,7 +82,7 @@ public class SettingsController : ApiControllerBase
             return ValidationProblemFrom(validation);
         }
 
-        await _settingsService.UpdateInitialCapitalAsync(parameter.InitialCapital, cancellationToken);
+        await _settingsService.UpdateInitialCapitalAsync(CurrentUserId, parameter.InitialCapital, cancellationToken);
         return NoContent();
     }
 
@@ -105,8 +108,64 @@ public class SettingsController : ApiControllerBase
         }
 
         var info = _mapper.Map<CreatePlatformInfo>(parameter);
-        var dto = await _settingsService.CreatePlatformAsync(info, cancellationToken);
+        var dto = await _settingsService.CreatePlatformAsync(CurrentUserId, info, cancellationToken);
         return Created($"/api/settings/platforms/{dto.Id}", _mapper.Map<PlatformViewModel>(dto));
+    }
+
+    /// <summary>
+    /// 更新平台名稱。
+    /// </summary>
+    /// <param name="id">平台 id。</param>
+    /// <param name="parameter">改名參數。</param>
+    /// <param name="cancellationToken">取消權杖。</param>
+    /// <response code="204">更新成功。</response>
+    /// <response code="400">參數驗證失敗。</response>
+    /// <response code="404">找不到平台。</response>
+    [HttpPut("platforms/{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RenamePlatformAsync(
+        string id,
+        [FromBody] RenameParameter parameter,
+        CancellationToken cancellationToken)
+    {
+        var validation = await _renameValidator.ValidateAsync(parameter, cancellationToken);
+        if (validation.IsValid is false)
+        {
+            return ValidationProblemFrom(validation);
+        }
+
+        var renamed = await _settingsService.RenamePlatformAsync(CurrentUserId, id, parameter.Name, cancellationToken);
+        return renamed ? NoContent() : NotFound();
+    }
+
+    /// <summary>
+    /// 更新帳戶名稱。
+    /// </summary>
+    /// <param name="id">帳戶 id。</param>
+    /// <param name="parameter">改名參數。</param>
+    /// <param name="cancellationToken">取消權杖。</param>
+    /// <response code="204">更新成功。</response>
+    /// <response code="400">參數驗證失敗。</response>
+    /// <response code="404">找不到帳戶。</response>
+    [HttpPut("accounts/{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RenameAccountAsync(
+        string id,
+        [FromBody] RenameParameter parameter,
+        CancellationToken cancellationToken)
+    {
+        var validation = await _renameValidator.ValidateAsync(parameter, cancellationToken);
+        if (validation.IsValid is false)
+        {
+            return ValidationProblemFrom(validation);
+        }
+
+        var renamed = await _settingsService.RenameAccountAsync(CurrentUserId, id, parameter.Name, cancellationToken);
+        return renamed ? NoContent() : NotFound();
     }
 
     /// <summary>
@@ -121,7 +180,7 @@ public class SettingsController : ApiControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeletePlatformAsync(string id, CancellationToken cancellationToken)
     {
-        var deleted = await _settingsService.DeletePlatformAsync(id, cancellationToken);
+        var deleted = await _settingsService.DeletePlatformAsync(CurrentUserId, id, cancellationToken);
         return deleted ? NoContent() : NotFound();
     }
 
@@ -151,7 +210,7 @@ public class SettingsController : ApiControllerBase
         }
 
         var info = new CreateAccountInfo { PlatformId = platformId, Name = parameter.Name };
-        var dto = await _settingsService.CreateAccountAsync(info, cancellationToken);
+        var dto = await _settingsService.CreateAccountAsync(CurrentUserId, info, cancellationToken);
         if (dto is null)
         {
             return NotFound();
@@ -171,7 +230,7 @@ public class SettingsController : ApiControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteAccountAsync(string id, CancellationToken cancellationToken)
     {
-        var deleted = await _settingsService.DeleteAccountAsync(id, cancellationToken);
+        var deleted = await _settingsService.DeleteAccountAsync(CurrentUserId, id, cancellationToken);
         return deleted ? NoContent() : NotFound();
     }
 
@@ -195,7 +254,7 @@ public class SettingsController : ApiControllerBase
             return ValidationProblemFrom(validation);
         }
 
-        await _settingsService.AddSymbolAsync(parameter.Symbol, cancellationToken);
+        await _settingsService.AddSymbolAsync(CurrentUserId, parameter.Symbol, cancellationToken);
         return NoContent();
     }
 
@@ -211,7 +270,7 @@ public class SettingsController : ApiControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RemoveSymbolAsync(string ticker, CancellationToken cancellationToken)
     {
-        var removed = await _settingsService.RemoveSymbolAsync(ticker, cancellationToken);
+        var removed = await _settingsService.RemoveSymbolAsync(CurrentUserId, ticker, cancellationToken);
         return removed ? NoContent() : NotFound();
     }
 
@@ -235,7 +294,7 @@ public class SettingsController : ApiControllerBase
             return ValidationProblemFrom(validation);
         }
 
-        await _settingsService.AddTagAsync(parameter.Tag, cancellationToken);
+        await _settingsService.AddTagAsync(CurrentUserId, parameter.Tag, cancellationToken);
         return NoContent();
     }
 
@@ -251,7 +310,7 @@ public class SettingsController : ApiControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RemoveTagAsync(string name, CancellationToken cancellationToken)
     {
-        var removed = await _settingsService.RemoveTagAsync(name, cancellationToken);
+        var removed = await _settingsService.RemoveTagAsync(CurrentUserId, name, cancellationToken);
         return removed ? NoContent() : NotFound();
     }
 }

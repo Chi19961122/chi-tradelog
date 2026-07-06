@@ -8,6 +8,11 @@ namespace Chi.TradeLog.Common.Models.InfoModels;
 public class SaveJournalInfo
 {
     /// <summary>
+    /// 發出請求的使用者 ID（由 Controller 依 JWT 填入）。
+    /// </summary>
+    public long UserId { get; set; }
+
+    /// <summary>
     /// 所屬帳戶 id。
     /// </summary>
     public string AccountId { get; set; } = string.Empty;

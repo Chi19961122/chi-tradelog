@@ -15,7 +15,7 @@
   },
   "dashboard": {
     "title": "總覽",
-    "subtitle": "過去 30 天 · 2026 年 7 月",
+    "subtitle": "過去 30 天 · {{label}}",
     "customize": "自訂",
     "equityCurve": "權益曲線",
     "tradeScore": "交易評分",
@@ -55,11 +55,26 @@
     "hint": "點擊交易可開啟該筆日記"
   },
   "side": { "long": "多", "short": "空" },
-  "common": { "comingSoon": "即將推出" },
+  "state": {
+    "loading": "載入中…",
+    "error": "資料載入失敗，請確認連線。",
+    "retry": "重試",
+    "empty": "尚無資料。"
+  },
+  "common": {
+    "comingSoon": "即將推出",
+    "confirm": "確認",
+    "cancel": "取消",
+    "save": "儲存",
+    "edit": "編輯",
+    "delete": "刪除"
+  },
   "login": {
     "subtitle": "登入您的帳戶",
     "email": "電子郵件",
+    "emailPlaceholder": "you@example.com",
     "password": "密碼",
+    "passwordPlaceholder": "••••••••",
     "rememberMe": "記住我",
     "logIn": "登入",
     "error": "帳號或密碼錯誤。",
@@ -109,6 +124,7 @@
     "dateRange": "日期",
     "clearDate": "清除",
     "done": "完成",
+    "search": "搜尋商品或標籤…",
     "q_today": "今日",
     "q_week": "本週",
     "q_month": "本月",
@@ -165,6 +181,14 @@
     "admin": "管理員",
     "resetPassword": "重設密碼",
     "emailExists": "此電子郵件已被使用。",
+    "lastAdmin": "系統至少需保留一位管理員。",
+    "renameHint": "雙擊以改名",
+    "deletePlatformTitle": "刪除平台",
+    "deletePlatformConfirm": "確定要刪除平台 {{name}}？其下所有帳戶將一併移除。",
+    "deleteAccountTitle": "刪除帳戶",
+    "deleteAccountConfirm": "確定要刪除帳戶 {{name}}？",
+    "deleteUserTitle": "刪除使用者",
+    "deleteUserConfirm": "確定要刪除使用者 {{name}}？其所有資料（交易、日記、設定）將永久刪除。",
     "tempPasswordNotice": "{{email}} 的初始密碼：{{password}} — 請轉交使用者，他可自行變更。"
   },
   "weekdays": { "short": ["日", "一", "二", "三", "四", "五", "六"] },
@@ -176,12 +200,14 @@
     "entry": "進場價",
     "exit": "出場價",
     "qty": "數量",
-    "day": "日期（7月）",
+    "day": "日期（{{month}}月）",
     "tag": "標籤",
     "selectSymbol": "選擇商品",
     "selectTag": "選擇標籤",
     "save": "儲存",
     "cancel": "取消",
-    "delete": "刪除"
+    "delete": "刪除",
+    "deleteTitle": "刪除交易",
+    "deleteConfirm": "確定要刪除這筆 {{sym}} 交易？其日記內容會保留。"
   }
 }

@@ -60,6 +60,10 @@ public class Migration0002_SeedTrades : Migration
 
     private static void AppendAccountInserts(StringBuilder sql, string accountId)
     {
+        // 示範資料以「執行 migration 當下的年月」為基準月（day 對短月自動夾住）。
+        var now = DateTime.UtcNow;
+        var daysInMonth = DateTime.DaysInMonth(now.Year, now.Month);
+
         var off = AccountSeed(accountId);
         for (var i = 0; i < 24; i++)
         {
@@ -74,7 +78,7 @@ public class Migration0002_SeedTrades : Migration
             var entry = 40 + SeededRand(seed * 1.7) * 400;
             var exit = entry + (side == "Long" ? pnl / 10 : -pnl / 10);
             var qty = 10 + (int)Math.Floor(SeededRand(seed * 4.4) * 90 + 0.5);
-            var day = 1 + (int)Math.Floor(SeededRand(seed * 6.6) * 30);
+            var day = Math.Min(1 + (int)Math.Floor(SeededRand(seed * 6.6) * 30), daysInMonth);
             var tag = TagPool[i % TagPool.Length];
             var holdingMinutes = (int)Math.Floor(
                 3 + SeededRand(seed * 11.3) * (SeededRand(seed * 13.1) > 0.7 ? 600 : 90) + 0.5);
@@ -88,7 +92,9 @@ public class Migration0002_SeedTrades : Migration
             sql.Append(qty).Append(", ");
             sql.Append(Num(pnl, 2)).Append(", ");
             sql.Append(Num(r, 2)).Append(", ");
-            sql.Append("DATE '2026-07-").Append(day.ToString("00", CultureInfo.InvariantCulture)).Append("', ");
+            sql.Append("DATE '")
+                .Append(new DateOnly(now.Year, now.Month, day).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture))
+                .Append("', ");
             sql.Append(holdingMinutes).Append(", ");
             sql.Append("'{").Append(tag).Append("}'");
             sql.AppendLine(");");

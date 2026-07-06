@@ -15,7 +15,7 @@
   },
   "dashboard": {
     "title": "Overview",
-    "subtitle": "Last 30 days · Jul 2026",
+    "subtitle": "Last 30 days · {{label}}",
     "customize": "Customize",
     "equityCurve": "Equity Curve",
     "tradeScore": "Trade Score",
@@ -55,11 +55,26 @@
     "hint": "Tap a trade to open its journal"
   },
   "side": { "long": "Long", "short": "Short" },
-  "common": { "comingSoon": "Coming soon" },
+  "state": {
+    "loading": "Loading…",
+    "error": "Failed to load data. Please check your connection.",
+    "retry": "Retry",
+    "empty": "No data yet."
+  },
+  "common": {
+    "comingSoon": "Coming soon",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete"
+  },
   "login": {
     "subtitle": "Log in to your account",
     "email": "Email",
+    "emailPlaceholder": "you@example.com",
     "password": "Password",
+    "passwordPlaceholder": "••••••••",
     "rememberMe": "Remember me",
     "logIn": "Log In",
     "error": "Incorrect email or password.",
@@ -109,6 +124,7 @@
     "dateRange": "Date",
     "clearDate": "Clear",
     "done": "Done",
+    "search": "Search symbol or tag…",
     "q_today": "Today",
     "q_week": "This Week",
     "q_month": "This Month",
@@ -165,6 +181,14 @@
     "admin": "Admin",
     "resetPassword": "Reset password",
     "emailExists": "That email is already in use.",
+    "lastAdmin": "At least one admin must remain.",
+    "renameHint": "Double-click to rename",
+    "deletePlatformTitle": "Delete Platform",
+    "deletePlatformConfirm": "Delete platform {{name}}? All of its accounts will also be removed.",
+    "deleteAccountTitle": "Delete Account",
+    "deleteAccountConfirm": "Delete account {{name}}?",
+    "deleteUserTitle": "Delete User",
+    "deleteUserConfirm": "Delete user {{name}}? All of their data (trades, journals, settings) will be permanently deleted.",
     "tempPasswordNotice": "Initial password for {{email}}: {{password}} — share it with the user; they can change it."
   },
   "weekdays": { "short": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] },
@@ -176,12 +200,14 @@
     "entry": "Entry",
     "exit": "Exit",
     "qty": "Qty",
-    "day": "Day (Jul)",
+    "day": "Day (month {{month}})",
     "tag": "Tag",
     "selectSymbol": "Select symbol",
     "selectTag": "Select tag",
     "save": "Save",
     "cancel": "Cancel",
-    "delete": "Delete"
+    "delete": "Delete",
+    "deleteTitle": "Delete Trade",
+    "deleteConfirm": "Delete this {{sym}} trade? Its journal entry will remain."
   }
 }

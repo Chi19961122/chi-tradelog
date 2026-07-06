@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ConfirmDialog } from '@/components/ConfirmDialog/ConfirmDialog';
 import { useChangePassword, useUsers, useUserMutations, type AdminUser } from '@/features/users/useUsers';
 import styles from './AccountSecuritySections.module.css';
 
@@ -64,15 +65,25 @@ export function ChangePasswordSection() {
   );
 }
 
-/** 管理員：列出/新增使用者、重設密碼。 */
+/** 管理員：列出/新增/編輯/刪除使用者、重設密碼。 */
 export function UserManagementSection() {
   const { t } = useTranslation();
   const { data: users = [] } = useUsers(true);
-  const { createUser, resetPassword } = useUserMutations();
+  const { createUser, resetPassword, updateUser, deleteUser } = useUserMutations();
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [notice, setNotice] = useState<{ email: string; password: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState<{ id: number; name: string; email: string; isAdmin: boolean } | null>(null);
+  const [deleting, setDeleting] = useState<AdminUser | null>(null);
+
+  /** 將 mutation 錯誤轉為顯示文字。 */
+  const errorText = (e: unknown) => {
+    const message = (e as Error).message;
+    if (message === 'conflict') return t('settings.emailExists');
+    if (message === 'lastAdmin') return t('settings.lastAdmin');
+    return String(message);
+  };
 
   const add = async () => {
     if (!email || !name) return;
@@ -83,7 +94,7 @@ export function UserManagementSection() {
       setName('');
       setError(null);
     } catch (e) {
-      setError((e as Error).message === 'conflict' ? t('settings.emailExists') : String((e as Error).message));
+      setError(errorText(e));
     }
   };
 
@@ -91,6 +102,29 @@ export function UserManagementSection() {
     const password = await resetPassword.mutateAsync(user.id);
     setNotice({ email: user.email, password });
     setError(null);
+  };
+
+  const saveEdit = async () => {
+    if (!editing) return;
+    try {
+      await updateUser.mutateAsync(editing);
+      setEditing(null);
+      setError(null);
+    } catch (e) {
+      setError(errorText(e));
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deleting) return;
+    try {
+      await deleteUser.mutateAsync(deleting.id);
+      setError(null);
+    } catch (e) {
+      setError(errorText(e));
+    } finally {
+      setDeleting(null);
+    }
   };
 
   return (
@@ -101,22 +135,75 @@ export function UserManagementSection() {
       </div>
 
       <div className={styles.users}>
-        {users.map((u) => (
-          <div key={u.id} className={styles.userRow}>
-            <div>
-              <div className={styles.userName}>
-                {u.name}
-                {u.isAdmin && <span className={styles.badge}>{t('settings.admin')}</span>}
+        {users.map((u) =>
+          editing?.id === u.id ? (
+            <div key={u.id} className={styles.userRow}>
+              <div className={styles.editFields}>
+                <input
+                  className={styles.input}
+                  value={editing.name}
+                  placeholder={t('settings.userName')}
+                  onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                />
+                <input
+                  className={styles.input}
+                  type="email"
+                  value={editing.email}
+                  placeholder={t('settings.userEmail')}
+                  onChange={(e) => setEditing({ ...editing, email: e.target.value })}
+                />
+                <label className={styles.adminToggle}>
+                  <input
+                    type="checkbox"
+                    checked={editing.isAdmin}
+                    onChange={(e) => setEditing({ ...editing, isAdmin: e.target.checked })}
+                  />
+                  {t('settings.admin')}
+                </label>
               </div>
-              <div className={styles.userEmail}>{u.email}</div>
+              <div className={styles.rowActions}>
+                <button type="button" className={styles.resetBtn} onClick={() => setEditing(null)}>
+                  {t('common.cancel')}
+                </button>
+                <button
+                  type="button"
+                  className={styles.primaryBtn}
+                  disabled={!editing.name || !editing.email || updateUser.isPending}
+                  onClick={saveEdit}
+                >
+                  {t('common.save')}
+                </button>
+              </div>
             </div>
-            {u.isAdmin === false && (
-              <button type="button" className={styles.resetBtn} onClick={() => reset(u)} disabled={resetPassword.isPending}>
-                {t('settings.resetPassword')}
-              </button>
-            )}
-          </div>
-        ))}
+          ) : (
+            <div key={u.id} className={styles.userRow}>
+              <div>
+                <div className={styles.userName}>
+                  {u.name}
+                  {u.isAdmin && <span className={styles.badge}>{t('settings.admin')}</span>}
+                </div>
+                <div className={styles.userEmail}>{u.email}</div>
+              </div>
+              <div className={styles.rowActions}>
+                <button
+                  type="button"
+                  className={styles.resetBtn}
+                  onClick={() => setEditing({ id: u.id, name: u.name, email: u.email, isAdmin: u.isAdmin })}
+                >
+                  {t('common.edit')}
+                </button>
+                {u.isAdmin === false && (
+                  <button type="button" className={styles.resetBtn} onClick={() => reset(u)} disabled={resetPassword.isPending}>
+                    {t('settings.resetPassword')}
+                  </button>
+                )}
+                <button type="button" className={styles.dangerBtn} onClick={() => setDeleting(u)} disabled={deleteUser.isPending}>
+                  {t('common.delete')}
+                </button>
+              </div>
+            </div>
+          ),
+        )}
       </div>
 
       <div className={styles.addRow}>
@@ -129,6 +216,15 @@ export function UserManagementSection() {
 
       {error && <div className={styles.err}>{error}</div>}
       {notice && <div className={styles.notice}>{t('settings.tempPasswordNotice', notice)}</div>}
+
+      <ConfirmDialog
+        open={deleting !== null}
+        title={t('settings.deleteUserTitle')}
+        message={t('settings.deleteUserConfirm', { name: deleting?.name ?? '' })}
+        confirmLabel={t('common.delete')}
+        onConfirm={() => void confirmDelete()}
+        onCancel={() => setDeleting(null)}
+      />
     </div>
   );
 }

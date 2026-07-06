@@ -79,6 +79,12 @@ builder.Services.AddDatabaseInfrastructure(connectionString);
 
 var app = builder.Build();
 
+// 正式環境仍使用開發用簽章金鑰時發出明顯警告（金鑰應以環境變數 Jwt__Key 或 compose 的 JWT_KEY 覆寫）。
+if (app.Environment.IsProduction() && jwtOptions.Key.StartsWith("dev-only", StringComparison.Ordinal))
+{
+    app.Logger.LogWarning("Jwt:Key 仍為開發用預設金鑰，正式環境請以環境變數 Jwt__Key 覆寫（至少 32 bytes 隨機字串）。");
+}
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())

@@ -5,6 +5,7 @@ using Chi.TradeLog.Common.Models.InfoModels;
 using Chi.TradeLog.Repositories.Trades;
 using Chi.TradeLog.Services.Mapping;
 using Chi.TradeLog.Services.Trades;
+using Chi.TradeLog.Tests.TestDoubles;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -43,8 +44,8 @@ public class TradeServiceTests
                 Tags = ["breakout"],
             },
         ]);
-        var service = new TradeService(repository, CreateMapper());
-        var info = new TradeQueryInfo { AccountIds = ["a1"] };
+        var service = new TradeService(repository, new StubSettingsRepository(), CreateMapper());
+        var info = new TradeQueryInfo { UserId = 1, AccountIds = ["a1"] };
 
         // Act
         var result = await service.GetTradesAsync(info);
@@ -57,6 +58,7 @@ public class TradeServiceTests
         dto.Pnl.Should().Be(157.50m);
         dto.Tags.Should().ContainSingle().Which.Should().Be("breakout");
         repository.LastCondition!.AccountIds.Should().ContainSingle().Which.Should().Be("a1");
+        repository.LastCondition.UserId.Should().Be(1); // 查詢帶入使用者範圍
     }
 
     /// <summary>
@@ -90,10 +92,10 @@ public class TradeServiceTests
         public Task<int> UpdateAsync(TradeDataModel trade, CancellationToken cancellationToken = default)
             => Task.FromResult(0);
 
-        public Task<TradeDataModel?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
+        public Task<TradeDataModel?> GetByIdAsync(long id, long userId, CancellationToken cancellationToken = default)
             => Task.FromResult<TradeDataModel?>(null);
 
-        public Task<int> DeleteAsync(long id, CancellationToken cancellationToken = default)
+        public Task<int> DeleteAsync(long id, long userId, CancellationToken cancellationToken = default)
             => Task.FromResult(0);
     }
 }

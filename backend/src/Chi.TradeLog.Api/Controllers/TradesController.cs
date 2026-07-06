@@ -64,6 +64,7 @@ public class TradesController : ApiControllerBase
         }
 
         var info = _mapper.Map<TradeQueryInfo>(parameter);
+        info.UserId = CurrentUserId;
         var dtos = await _tradeService.GetTradesAsync(info, cancellationToken);
         var viewModels = _mapper.Map<IReadOnlyList<TradeViewModel>>(dtos);
 
@@ -78,9 +79,11 @@ public class TradesController : ApiControllerBase
     /// <returns>建立後的交易。</returns>
     /// <response code="201">建立成功。</response>
     /// <response code="400">參數驗證失敗。</response>
+    /// <response code="404">帳戶不存在或不屬於目前使用者。</response>
     [HttpPost]
     [ProducesResponseType(typeof(TradeViewModel), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TradeViewModel>> CreateTradeAsync(
         [FromBody] CreateTradeParameter parameter,
         CancellationToken cancellationToken)
@@ -92,7 +95,12 @@ public class TradesController : ApiControllerBase
         }
 
         var info = _mapper.Map<SaveTradeInfo>(parameter);
+        info.UserId = CurrentUserId;
         var dto = await _tradeService.CreateTradeAsync(info, cancellationToken);
+        if (dto is null)
+        {
+            return NotFound();
+        }
         var viewModel = _mapper.Map<TradeViewModel>(dto);
 
         return Created($"/api/trades/{viewModel.Id}", viewModel);
@@ -106,9 +114,11 @@ public class TradesController : ApiControllerBase
     /// <returns>匯入結果（新增筆數）。</returns>
     /// <response code="200">匯入成功。</response>
     /// <response code="400">參數驗證失敗。</response>
+    /// <response code="404">帳戶不存在或不屬於目前使用者。</response>
     [HttpPost("import")]
     [ProducesResponseType(typeof(ImportResultViewModel), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ImportResultViewModel>> ImportTradesAsync(
         [FromBody] ImportTradesParameter parameter,
         CancellationToken cancellationToken)
@@ -120,9 +130,13 @@ public class TradesController : ApiControllerBase
         }
 
         var infos = parameter.Trades.Select(row => _mapper.Map<SaveTradeInfo>(row)).ToList();
-        var imported = await _tradeService.ImportTradesAsync(parameter.AccountId, infos, cancellationToken);
+        var imported = await _tradeService.ImportTradesAsync(CurrentUserId, parameter.AccountId, infos, cancellationToken);
+        if (imported is null)
+        {
+            return NotFound();
+        }
 
-        return Ok(new ImportResultViewModel { Imported = imported });
+        return Ok(new ImportResultViewModel { Imported = imported.Value });
     }
 
     /// <summary>
@@ -151,6 +165,7 @@ public class TradesController : ApiControllerBase
         }
 
         var info = _mapper.Map<SaveTradeInfo>(parameter);
+        info.UserId = CurrentUserId;
         var dto = await _tradeService.UpdateTradeAsync(id, info, cancellationToken);
         if (dto is null)
         {
@@ -173,7 +188,7 @@ public class TradesController : ApiControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteTradeAsync(long id, CancellationToken cancellationToken)
     {
-        var deleted = await _tradeService.DeleteTradeAsync(id, cancellationToken);
+        var deleted = await _tradeService.DeleteTradeAsync(id, CurrentUserId, cancellationToken);
         return deleted ? NoContent() : NotFound();
     }
 }

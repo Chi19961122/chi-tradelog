@@ -97,4 +97,39 @@ public class UserRepository : IUserRepository
             new { id, passwordHash }, cancellationToken: cancellationToken);
         return await connection.ExecuteAsync(command);
     }
+
+    /// <summary>
+    /// 更新指定使用者的基本資料（email／名稱／管理員旗標），回傳受影響列數。
+    /// </summary>
+    public async Task<int> UpdateProfileAsync(
+        long id, string email, string displayName, bool isAdmin, CancellationToken cancellationToken = default)
+    {
+        await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        var command = new CommandDefinition(
+            "UPDATE users SET email = @email, display_name = @displayName, is_admin = @isAdmin WHERE id = @id;",
+            new { id, email, displayName, isAdmin }, cancellationToken: cancellationToken);
+        return await connection.ExecuteAsync(command);
+    }
+
+    /// <summary>
+    /// 刪除指定使用者（其所有資料由外鍵串接刪除），回傳受影響列數。
+    /// </summary>
+    public async Task<int> DeleteAsync(long id, CancellationToken cancellationToken = default)
+    {
+        await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        var command = new CommandDefinition(
+            "DELETE FROM users WHERE id = @id;", new { id }, cancellationToken: cancellationToken);
+        return await connection.ExecuteAsync(command);
+    }
+
+    /// <summary>
+    /// 取得管理員人數。
+    /// </summary>
+    public async Task<int> CountAdminsAsync(CancellationToken cancellationToken = default)
+    {
+        await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        var command = new CommandDefinition(
+            "SELECT COUNT(*) FROM users WHERE is_admin;", cancellationToken: cancellationToken);
+        return await connection.ExecuteScalarAsync<int>(command);
+    }
 }

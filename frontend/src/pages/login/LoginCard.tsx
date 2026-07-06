@@ -17,7 +17,7 @@ export function LoginCard() {
 
   const submit = async () => {
     setSubmitting(true);
-    await login(email, password);
+    await login(email, password, rememberMe);
     setSubmitting(false);
   };
 
@@ -35,7 +35,7 @@ export function LoginCard() {
             <input
               className={styles.input}
               type="email"
-              placeholder="you@example.com"
+              placeholder={t('login.emailPlaceholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -45,7 +45,7 @@ export function LoginCard() {
             <input
               className={styles.input}
               type="password"
-              placeholder="••••••••"
+              placeholder={t('login.passwordPlaceholder')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               onKeyDown={(e) => {

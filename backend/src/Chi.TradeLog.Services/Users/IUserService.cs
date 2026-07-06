@@ -1,3 +1,4 @@
+using Chi.TradeLog.Common.Enums;
 using Chi.TradeLog.Common.Models.Dtos;
 using Chi.TradeLog.Common.Models.InfoModels;
 
@@ -27,4 +28,14 @@ public interface IUserService
     /// 由使用者本人變更密碼（需驗證目前密碼）；成功回傳 <c>true</c>。
     /// </summary>
     Task<bool> ChangePasswordAsync(ChangePasswordInfo info, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新使用者基本資料（名稱／email／管理員旗標），回傳結果代碼。
+    /// </summary>
+    Task<UserMutationResult> UpdateAsync(long id, UpdateUserInfo info, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 刪除使用者（其所有資料由外鍵串接刪除），回傳結果代碼。
+    /// </summary>
+    Task<UserMutationResult> DeleteAsync(long id, CancellationToken cancellationToken = default);
 }

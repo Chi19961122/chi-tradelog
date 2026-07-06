@@ -54,6 +54,11 @@
   background: var(--pill);
 }
 
+/* 鍵盤導覽的目前項目 */
+.optionHighlight {
+  background: var(--pill);
+}
+
 .optionActive {
   background: var(--nav-active-bg);
   color: var(--nav-active-text);

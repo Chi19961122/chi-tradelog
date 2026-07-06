@@ -11,6 +11,11 @@ public class TradeDataModel
     public long Id { get; set; }
 
     /// <summary>
+    /// 資料所屬使用者 ID。
+    /// </summary>
+    public long UserId { get; set; }
+
+    /// <summary>
     /// 所屬帳戶 ID。
     /// </summary>
     public string AccountId { get; set; } = string.Empty;

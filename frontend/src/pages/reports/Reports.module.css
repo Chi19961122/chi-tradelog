@@ -142,3 +142,10 @@
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+/* 行動裝置：全部單欄 */
+@media (max-width: 640px) {
+  .kpiRow {
+    grid-template-columns: 1fr !important;
+  }
+}

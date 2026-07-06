@@ -19,8 +19,42 @@ public class CreateUserParameterValidator : AbstractValidator<CreateUserParamete
         RuleFor(parameter => parameter.Name)
             .NotEmpty().WithMessage("名稱為必填。");
         RuleFor(parameter => parameter.Password!)
-            .MinimumLength(6).WithMessage("密碼至少 6 碼。")
+            .MinimumLength(8).WithMessage("密碼至少 8 碼。")
             .When(parameter => string.IsNullOrEmpty(parameter.Password) is false);
+    }
+}
+
+/// <summary>
+/// <see cref="UpdateUserParameter"/> 的驗證規則。
+/// </summary>
+public class UpdateUserParameterValidator : AbstractValidator<UpdateUserParameter>
+{
+    /// <summary>
+    /// 建立驗證器。
+    /// </summary>
+    public UpdateUserParameterValidator()
+    {
+        RuleFor(parameter => parameter.Email)
+            .NotEmpty().WithMessage("電子郵件為必填。")
+            .EmailAddress().WithMessage("電子郵件格式不正確。");
+        RuleFor(parameter => parameter.Name)
+            .NotEmpty().WithMessage("名稱為必填。");
+    }
+}
+
+/// <summary>
+/// <see cref="RenameParameter"/> 的驗證規則。
+/// </summary>
+public class RenameParameterValidator : AbstractValidator<RenameParameter>
+{
+    /// <summary>
+    /// 建立驗證器。
+    /// </summary>
+    public RenameParameterValidator()
+    {
+        RuleFor(parameter => parameter.Name)
+            .NotEmpty().WithMessage("名稱為必填。")
+            .MaximumLength(128).WithMessage("名稱長度過長。");
     }
 }
 
@@ -38,6 +72,6 @@ public class ChangePasswordParameterValidator : AbstractValidator<ChangePassword
             .NotEmpty().WithMessage("目前密碼為必填。");
         RuleFor(parameter => parameter.NewPassword)
             .NotEmpty().WithMessage("新密碼為必填。")
-            .MinimumLength(6).WithMessage("新密碼至少 6 碼。");
+            .MinimumLength(8).WithMessage("新密碼至少 8 碼。");
     }
 }

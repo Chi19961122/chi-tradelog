@@ -4,57 +4,67 @@ using Chi.TradeLog.Common.Models.InfoModels;
 namespace Chi.TradeLog.Services.Settings;
 
 /// <summary>
-/// 設定業務邏輯層（Service）。
+/// 設定業務邏輯層（Service）。所有操作皆以使用者為範圍（多租戶隔離）。
 /// </summary>
 public interface ISettingsService
 {
     /// <summary>
-    /// 取得彙總設定（初始資金、平台/帳戶、商品、標籤）。
+    /// 取得指定使用者的彙總設定（初始資金、平台/帳戶、商品、標籤）。
     /// </summary>
-    Task<SettingsDto> GetSettingsAsync(CancellationToken cancellationToken = default);
+    Task<SettingsDto> GetSettingsAsync(long userId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 更新初始資金。
+    /// 更新指定使用者的初始資金。
     /// </summary>
-    Task UpdateInitialCapitalAsync(decimal initialCapital, CancellationToken cancellationToken = default);
+    Task UpdateInitialCapitalAsync(long userId, decimal initialCapital, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 新增平台，回傳建立後的平台（含空帳戶清單）。
+    /// 為指定使用者新增平台，回傳建立後的平台（含空帳戶清單）。
     /// </summary>
-    Task<PlatformDto> CreatePlatformAsync(CreatePlatformInfo info, CancellationToken cancellationToken = default);
+    Task<PlatformDto> CreatePlatformAsync(long userId, CreatePlatformInfo info, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 刪除平台；成功回傳 <c>true</c>。
+    /// 刪除指定使用者的平台；成功回傳 <c>true</c>。
     /// </summary>
-    Task<bool> DeletePlatformAsync(string id, CancellationToken cancellationToken = default);
+    Task<bool> DeletePlatformAsync(long userId, string id, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 在指定平台下新增帳戶；平台不存在時回傳 <c>null</c>。
+    /// 在指定使用者的平台下新增帳戶；平台不存在時回傳 <c>null</c>。
     /// </summary>
-    Task<AccountDto?> CreateAccountAsync(CreateAccountInfo info, CancellationToken cancellationToken = default);
+    Task<AccountDto?> CreateAccountAsync(long userId, CreateAccountInfo info, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 刪除帳戶；成功回傳 <c>true</c>。
+    /// 更新指定使用者的平台名稱；成功回傳 <c>true</c>。
     /// </summary>
-    Task<bool> DeleteAccountAsync(string id, CancellationToken cancellationToken = default);
+    Task<bool> RenamePlatformAsync(long userId, string id, string name, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 新增商品代號（正規化為大寫）；成功回傳 <c>true</c>。
+    /// 更新指定使用者的帳戶名稱；成功回傳 <c>true</c>。
     /// </summary>
-    Task<bool> AddSymbolAsync(string symbol, CancellationToken cancellationToken = default);
+    Task<bool> RenameAccountAsync(long userId, string id, string name, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 刪除商品代號；成功回傳 <c>true</c>。
+    /// 刪除指定使用者的帳戶；成功回傳 <c>true</c>。
     /// </summary>
-    Task<bool> RemoveSymbolAsync(string symbol, CancellationToken cancellationToken = default);
+    Task<bool> DeleteAccountAsync(long userId, string id, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 新增標籤；成功回傳 <c>true</c>。
+    /// 為指定使用者新增商品代號（正規化為大寫）；成功回傳 <c>true</c>。
     /// </summary>
-    Task<bool> AddTagAsync(string tag, CancellationToken cancellationToken = default);
+    Task<bool> AddSymbolAsync(long userId, string symbol, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 刪除標籤；成功回傳 <c>true</c>。
+    /// 刪除指定使用者的商品代號；成功回傳 <c>true</c>。
     /// </summary>
-    Task<bool> RemoveTagAsync(string tag, CancellationToken cancellationToken = default);
+    Task<bool> RemoveSymbolAsync(long userId, string symbol, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 為指定使用者新增標籤；成功回傳 <c>true</c>。
+    /// </summary>
+    Task<bool> AddTagAsync(long userId, string tag, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 刪除指定使用者的標籤；成功回傳 <c>true</c>。
+    /// </summary>
+    Task<bool> RemoveTagAsync(long userId, string tag, CancellationToken cancellationToken = default);
 }

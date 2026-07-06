@@ -55,7 +55,35 @@ export function useUserMutations() {
     },
   });
 
-  return { createUser, resetPassword };
+  const updateUser = useMutation({
+    mutationFn: async (vars: { id: number; name: string; email: string; isAdmin: boolean }): Promise<void> => {
+      const res = await apiFetch(`/api/users/${vars.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: vars.name, email: vars.email, isAdmin: vars.isAdmin }),
+      });
+      if (res.status === 409) throw new Error(await conflictKind(res));
+      if (res.ok === false) throw new Error(`更新使用者失敗：${res.status}`);
+    },
+    onSuccess: invalidate,
+  });
+
+  const deleteUser = useMutation({
+    mutationFn: async (id: number): Promise<void> => {
+      const res = await apiFetch(`/api/users/${id}`, { method: 'DELETE' });
+      if (res.status === 409) throw new Error(await conflictKind(res));
+      if (res.ok === false) throw new Error(`刪除使用者失敗：${res.status}`);
+    },
+    onSuccess: invalidate,
+  });
+
+  return { createUser, resetPassword, updateUser, deleteUser };
+}
+
+/** 由 409 回應辨識衝突種類：'lastAdmin'（需保留管理員）或 'conflict'（email 重複）。 */
+async function conflictKind(res: Response): Promise<'lastAdmin' | 'conflict'> {
+  const problem = (await res.json().catch(() => null)) as { title?: string } | null;
+  return problem?.title?.includes('管理員') ? 'lastAdmin' : 'conflict';
 }
 
 /** 由本人變更密碼。回傳 true 表示成功。 */

@@ -63,8 +63,10 @@ interface UiState {
   setInitialCapital: (value: number) => void;
   addPlatform: (platform: Platform) => void;
   removePlatform: (id: string) => void;
+  renamePlatform: (id: string, name: string) => void;
   addAccount: (platformId: string, account: Account) => void;
   removeAccount: (id: string) => void;
+  renameAccount: (id: string, name: string) => void;
   addSymbol: (symbol: string) => void;
   removeSymbol: (symbol: string) => void;
   addTag: (tag: string) => void;
@@ -135,11 +137,22 @@ export const useUiStore = create<UiState>((set, get) => ({
     const fallback = platforms[0]?.accounts[0]?.id;
     set({ platforms, activeAccountIds: active.length ? active : fallback ? [fallback] : [] });
   },
+  renamePlatform: (id, name) =>
+    set((s) => ({
+      platforms: s.platforms.map((p) => (p.id === id ? { ...p, name } : p)),
+    })),
   addAccount: (platformId, account) =>
     set((s) => ({
       platforms: s.platforms.map((p) =>
         p.id === platformId ? { ...p, accounts: [...p.accounts, account] } : p,
       ),
+    })),
+  renameAccount: (id, name) =>
+    set((s) => ({
+      platforms: s.platforms.map((p) => ({
+        ...p,
+        accounts: p.accounts.map((a) => (a.id === id ? { ...a, name } : a)),
+      })),
     })),
   removeAccount: (id) => {
     const platforms = get().platforms.map((p) => ({

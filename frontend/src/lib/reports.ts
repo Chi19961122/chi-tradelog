@@ -1,10 +1,6 @@
 import type { Trade } from '@/types/trade';
 import { fmtMoney } from './format';
-import { seededRand } from './seededTrades';
-
-/** 交易的基準月：2026 年 7 月（與 seed 資料一致）。 */
-const BASE_YEAR = 2026;
-const BASE_MONTH_IDX = 6; // July (0-based)
+import { currentMonthIdx, currentYear } from './today';
 
 /* ------------------------------------------------------------------ */
 /* Win Rate by Weekday（真實：由交易日期推導星期）                      */
@@ -20,7 +16,7 @@ export function buildWeekdayWinRate(trades: Trade[]): WeekdayWinRate[] {
   const wins = Array<number>(7).fill(0);
   const total = Array<number>(7).fill(0);
   for (const tr of trades) {
-    const weekday = new Date(BASE_YEAR, BASE_MONTH_IDX, tr.day).getDay();
+    const weekday = new Date(currentYear(), currentMonthIdx(), tr.day).getDay();
     total[weekday] += 1;
     if (tr.pnl >= 0) wins[weekday] += 1;
   }
@@ -121,7 +117,7 @@ export function buildHoldingDistribution(trades: Trade[], lang: 'en' | 'zh'): Ho
 }
 
 /* ------------------------------------------------------------------ */
-/* Monthly Performance（本月真實 + 前 5 月合成，無歷史資料）             */
+/* Monthly Performance（僅真實資料：資料模型目前只含本月）               */
 /* ------------------------------------------------------------------ */
 
 export interface MonthlyPerf {
@@ -131,19 +127,12 @@ export interface MonthlyPerf {
 
 const MONTHS_EN_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+/** 每月績效：只呈現有真實資料的月份（目前為本月），不再合成歷史假月份。 */
 export function buildMonthlyPerformance(trades: Trade[], lang: 'en' | 'zh'): MonthlyPerf[] {
+  const monthIdx = currentMonthIdx();
+  const label = lang === 'en' ? MONTHS_EN_SHORT[monthIdx] : `${monthIdx + 1}月`;
   const currentPnl = trades.reduce((s, tr) => s + tr.pnl, 0);
-  const result: MonthlyPerf[] = [];
-  for (let monthsAgo = 5; monthsAgo >= 0; monthsAgo--) {
-    const monthIdx = ((BASE_MONTH_IDX - monthsAgo) % 12 + 12) % 12;
-    const label = lang === 'en' ? MONTHS_EN_SHORT[monthIdx] : `${monthIdx + 1}月`;
-    const pnl =
-      monthsAgo === 0
-        ? Math.round(currentPnl)
-        : Math.round((seededRand((monthsAgo + 1) * 17.3 * 3.1) - 0.35) * 6000);
-    result.push({ label, pnl });
-  }
-  return result;
+  return [{ label, pnl: Math.round(currentPnl) }];
 }
 
 /* ------------------------------------------------------------------ */

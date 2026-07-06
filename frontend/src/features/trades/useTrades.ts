@@ -32,5 +32,7 @@ export function useTrades(accountIds: string[]) {
     queryKey: ['trades', [...accountIds].sort()],
     queryFn: () => fetchTrades(accountIds),
     staleTime: 5 * 60 * 1000,
+    // 尚無帳戶（新使用者）時跳過查詢，避免打出無帳戶參數的請求。
+    enabled: accountIds.length > 0,
   });
 }

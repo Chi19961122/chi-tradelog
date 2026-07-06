@@ -87,6 +87,32 @@
   flex-wrap: wrap;
 }
 
+/* 商品/標籤搜尋框 */
+.searchInput {
+  margin-left: auto;
+  padding: 8px 12px;
+  border-radius: var(--radius-input);
+  border: 1px solid var(--line);
+  background: var(--pill);
+  color: var(--ink);
+  font-size: 13px;
+  min-width: 200px;
+}
+
+.searchInput::placeholder {
+  color: var(--faint);
+}
+
+/* 可排序表頭 */
+.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.sortable:hover {
+  color: var(--ink);
+}
+
 .tagPills {
   display: flex;
   gap: 6px;
@@ -118,7 +144,19 @@
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
-  overflow: hidden;
+  /* 窄螢幕時表格可橫向捲動 */
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+@media (max-width: 900px) {
+  .table {
+    min-width: 720px;
+  }
+  .searchInput {
+    margin-left: 0;
+    width: 100%;
+  }
 }
 
 .table {

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Icon } from '@/components/Icon/Icon';
 import { useOutsideClick } from '@/lib/useOutsideClick';
 import { buildMonthGrid, quickRanges, type DateRange } from '@/lib/dateRange';
+import { currentMonthIdx, currentYear } from '@/lib/today';
 import { toMetricsLang } from '@/i18n';
 import styles from './DateRangePicker.module.css';
 
@@ -25,8 +26,8 @@ export function DateRangePicker({ value, onApply, onClear }: Props) {
   const { t, i18n } = useTranslation();
   const isZh = toMetricsLang(i18n.language) === 'zh';
   const [open, setOpen] = useState(false);
-  const [viewYear, setViewYear] = useState(2026);
-  const [viewMonth, setViewMonth] = useState(6); // July
+  const [viewYear, setViewYear] = useState(() => currentYear());
+  const [viewMonth, setViewMonth] = useState(() => currentMonthIdx());
   const [tempFrom, setTempFrom] = useState('');
   const [tempTo, setTempTo] = useState('');
   const ref = useOutsideClick<HTMLDivElement>(open, () => setOpen(false));
@@ -34,8 +35,8 @@ export function DateRangePicker({ value, onApply, onClear }: Props) {
   const openPicker = () => {
     setTempFrom(value.from);
     setTempTo(value.to);
-    setViewYear(2026);
-    setViewMonth(6);
+    setViewYear(currentYear());
+    setViewMonth(currentMonthIdx());
     setOpen(true);
   };
 

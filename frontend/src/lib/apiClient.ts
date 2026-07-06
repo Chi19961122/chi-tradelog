@@ -3,9 +3,9 @@ import { API_BASE_URL } from './apiConfig';
 export const AUTH_TOKEN_KEY = 'chi_auth_token';
 export const AUTH_USER_KEY = 'chi_auth_user';
 
-/** 讀取儲存的 JWT。 */
+/** 讀取儲存的 JWT（「記住我」存 localStorage，否則存 sessionStorage）。 */
 export function getStoredToken(): string | null {
-  return localStorage.getItem(AUTH_TOKEN_KEY);
+  return localStorage.getItem(AUTH_TOKEN_KEY) ?? sessionStorage.getItem(AUTH_TOKEN_KEY);
 }
 
 /**

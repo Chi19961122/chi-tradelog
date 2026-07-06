@@ -5,7 +5,7 @@ using Dapper;
 namespace Chi.TradeLog.Repositories.Settings;
 
 /// <summary>
-/// 以 Dapper 實作的設定 Repository。
+/// 以 Dapper 實作的設定 Repository。所有查詢與寫入皆以 user_id 為範圍（多租戶隔離）。
 /// </summary>
 public class SettingsRepository : ISettingsRepository
 {
@@ -20,165 +20,209 @@ public class SettingsRepository : ISettingsRepository
     }
 
     /// <summary>
-    /// 取得所有平台，依名稱排序。
+    /// 取得指定使用者的所有平台，依名稱排序。
     /// </summary>
-    public async Task<IReadOnlyList<PlatformDataModel>> GetPlatformsAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<PlatformDataModel>> GetPlatformsAsync(long userId, CancellationToken cancellationToken = default)
     {
         await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         var rows = await connection.QueryAsync<PlatformDataModel>(new CommandDefinition(
-            "SELECT id AS Id, name AS Name FROM platforms ORDER BY name;", cancellationToken: cancellationToken));
+            "SELECT user_id AS UserId, id AS Id, name AS Name FROM platforms WHERE user_id = @userId ORDER BY name;",
+            new { userId }, cancellationToken: cancellationToken));
         return rows.AsList();
     }
 
     /// <summary>
-    /// 取得所有帳戶。
+    /// 取得指定使用者的所有帳戶。
     /// </summary>
-    public async Task<IReadOnlyList<AccountDataModel>> GetAccountsAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<AccountDataModel>> GetAccountsAsync(long userId, CancellationToken cancellationToken = default)
     {
         await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         var rows = await connection.QueryAsync<AccountDataModel>(new CommandDefinition(
-            "SELECT id AS Id, platform_id AS PlatformId, name AS Name FROM accounts ORDER BY name;",
-            cancellationToken: cancellationToken));
+            "SELECT user_id AS UserId, id AS Id, platform_id AS PlatformId, name AS Name FROM accounts WHERE user_id = @userId ORDER BY name;",
+            new { userId }, cancellationToken: cancellationToken));
         return rows.AsList();
     }
 
     /// <summary>
-    /// 取得所有商品代號。
+    /// 取得指定使用者的所有商品代號。
     /// </summary>
-    public async Task<IReadOnlyList<string>> GetSymbolsAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<string>> GetSymbolsAsync(long userId, CancellationToken cancellationToken = default)
     {
         await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         var rows = await connection.QueryAsync<string>(new CommandDefinition(
-            "SELECT ticker FROM symbols ORDER BY ticker;", cancellationToken: cancellationToken));
+            "SELECT ticker FROM symbols WHERE user_id = @userId ORDER BY ticker;",
+            new { userId }, cancellationToken: cancellationToken));
         return rows.AsList();
     }
 
     /// <summary>
-    /// 取得所有標籤。
+    /// 取得指定使用者的所有標籤。
     /// </summary>
-    public async Task<IReadOnlyList<string>> GetTagsAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<string>> GetTagsAsync(long userId, CancellationToken cancellationToken = default)
     {
         await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         var rows = await connection.QueryAsync<string>(new CommandDefinition(
-            "SELECT name FROM tags ORDER BY name;", cancellationToken: cancellationToken));
+            "SELECT name FROM tags WHERE user_id = @userId ORDER BY name;",
+            new { userId }, cancellationToken: cancellationToken));
         return rows.AsList();
     }
 
     /// <summary>
-    /// 取得初始資金（無資料時回傳 0）。
+    /// 取得指定使用者的初始資金；尚無資料時回傳 <c>null</c>。
     /// </summary>
-    public async Task<decimal> GetInitialCapitalAsync(CancellationToken cancellationToken = default)
+    public async Task<decimal?> GetInitialCapitalAsync(long userId, CancellationToken cancellationToken = default)
     {
         await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
-        return await connection.ExecuteScalarAsync<decimal>(new CommandDefinition(
-            "SELECT initial_capital FROM app_settings WHERE id = 1;", cancellationToken: cancellationToken));
+        return await connection.ExecuteScalarAsync<decimal?>(new CommandDefinition(
+            "SELECT initial_capital FROM app_settings WHERE user_id = @userId;",
+            new { userId }, cancellationToken: cancellationToken));
     }
 
     /// <summary>
-    /// 更新初始資金，回傳受影響列數。
+    /// 更新指定使用者的初始資金（不存在時新增該列），回傳受影響列數。
     /// </summary>
-    public async Task<int> UpdateInitialCapitalAsync(decimal value, CancellationToken cancellationToken = default)
+    public async Task<int> UpdateInitialCapitalAsync(long userId, decimal value, CancellationToken cancellationToken = default)
     {
         await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         return await connection.ExecuteAsync(new CommandDefinition(
-            "UPDATE app_settings SET initial_capital = @value WHERE id = 1;", new { value },
-            cancellationToken: cancellationToken));
+            """
+            INSERT INTO app_settings (user_id, initial_capital) VALUES (@userId, @value)
+            ON CONFLICT (user_id) DO UPDATE SET initial_capital = EXCLUDED.initial_capital;
+            """,
+            new { userId, value }, cancellationToken: cancellationToken));
     }
 
     /// <summary>
-    /// 判斷平台是否存在。
+    /// 判斷指定使用者是否擁有該平台。
     /// </summary>
-    public async Task<bool> PlatformExistsAsync(string id, CancellationToken cancellationToken = default)
+    public async Task<bool> PlatformExistsAsync(string id, long userId, CancellationToken cancellationToken = default)
     {
         await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         return await connection.ExecuteScalarAsync<bool>(new CommandDefinition(
-            "SELECT EXISTS(SELECT 1 FROM platforms WHERE id = @id);", new { id },
-            cancellationToken: cancellationToken));
+            "SELECT EXISTS(SELECT 1 FROM platforms WHERE id = @id AND user_id = @userId);",
+            new { id, userId }, cancellationToken: cancellationToken));
     }
 
     /// <summary>
-    /// 新增平台。
+    /// 判斷指定使用者是否擁有該帳戶。
+    /// </summary>
+    public async Task<bool> AccountExistsAsync(string id, long userId, CancellationToken cancellationToken = default)
+    {
+        await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        return await connection.ExecuteScalarAsync<bool>(new CommandDefinition(
+            "SELECT EXISTS(SELECT 1 FROM accounts WHERE id = @id AND user_id = @userId);",
+            new { id, userId }, cancellationToken: cancellationToken));
+    }
+
+    /// <summary>
+    /// 新增平台（含 user_id）。
     /// </summary>
     public async Task InsertPlatformAsync(PlatformDataModel platform, CancellationToken cancellationToken = default)
     {
         await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         await connection.ExecuteAsync(new CommandDefinition(
-            "INSERT INTO platforms (id, name) VALUES (@Id, @Name);", platform,
+            "INSERT INTO platforms (user_id, id, name) VALUES (@UserId, @Id, @Name);", platform,
             cancellationToken: cancellationToken));
     }
 
     /// <summary>
-    /// 刪除平台（帳戶由外鍵串接刪除），回傳受影響列數。
+    /// 刪除指定使用者的平台（帳戶由外鍵串接刪除），回傳受影響列數。
     /// </summary>
-    public async Task<int> DeletePlatformAsync(string id, CancellationToken cancellationToken = default)
+    public async Task<int> DeletePlatformAsync(string id, long userId, CancellationToken cancellationToken = default)
     {
         await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         return await connection.ExecuteAsync(new CommandDefinition(
-            "DELETE FROM platforms WHERE id = @id;", new { id }, cancellationToken: cancellationToken));
+            "DELETE FROM platforms WHERE id = @id AND user_id = @userId;", new { id, userId },
+            cancellationToken: cancellationToken));
     }
 
     /// <summary>
-    /// 新增帳戶。
+    /// 更新指定使用者的平台名稱，回傳受影響列數。
+    /// </summary>
+    public async Task<int> UpdatePlatformNameAsync(string id, long userId, string name, CancellationToken cancellationToken = default)
+    {
+        await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        return await connection.ExecuteAsync(new CommandDefinition(
+            "UPDATE platforms SET name = @name WHERE id = @id AND user_id = @userId;", new { id, userId, name },
+            cancellationToken: cancellationToken));
+    }
+
+    /// <summary>
+    /// 更新指定使用者的帳戶名稱，回傳受影響列數。
+    /// </summary>
+    public async Task<int> UpdateAccountNameAsync(string id, long userId, string name, CancellationToken cancellationToken = default)
+    {
+        await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        return await connection.ExecuteAsync(new CommandDefinition(
+            "UPDATE accounts SET name = @name WHERE id = @id AND user_id = @userId;", new { id, userId, name },
+            cancellationToken: cancellationToken));
+    }
+
+    /// <summary>
+    /// 新增帳戶（含 user_id）。
     /// </summary>
     public async Task InsertAccountAsync(AccountDataModel account, CancellationToken cancellationToken = default)
     {
         await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         await connection.ExecuteAsync(new CommandDefinition(
-            "INSERT INTO accounts (id, platform_id, name) VALUES (@Id, @PlatformId, @Name);", account,
+            "INSERT INTO accounts (user_id, id, platform_id, name) VALUES (@UserId, @Id, @PlatformId, @Name);", account,
             cancellationToken: cancellationToken));
     }
 
     /// <summary>
-    /// 刪除帳戶，回傳受影響列數。
+    /// 刪除指定使用者的帳戶，回傳受影響列數。
     /// </summary>
-    public async Task<int> DeleteAccountAsync(string id, CancellationToken cancellationToken = default)
+    public async Task<int> DeleteAccountAsync(string id, long userId, CancellationToken cancellationToken = default)
     {
         await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         return await connection.ExecuteAsync(new CommandDefinition(
-            "DELETE FROM accounts WHERE id = @id;", new { id }, cancellationToken: cancellationToken));
+            "DELETE FROM accounts WHERE id = @id AND user_id = @userId;", new { id, userId },
+            cancellationToken: cancellationToken));
     }
 
     /// <summary>
-    /// 新增商品代號（衝突時略過），回傳是否新增。
+    /// 為指定使用者新增商品代號（衝突時略過），回傳是否新增。
     /// </summary>
-    public async Task<bool> InsertSymbolAsync(string ticker, CancellationToken cancellationToken = default)
+    public async Task<bool> InsertSymbolAsync(long userId, string ticker, CancellationToken cancellationToken = default)
     {
         await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         var affected = await connection.ExecuteAsync(new CommandDefinition(
-            "INSERT INTO symbols (ticker) VALUES (@ticker) ON CONFLICT DO NOTHING;", new { ticker },
-            cancellationToken: cancellationToken));
+            "INSERT INTO symbols (user_id, ticker) VALUES (@userId, @ticker) ON CONFLICT DO NOTHING;",
+            new { userId, ticker }, cancellationToken: cancellationToken));
         return affected > 0;
     }
 
     /// <summary>
-    /// 刪除商品代號，回傳受影響列數。
+    /// 刪除指定使用者的商品代號，回傳受影響列數。
     /// </summary>
-    public async Task<int> DeleteSymbolAsync(string ticker, CancellationToken cancellationToken = default)
+    public async Task<int> DeleteSymbolAsync(long userId, string ticker, CancellationToken cancellationToken = default)
     {
         await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         return await connection.ExecuteAsync(new CommandDefinition(
-            "DELETE FROM symbols WHERE ticker = @ticker;", new { ticker }, cancellationToken: cancellationToken));
+            "DELETE FROM symbols WHERE user_id = @userId AND ticker = @ticker;",
+            new { userId, ticker }, cancellationToken: cancellationToken));
     }
 
     /// <summary>
-    /// 新增標籤（衝突時略過），回傳是否新增。
+    /// 為指定使用者新增標籤（衝突時略過），回傳是否新增。
     /// </summary>
-    public async Task<bool> InsertTagAsync(string name, CancellationToken cancellationToken = default)
+    public async Task<bool> InsertTagAsync(long userId, string name, CancellationToken cancellationToken = default)
     {
         await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         var affected = await connection.ExecuteAsync(new CommandDefinition(
-            "INSERT INTO tags (name) VALUES (@name) ON CONFLICT DO NOTHING;", new { name },
-            cancellationToken: cancellationToken));
+            "INSERT INTO tags (user_id, name) VALUES (@userId, @name) ON CONFLICT DO NOTHING;",
+            new { userId, name }, cancellationToken: cancellationToken));
         return affected > 0;
     }
 
     /// <summary>
-    /// 刪除標籤，回傳受影響列數。
+    /// 刪除指定使用者的標籤，回傳受影響列數。
     /// </summary>
-    public async Task<int> DeleteTagAsync(string name, CancellationToken cancellationToken = default)
+    public async Task<int> DeleteTagAsync(long userId, string name, CancellationToken cancellationToken = default)
     {
         await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         return await connection.ExecuteAsync(new CommandDefinition(
-            "DELETE FROM tags WHERE name = @name;", new { name }, cancellationToken: cancellationToken));
+            "DELETE FROM tags WHERE user_id = @userId AND name = @name;",
+            new { userId, name }, cancellationToken: cancellationToken));
     }
 }

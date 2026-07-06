@@ -1,5 +1,10 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildMonthGrid, isoInRange, quickRanges } from './dateRange';
+import { setTodayForTesting } from './today';
+
+// 注入固定「今天」（2026-07-04）讓測試具確定性。
+beforeAll(() => setTodayForTesting(new Date(2026, 6, 4)));
+afterAll(() => setTodayForTesting(null));
 
 describe('buildMonthGrid', () => {
   it('builds July 2026 with 31 in-month days, Sunday-first', () => {
