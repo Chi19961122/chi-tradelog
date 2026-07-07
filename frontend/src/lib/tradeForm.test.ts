@@ -28,6 +28,18 @@ describe('computeTradeFields', () => {
     expect(c.date).toBe('2026-07-04');
   });
 
+  it('computes real R from stop loss when provided', () => {
+    const c = computeTradeFields({ sym: 'AAPL', side: 'Long', entry: 100, exit: 110, qty: 10, date: '2026-07-05', tags: [], stopLoss: 95 });
+    // 風險 = |100-95|×10 = 50；R = 100 / 50 = 2（而非 pnl/100 = 1）
+    expect(c.pnl).toBe(100);
+    expect(c.r).toBe(2);
+  });
+
+  it('falls back to pnl/100 when stop loss equals entry (zero risk)', () => {
+    const c = computeTradeFields({ sym: 'AAPL', side: 'Long', entry: 100, exit: 110, qty: 10, date: '2026-07-05', tags: [], stopLoss: 100 });
+    expect(c.r).toBe(1); // 風險 0 → 沿用近似值
+  });
+
   it('uses provided pnl and timestamps when given (broker import)', () => {
     const c = computeTradeFields({
       sym: 'YM', side: 'Short', entry: 53287, exit: 53214, qty: 2, date: '2026-07-03', tags: [],

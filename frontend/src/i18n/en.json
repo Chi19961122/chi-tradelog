@@ -220,6 +220,7 @@
     "exit": "Exit",
     "qty": "Qty",
     "date": "Date",
+    "stopLoss": "Stop loss (optional)",
     "tag": "Tag",
     "selectSymbol": "Select symbol",
     "selectTag": "Select tag",

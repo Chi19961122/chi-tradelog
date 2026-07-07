@@ -58,6 +58,11 @@ public class ImportTradeRow
     public string[] Tags { get; init; } = [];
 
     /// <summary>
+    /// 停損價（選填；有值時 R 以真實風險計算）。
+    /// </summary>
+    public decimal? StopLoss { get; init; }
+
+    /// <summary>
     /// 明確指定的淨損益（選填；<c>null</c> 時由後端以價差計算）。
     /// </summary>
     public decimal? Pnl { get; init; }

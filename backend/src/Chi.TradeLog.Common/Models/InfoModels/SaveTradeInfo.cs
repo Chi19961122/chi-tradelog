@@ -52,6 +52,11 @@ public class SaveTradeInfo
     public IReadOnlyList<string> Tags { get; set; } = [];
 
     /// <summary>
+    /// 停損價（選填；有值時 R 以真實風險計算）。
+    /// </summary>
+    public decimal? StopLoss { get; set; }
+
+    /// <summary>
     /// 明確指定的淨損益（券商報表匯入用；<c>null</c> 時由後端以價差計算）。
     /// </summary>
     public decimal? Pnl { get; set; }

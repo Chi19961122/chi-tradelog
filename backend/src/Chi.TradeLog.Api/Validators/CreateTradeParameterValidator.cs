@@ -33,5 +33,9 @@ public class CreateTradeParameterValidator : AbstractValidator<CreateTradeParame
 
         RuleFor(parameter => parameter.Date)
             .Must(date => date != default).WithMessage("交易日期為必填。");
+
+        RuleFor(parameter => parameter.StopLoss)
+            .GreaterThan(0).When(parameter => parameter.StopLoss.HasValue)
+            .WithMessage("停損價須大於 0。");
     }
 }

@@ -140,7 +140,9 @@ public class TradeService : ITradeService
         var side = info.Side == "Short" ? "Short" : "Long";
         var symbol = info.Sym.Trim().ToUpperInvariant();
         var pnl = info.Pnl ?? (side == "Long" ? info.Exit - info.Entry : info.Entry - info.Exit) * info.Qty;
-        var rMultiple = Math.Round(pnl / 100m, 2);
+        // R：有停損時以真實風險（|entry−stop|×qty）計算，否則沿用近似值 pnl/100。
+        var risk = info.StopLoss.HasValue ? Math.Abs(info.Entry - info.StopLoss.Value) * info.Qty : 0m;
+        var rMultiple = risk > 0 ? Math.Round(pnl / risk, 2) : Math.Round(pnl / 100m, 2);
         var holdingMinutes = info.OpenedAt.HasValue && info.ClosedAt.HasValue
             ? Math.Max(0, (int)Math.Round((info.ClosedAt.Value - info.OpenedAt.Value).TotalMinutes))
             : 30 + (int)Math.Floor(
@@ -159,6 +161,7 @@ public class TradeService : ITradeService
             TradedOn = info.TradedOn,
             HoldingMinutes = holdingMinutes,
             Tags = tags.Length > 0 ? tags : ["manual"],
+            StopLoss = info.StopLoss,
             Charges = info.Charges,
             OpenedAt = info.OpenedAt,
             ClosedAt = info.ClosedAt,

@@ -66,6 +66,11 @@ public class TradeViewModel
     public int HoldingMinutes { get; init; }
 
     /// <summary>
+    /// 停損價（選填）。
+    /// </summary>
+    public decimal? StopLoss { get; init; }
+
+    /// <summary>
     /// 手續費（無資料時為 <c>null</c>）。
     /// </summary>
     public decimal? Charges { get; init; }

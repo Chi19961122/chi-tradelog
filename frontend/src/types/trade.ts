@@ -18,6 +18,8 @@ export interface Trade {
   tags: string[];
   /** 持倉分鐘數 */
   holdingMinutes: number;
+  /** 停損價（選填；有值時 R 以真實風險計算） */
+  stopLoss?: number | null;
   /** 手續費（券商報表匯入才有值） */
   charges?: number | null;
   /** 進場時間（ISO 字串；券商報表匯入才有值） */

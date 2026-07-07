@@ -39,4 +39,9 @@ public class UpdateTradeParameter
     /// 標籤清單。
     /// </summary>
     public string[] Tags { get; init; } = [];
+
+    /// <summary>
+    /// 停損價（選填；有值時 R 以真實風險計算）。
+    /// </summary>
+    public decimal? StopLoss { get; init; }
 }

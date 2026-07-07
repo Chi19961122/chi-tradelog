@@ -12,6 +12,8 @@ export interface TradeFormInput {
   /** 交易日期（ISO <c>yyyy-MM-dd</c>）。 */
   date: string;
   tags: string[];
+  /** 停損價（選填；有值時 R 以真實風險計算）。 */
+  stopLoss?: number;
   /** 明確帶入的淨損益（期貨等有合約乘數的商品；未帶入時以價差計算）。 */
   pnl?: number;
   /** 手續費（選填）。 */
@@ -49,7 +51,9 @@ export function computeTradeFields(input: TradeFormInput): {
   const sym = input.sym.trim().toUpperCase();
   // 淨損益優先採用明確帶入的值（與後端 TradeService 一致）。
   const pnl = input.pnl ?? (side === 'Long' ? input.exit - input.entry : input.entry - input.exit) * input.qty;
-  const r = Math.round((pnl / 100) * 100) / 100;
+  // R：有停損時以真實風險（|entry−stop|×qty）計算，否則沿用近似值 pnl/100（與後端 TradeService 一致）。
+  const risk = input.stopLoss != null ? Math.abs(input.entry - input.stopLoss) * input.qty : 0;
+  const r = risk > 0 ? Math.round((pnl / risk) * 100) / 100 : Math.round((pnl / 100) * 100) / 100;
   const date = input.date || todayISO();
   // 持倉分鐘數優先由進／出場時間戳推導。
   const holdingMinutes = input.openedAt && input.closedAt
@@ -75,6 +79,7 @@ export function buildMockTrade(accountId: string, input: TradeFormInput, id: str
     pnl: c.pnl,
     tags: c.tags,
     holdingMinutes: c.holdingMinutes,
+    stopLoss: input.stopLoss ?? null,
     charges: input.charges ?? null,
     openedAt: input.openedAt ?? null,
     closedAt: input.closedAt ?? null,

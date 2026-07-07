@@ -110,6 +110,33 @@ public class TradeServiceWriteTests
     }
 
     [Fact]
+    public async Task CreateTradeAsync_ComputesRealR_WhenStopLossProvided()
+    {
+        var repository = new CapturingTradeRepository(newId: 1);
+        var service = CreateService(repository);
+        var info = new SaveTradeInfo
+        {
+            UserId = UserId,
+            AccountId = "a1",
+            Sym = "AAPL",
+            Side = "Long",
+            Entry = 100m,
+            Exit = 110m,
+            Qty = 10,
+            StopLoss = 95m, // 風險 = |100-95|×10 = 50
+            TradedOn = new DateOnly(2026, 7, 15),
+            Tags = [],
+        };
+
+        var dto = await service.CreateTradeAsync(info);
+
+        // pnl = 100；R = 100 / 50 = 2（真實風險，而非 pnl/100 = 1）
+        dto!.Pnl.Should().Be(100m);
+        dto.RMultiple.Should().Be(2m);
+        repository.Inserted!.StopLoss.Should().Be(95m);
+    }
+
+    [Fact]
     public async Task UpdateTradeAsync_ReturnsNull_WhenNotFound()
     {
         var repository = new CapturingTradeRepository(newId: 1) { ExistingById = null };

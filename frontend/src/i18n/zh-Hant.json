@@ -220,6 +220,7 @@
     "exit": "出場價",
     "qty": "數量",
     "date": "日期",
+    "stopLoss": "停損價（選填）",
     "tag": "標籤",
     "selectSymbol": "選擇商品",
     "selectTag": "選擇標籤",

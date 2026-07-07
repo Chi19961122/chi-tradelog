@@ -30,6 +30,7 @@ export function AddEditTradeModal({ open, onClose, editing }: Props) {
   const [exit, setExit] = useState('');
   const [qty, setQty] = useState('');
   const [date, setDate] = useState('');
+  const [stopLoss, setStopLoss] = useState('');
   const [tag, setTag] = useState('');
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
@@ -42,6 +43,7 @@ export function AddEditTradeModal({ open, onClose, editing }: Props) {
       setExit(String(editing.exit));
       setQty(String(editing.qty));
       setDate(editing.date);
+      setStopLoss(editing.stopLoss != null ? String(editing.stopLoss) : '');
       setTag(editing.tags[0] ?? '');
     } else {
       setSym('');
@@ -50,6 +52,7 @@ export function AddEditTradeModal({ open, onClose, editing }: Props) {
       setExit('');
       setQty('');
       setDate(todayISO());
+      setStopLoss('');
       setTag('');
     }
   }, [open, editing]);
@@ -66,6 +69,7 @@ export function AddEditTradeModal({ open, onClose, editing }: Props) {
       exit: parseFloat(exit) || 0,
       qty: parseInt(qty, 10) || 0,
       date,
+      stopLoss: stopLoss !== '' ? parseFloat(stopLoss) : undefined,
       tags: tag ? [tag] : [],
     };
     if (editing) {
@@ -145,9 +149,19 @@ export function AddEditTradeModal({ open, onClose, editing }: Props) {
           </Field>
         </div>
 
-        <Field label={t('tradeForm.tag')}>
-          <Dropdown options={tagsList} value={tag} onChange={setTag} placeholder={t('tradeForm.selectTag')} />
-        </Field>
+        <div className={styles.row}>
+          <Field label={t('tradeForm.stopLoss')}>
+            <input
+              className={styles.input}
+              type="number"
+              value={stopLoss}
+              onChange={(e) => setStopLoss(e.target.value)}
+            />
+          </Field>
+          <Field label={t('tradeForm.tag')}>
+            <Dropdown options={tagsList} value={tag} onChange={setTag} placeholder={t('tradeForm.selectTag')} />
+          </Field>
+        </div>
       </div>
 
       <ConfirmDialog

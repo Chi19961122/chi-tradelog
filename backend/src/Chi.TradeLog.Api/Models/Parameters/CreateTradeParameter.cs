@@ -44,4 +44,9 @@ public class CreateTradeParameter
     /// 標籤清單（可空，預設 <c>manual</c>）。
     /// </summary>
     public string[] Tags { get; init; } = [];
+
+    /// <summary>
+    /// 停損價（選填；有值時 R 以真實風險計算）。
+    /// </summary>
+    public decimal? StopLoss { get; init; }
 }

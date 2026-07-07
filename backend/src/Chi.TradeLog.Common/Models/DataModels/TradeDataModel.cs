@@ -71,6 +71,11 @@ public class TradeDataModel
     public string[] Tags { get; set; } = [];
 
     /// <summary>
+    /// 停損價（選填；有值時 R 以真實風險計算）。
+    /// </summary>
+    public decimal? StopLoss { get; set; }
+
+    /// <summary>
     /// 手續費（來自券商報表；手動輸入的交易為 <c>null</c>）。
     /// </summary>
     public decimal? Charges { get; set; }

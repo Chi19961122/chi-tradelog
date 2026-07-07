@@ -27,6 +27,7 @@ public class TradeRepository : ITradeRepository
         traded_on       AS TradedOn,
         holding_minutes AS HoldingMinutes,
         tags            AS Tags,
+        stop_loss       AS StopLoss,
         charges         AS Charges,
         opened_at       AS OpenedAt,
         closed_at       AS ClosedAt
@@ -47,9 +48,9 @@ public class TradeRepository : ITradeRepository
 
     private const string InsertSql = """
         INSERT INTO trades
-            (user_id, account_id, symbol, side, entry_price, exit_price, quantity, pnl, r_multiple, traded_on, holding_minutes, tags, charges, opened_at, closed_at)
+            (user_id, account_id, symbol, side, entry_price, exit_price, quantity, pnl, r_multiple, traded_on, holding_minutes, tags, stop_loss, charges, opened_at, closed_at)
         VALUES
-            (@UserId, @AccountId, @Symbol, @Side, @EntryPrice, @ExitPrice, @Quantity, @Pnl, @RMultiple, @TradedOn, @HoldingMinutes, @Tags, @Charges, @OpenedAt, @ClosedAt)
+            (@UserId, @AccountId, @Symbol, @Side, @EntryPrice, @ExitPrice, @Quantity, @Pnl, @RMultiple, @TradedOn, @HoldingMinutes, @Tags, @StopLoss, @Charges, @OpenedAt, @ClosedAt)
         RETURNING id;
         """;
 
@@ -65,6 +66,7 @@ public class TradeRepository : ITradeRepository
             traded_on = @TradedOn,
             holding_minutes = @HoldingMinutes,
             tags = @Tags,
+            stop_loss = @StopLoss,
             charges = @Charges,
             opened_at = @OpenedAt,
             closed_at = @ClosedAt,
