@@ -8,9 +8,9 @@ import { useTradeMutations } from '@/features/trades/useTradeMutations';
 import { useSettingsController } from '@/features/settings/useSettingsController';
 import { useUiStore } from '@/store/uiStore';
 import { fmtMoney } from '@/lib/format';
-import { dayToISO, downloadTextFile, parseTradesCsv, sampleCsv, tradesToCsv } from '@/lib/csv';
+import { downloadTextFile, parseTradesCsv, sampleCsv, tradesToCsv } from '@/lib/csv';
 import { EMPTY_RANGE, isoInRange, type DateRange } from '@/lib/dateRange';
-import { currentMonthIdx } from '@/lib/today';
+import { fmtShortDate } from '@/lib/format';
 import { nextSort, searchTrades, sortTrades, type TradeSort, type TradeSortKey } from '@/lib/tradeSort';
 import { toMetricsLang } from '@/i18n';
 import type { Trade } from '@/types/trade';
@@ -53,7 +53,7 @@ export function TradeLog() {
       if (sideFilter === 'long' && tr.side !== 'Long') return false;
       if (sideFilter === 'short' && tr.side !== 'Short') return false;
       if (tagFilter && tr.tags.includes(tagFilter) === false) return false;
-      if (isoInRange(dayToISO(tr.day), dateRange) === false) return false;
+      if (isoInRange(tr.date, dateRange) === false) return false;
       return true;
     });
     return sortTrades(searchTrades(base, search), sort);
@@ -63,10 +63,7 @@ export function TradeLog() {
   const clampedPage = Math.min(page, pageCount - 1);
   const start = clampedPage * pageSize;
   const paged = filtered.slice(start, start + pageSize);
-  const monthIdx = currentMonthIdx();
-  const monthLabel = isZh
-    ? `${monthIdx + 1}月`
-    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][monthIdx];
+  const dateLang = isZh ? 'zh' : 'en';
 
   /** 點欄位標題切換排序。 */
   const toggleSort = (key: TradeSortKey) => {
@@ -226,7 +223,7 @@ export function TradeLog() {
         <table className={styles.table}>
           <thead>
             <tr>
-              <SortableTh label={t('tradelog.colDate')} sorted={sortMark('day')} onClick={() => toggleSort('day')} />
+              <SortableTh label={t('tradelog.colDate')} sorted={sortMark('date')} onClick={() => toggleSort('date')} />
               <SortableTh label={t('tradelog.colSymbol')} sorted={sortMark('sym')} onClick={() => toggleSort('sym')} />
               <th scope="col">{t('tradelog.colSide')}</th>
               <SortableTh label={t('tradelog.colEntry')} sorted={sortMark('entry')} onClick={() => toggleSort('entry')} num />
@@ -241,9 +238,7 @@ export function TradeLog() {
           <tbody>
             {paged.map((tr) => (
               <tr key={tr.id} className={styles.row} onClick={() => openJournal(tr)}>
-                <td className={styles.mono}>
-                  {monthLabel} {tr.day}
-                </td>
+                <td className={styles.mono}>{fmtShortDate(tr.date, dateLang)}</td>
                 <td className={styles.sym}>{tr.sym}</td>
                 <td>
                   <span

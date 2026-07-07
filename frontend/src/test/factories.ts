@@ -12,7 +12,7 @@ export function makeTrade(overrides: Partial<Trade> = {}): Trade {
     entry: 100,
     exit: 100,
     qty: 1,
-    day: 1,
+    date: '2026-07-01',
     tags: [],
     holdingMinutes: 30,
     ...overrides,

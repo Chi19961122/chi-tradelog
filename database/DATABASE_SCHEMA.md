@@ -76,8 +76,8 @@
 | `app_settings.user_id` | bigint | PK（`pk_app_settings`；原 `id` 欄已移除） | 每位使用者一列 |
 | `app_settings.initial_capital` | numeric(18,2) | NOT NULL | 初始資金（無列時後端以 10000 為預設） |
 
-### journal_entries（Migration 0005）
-以（`account_id`, `symbol`, `day`）為唯一鍵；無 seed（前端在無資料時以確定性演算法產生預設情緒/檢討）。
+### journal_entries（Migration 0005；0010 改完整日期）
+以（`user_id`, `account_id`, `symbol`, `entry_date`）為唯一鍵；無 seed（前端在無資料時以確定性演算法產生預設情緒/檢討）。
 
 | 欄位 | 型別 | 約束 | 說明 |
 | --- | --- | --- | --- |
@@ -85,13 +85,13 @@
 | `user_id` | bigint | NOT NULL, FK → users.id (CASCADE) | 資料所屬使用者（Migration 0008） |
 | `account_id` | varchar(64) | NOT NULL | 所屬帳戶 |
 | `symbol` | varchar(32) | NOT NULL | 商品代號 |
-| `day` | integer | NOT NULL | 當月第幾天 |
+| `entry_date` | date | NOT NULL | 日記日期（Migration 0010 取代原 `day` int；既有資料以 2026-07 回填） |
 | `notes` | text | NOT NULL, default `''` | 筆記 HTML（含貼上截圖的 data URL） |
 | `emotions` | text[] | NOT NULL, default `{}` | 情緒標籤 |
 | `mistakes` | jsonb | NOT NULL, default `[]` | 錯誤檢討清單 `[{label,checked}]` |
 | `updated_at` | timestamptz | NOT NULL, default now() | 更新時間 |
 
-唯一鍵：`uq_journal_entry` (user_id, account_id, symbol, day)（Migration 0008 起含 user_id）
+唯一鍵：`uq_journal_entry` (user_id, account_id, symbol, entry_date)
 
 ### users（Migration 0006/0007）
 由 `Migration0006_CreateUsers` 建立並植入示範使用者（`alex@chitradelog.com` / `demo1234`，BCrypt 雜湊）；`Migration0007_AddUserIsAdmin` 加入 `is_admin` 並將示範使用者設為管理員。

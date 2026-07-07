@@ -17,9 +17,12 @@ public class ApiMappingProfile : Profile
     public ApiMappingProfile()
     {
         CreateMap<TradeQueryParameter, TradeQueryInfo>();
-        CreateMap<CreateTradeParameter, SaveTradeInfo>();
-        CreateMap<UpdateTradeParameter, SaveTradeInfo>();
-        CreateMap<ImportTradeRow, SaveTradeInfo>();
+        CreateMap<CreateTradeParameter, SaveTradeInfo>()
+            .ForMember(dest => dest.TradedOn, opt => opt.MapFrom(src => src.Date));
+        CreateMap<UpdateTradeParameter, SaveTradeInfo>()
+            .ForMember(dest => dest.TradedOn, opt => opt.MapFrom(src => src.Date));
+        CreateMap<ImportTradeRow, SaveTradeInfo>()
+            .ForMember(dest => dest.TradedOn, opt => opt.MapFrom(src => src.Date));
 
         CreateMap<TradeDto, TradeViewModel>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
@@ -28,7 +31,7 @@ public class ApiMappingProfile : Profile
             .ForMember(dest => dest.Entry, opt => opt.MapFrom(src => src.EntryPrice))
             .ForMember(dest => dest.Exit, opt => opt.MapFrom(src => src.ExitPrice))
             .ForMember(dest => dest.Qty, opt => opt.MapFrom(src => src.Quantity))
-            .ForMember(dest => dest.Day, opt => opt.MapFrom(src => src.TradedOn.Day));
+            .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.TradedOn));
 
         // 設定：Parameter → InfoModel、Dto → ViewModel
         CreateMap<CreatePlatformParameter, CreatePlatformInfo>();

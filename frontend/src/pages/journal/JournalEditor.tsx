@@ -9,8 +9,7 @@ import {
   journalKey,
   type MistakeItem,
 } from '@/lib/journal';
-import { fmtMoney } from '@/lib/format';
-import { currentMonthIdx, currentYear } from '@/lib/today';
+import { fmtFullDate, fmtMoney } from '@/lib/format';
 import { toMetricsLang } from '@/i18n';
 import type { Trade } from '@/types/trade';
 import styles from './JournalEditor.module.css';
@@ -35,10 +34,10 @@ export function JournalEditor({ trade, variant = 'modal' }: Props) {
 
   const accountId = trade.accountId;
   const symbol = trade.sym;
-  const day = trade.day;
-  const key = journalKey(accountId, symbol, day);
+  const date = trade.date;
+  const key = journalKey(accountId, symbol, date);
 
-  const { data: stored, isFetched } = useJournal(accountId, symbol, day, true);
+  const { data: stored, isFetched } = useJournal(accountId, symbol, date, true);
   const mutation = useJournalMutation();
 
   const [emotions, setEmotions] = useState<string[]>([]);
@@ -76,7 +75,7 @@ export function JournalEditor({ trade, variant = 'modal' }: Props) {
   const saveEntry = () => {
     saveTimerRef.current = null;
     dirtyRef.current = false;
-    mutation.mutate({ accountId, symbol, day, entry: { notes, emotions, mistakes } });
+    mutation.mutate({ accountId, symbol, date, entry: { notes, emotions, mistakes } });
     setSavedStatus('saved');
   };
 
@@ -111,10 +110,6 @@ export function JournalEditor({ trade, variant = 'modal' }: Props) {
     [],
   );
 
-  const monthIdx = currentMonthIdx();
-  const monthLabel = lang === 'zh'
-    ? `${monthIdx + 1}月`
-    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][monthIdx];
   const sideLabel = trade.side === 'Long' ? t('side.long') : t('side.short');
 
   const addEmotion = () => {
@@ -187,7 +182,7 @@ export function JournalEditor({ trade, variant = 'modal' }: Props) {
       <div className={styles.summary}>
         <div>
           <div className={styles.summaryDate}>
-            {monthLabel} {trade.day}, {currentYear()}
+            {fmtFullDate(trade.date, lang)}
           </div>
           <div className={styles.summaryMeta}>
             {trade.sym} · {sideLabel}

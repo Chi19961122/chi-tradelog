@@ -8,7 +8,7 @@ import { apiFetch } from '@/lib/apiClient';
 export interface SaveJournalVars {
   accountId: string;
   symbol: string;
-  day: number;
+  date: string;
   entry: JournalEntry;
 }
 
@@ -19,7 +19,7 @@ async function saveToApi(vars: SaveJournalVars): Promise<void> {
     body: JSON.stringify({
       accountId: vars.accountId,
       symbol: vars.symbol,
-      day: vars.day,
+      date: vars.date,
       notes: vars.entry.notes,
       emotions: vars.entry.emotions,
       mistakes: vars.entry.mistakes,
@@ -40,13 +40,13 @@ export function useJournalMutation() {
       if (API_BASE_URL) {
         await saveToApi(vars);
       } else {
-        mockJournalStore.save(journalKey(vars.accountId, vars.symbol, vars.day), vars.entry);
+        mockJournalStore.save(journalKey(vars.accountId, vars.symbol, vars.date), vars.entry);
       }
       return vars;
     },
     onSuccess: (vars) => {
       queryClient.setQueryData(
-        ['journal', journalKey(vars.accountId, vars.symbol, vars.day)],
+        ['journal', journalKey(vars.accountId, vars.symbol, vars.date)],
         vars.entry,
       );
     },

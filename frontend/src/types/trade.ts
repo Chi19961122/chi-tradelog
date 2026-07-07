@@ -13,8 +13,8 @@ export interface Trade {
   entry: number;
   exit: number;
   qty: number;
-  /** 當月第幾天（1–31，以執行期的本月為基準） */
-  day: number;
+  /** 交易日期（ISO <c>yyyy-MM-dd</c>） */
+  date: string;
   tags: string[];
   /** 持倉分鐘數 */
   holdingMinutes: number;

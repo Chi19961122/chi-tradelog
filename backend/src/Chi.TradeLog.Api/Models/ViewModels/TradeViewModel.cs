@@ -51,9 +51,9 @@ public class TradeViewModel
     public int Qty { get; init; }
 
     /// <summary>
-    /// 當月第幾天（1–31）。
+    /// 交易日期（ISO <c>yyyy-MM-dd</c>）。
     /// </summary>
-    public int Day { get; init; }
+    public DateOnly Date { get; init; }
 
     /// <summary>
     /// 標籤清單。

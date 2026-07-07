@@ -31,9 +31,9 @@ public class UpdateTradeParameter
     public int Qty { get; init; }
 
     /// <summary>
-    /// 當月第幾天（1–31）。
+    /// 交易日期。
     /// </summary>
-    public int Day { get; init; }
+    public DateOnly Date { get; init; }
 
     /// <summary>
     /// 標籤清單。

@@ -1,17 +1,8 @@
 import type { Trade } from '@/types/trade';
 import type { TradeFormInput } from './tradeForm';
-import { currentMonthIdx, currentYear } from './today';
+import { toISODate, today } from './today';
 
 const HEADER = ['Date', 'Symbol', 'Side', 'Entry', 'Exit', 'Qty', 'PnL', 'R', 'Tags'];
-
-function pad2(n: number): string {
-  return String(n).padStart(2, '0');
-}
-
-/** day（本月第幾天）→ ISO 日期字串（以執行期的本月為基準）。 */
-export function dayToISO(day: number): string {
-  return `${currentYear()}-${pad2(currentMonthIdx() + 1)}-${pad2(day)}`;
-}
 
 /** CSV 欄位跳脫。 */
 function esc(value: string | number): string {
@@ -22,7 +13,7 @@ function esc(value: string | number): string {
 /** 將交易清單轉為 CSV 文字。 */
 export function tradesToCsv(trades: Trade[]): string {
   const rows = trades.map((tr) => [
-    dayToISO(tr.day),
+    tr.date,
     tr.sym,
     tr.side,
     tr.entry.toFixed(2),
@@ -37,9 +28,11 @@ export function tradesToCsv(trades: Trade[]): string {
 
 /** 範例 CSV（供「下載範例」；日期以執行期的本月為準）。 */
 export function sampleCsv(): string {
+  const now = today();
+  const iso = (day: number) => toISODate(new Date(now.getFullYear(), now.getMonth(), day));
   const sample = [
-    [dayToISO(5), 'AAPL', 'Long', '210.50', '215.80', '50', '265.00', '2.7', 'breakout'],
-    [dayToISO(8), 'TSLA', 'Short', '260.00', '252.30', '30', '231.00', '1.5', 'reversal'],
+    [iso(5), 'AAPL', 'Long', '210.50', '215.80', '50', '265.00', '2.7', 'breakout'],
+    [iso(8), 'TSLA', 'Short', '260.00', '252.30', '30', '231.00', '1.5', 'reversal'],
   ];
   return [HEADER, ...sample].map((r) => r.join(',')).join('\n');
 }
@@ -77,7 +70,7 @@ function parseLine(line: string): string[] {
 
 /**
  * 解析 CSV 文字為新增交易輸入。損益/R 由後端於建立時重新計算。
- * 日期取 <c>-DD</c> 作為 day；tags 以 <c>;</c> 分隔。
+ * 日期取完整 ISO 日期（<c>yyyy-MM-dd</c>）；tags 以 <c>;</c> 分隔。
  */
 export function parseTradesCsv(text: string): TradeFormInput[] {
   const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
@@ -87,8 +80,8 @@ export function parseTradesCsv(text: string): TradeFormInput[] {
     const cols = parseLine(line);
     if (cols.length < 8) continue;
     const [dateStr, sym, side, entryStr, exitStr, qtyStr, , , tagsStr] = cols;
-    const dayMatch = /-(\d{2})$/.exec((dateStr ?? '').trim());
-    const day = dayMatch ? parseInt(dayMatch[1], 10) : 1;
+    const date = (dateStr ?? '').trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date) === false) continue; // 日期格式不符則跳過該列
     const tags = (tagsStr ?? '')
       .split(';')
       .map((x) => x.trim())
@@ -99,7 +92,7 @@ export function parseTradesCsv(text: string): TradeFormInput[] {
       entry: parseFloat(entryStr) || 0,
       exit: parseFloat(exitStr) || 0,
       qty: parseInt(qtyStr, 10) || 1,
-      day: Math.max(1, Math.min(31, day)),
+      date,
       tags: tags.length ? tags : ['manual'],
     });
   }

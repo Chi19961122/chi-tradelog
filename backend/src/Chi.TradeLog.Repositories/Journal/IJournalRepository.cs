@@ -11,7 +11,7 @@ public interface IJournalRepository
     /// 依使用者/帳戶/商品/日期取得日記；找不到時回傳 <c>null</c>。
     /// </summary>
     Task<JournalEntryDataModel?> GetAsync(
-        long userId, string accountId, string symbol, int day, CancellationToken cancellationToken = default);
+        long userId, string accountId, string symbol, DateOnly date, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 新增或更新日記（以使用者/帳戶/商品/日期為唯一鍵 upsert）。

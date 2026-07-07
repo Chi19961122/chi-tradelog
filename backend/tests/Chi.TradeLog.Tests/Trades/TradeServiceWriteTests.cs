@@ -41,7 +41,7 @@ public class TradeServiceWriteTests
             Entry = 100m,
             Exit = 110m,
             Qty = 20,
-            Day = 15,
+            TradedOn = new DateOnly(2026, 7, 15),
             Tags = [],
         };
 
@@ -53,9 +53,8 @@ public class TradeServiceWriteTests
         dto.Symbol.Should().Be("AAPL");
         dto.Pnl.Should().Be(200m);
         dto.RMultiple.Should().Be(2m);
-        // 交易日期以執行當下的年月為基準。
-        var now = DateTime.UtcNow;
-        dto.TradedOn.Should().Be(new DateOnly(now.Year, now.Month, 15));
+        // 交易日期直接採用輸入的完整日期。
+        dto.TradedOn.Should().Be(new DateOnly(2026, 7, 15));
         dto.Tags.Should().ContainSingle().Which.Should().Be("manual");
         repository.Inserted!.AccountId.Should().Be("a1");
         repository.Inserted.UserId.Should().Be(UserId);
@@ -75,7 +74,7 @@ public class TradeServiceWriteTests
             Entry = 100m,
             Exit = 120m,
             Qty = 10,
-            Day = 3,
+            TradedOn = new DateOnly(2026, 7, 3),
             Tags = ["news"],
         };
 
@@ -103,7 +102,7 @@ public class TradeServiceWriteTests
             Entry = 1m,
             Exit = 2m,
             Qty = 1,
-            Day = 1,
+            TradedOn = new DateOnly(2026, 7, 1),
         });
 
         dto.Should().BeNull();
@@ -118,7 +117,7 @@ public class TradeServiceWriteTests
 
         var result = await service.UpdateTradeAsync(
             404,
-            new SaveTradeInfo { UserId = UserId, Sym = "AAPL", Side = "Long", Entry = 1m, Exit = 2m, Qty = 1, Day = 1 });
+            new SaveTradeInfo { UserId = UserId, Sym = "AAPL", Side = "Long", Entry = 1m, Exit = 2m, Qty = 1, TradedOn = new DateOnly(2026, 7, 1) });
 
         result.Should().BeNull();
     }
@@ -130,8 +129,8 @@ public class TradeServiceWriteTests
         var service = CreateService(repository);
         var infos = new[]
         {
-            new SaveTradeInfo { Sym = "aapl", Side = "Long", Entry = 100m, Exit = 110m, Qty = 10, Day = 5, Tags = ["breakout"] },
-            new SaveTradeInfo { Sym = "tsla", Side = "Short", Entry = 200m, Exit = 190m, Qty = 5, Day = 8, Tags = [] },
+            new SaveTradeInfo { Sym = "aapl", Side = "Long", Entry = 100m, Exit = 110m, Qty = 10, TradedOn = new DateOnly(2026, 7, 5), Tags = ["breakout"] },
+            new SaveTradeInfo { Sym = "tsla", Side = "Short", Entry = 200m, Exit = 190m, Qty = 5, TradedOn = new DateOnly(2026, 7, 8), Tags = [] },
         };
 
         var imported = await service.ImportTradesAsync(UserId, "a1", infos);
@@ -155,7 +154,7 @@ public class TradeServiceWriteTests
             // 期貨（YM 有合約乘數）：pnl 由券商報表帶入，不可用價差重算。
             new SaveTradeInfo
             {
-                Sym = "YM", Side = "Short", Entry = 53287m, Exit = 53214m, Qty = 2, Day = 3,
+                Sym = "YM", Side = "Short", Entry = 53287m, Exit = 53214m, Qty = 2, TradedOn = new DateOnly(2026, 7, 3),
                 Pnl = 723m, Charges = 7m, OpenedAt = opened, ClosedAt = closed, Tags = [],
             },
         };
@@ -178,7 +177,7 @@ public class TradeServiceWriteTests
         var service = CreateService(repository);
         var infos = new[]
         {
-            new SaveTradeInfo { Sym = "AAPL", Side = "Long", Entry = 100m, Exit = 110m, Qty = 10, Day = 5, Tags = [] },
+            new SaveTradeInfo { Sym = "AAPL", Side = "Long", Entry = 100m, Exit = 110m, Qty = 10, TradedOn = new DateOnly(2026, 7, 5), Tags = [] },
         };
 
         await service.ImportTradesAsync(UserId, "a1", infos);
@@ -198,7 +197,7 @@ public class TradeServiceWriteTests
         var imported = await service.ImportTradesAsync(
             UserId,
             "someone-elses-account",
-            [new SaveTradeInfo { Sym = "AAPL", Side = "Long", Entry = 1m, Exit = 2m, Qty = 1, Day = 1 }]);
+            [new SaveTradeInfo { Sym = "AAPL", Side = "Long", Entry = 1m, Exit = 2m, Qty = 1, TradedOn = new DateOnly(2026, 7, 1) }]);
 
         imported.Should().BeNull();
         repository.InsertedMany.Should().BeNull(); // 未寫入任何資料

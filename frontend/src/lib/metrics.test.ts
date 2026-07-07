@@ -14,9 +14,9 @@ beforeAll(() => setTodayForTesting(new Date(2026, 6, 4)));
 afterAll(() => setTodayForTesting(null));
 
 const trades = [
-  makeTrade({ day: 1, pnl: 100, r: 1 }),
-  makeTrade({ day: 2, pnl: -50, r: -0.5 }),
-  makeTrade({ day: 3, pnl: 200, r: 2 }),
+  makeTrade({ date: '2026-07-01', pnl: 100, r: 1 }),
+  makeTrade({ date: '2026-07-02', pnl: -50, r: -0.5 }),
+  makeTrade({ date: '2026-07-03', pnl: 200, r: 2 }),
 ];
 
 describe('computeKpis', () => {
@@ -48,7 +48,7 @@ describe('computeMaxDrawdown', () => {
   });
 
   it('is 0 when equity only rises', () => {
-    expect(computeMaxDrawdown([makeTrade({ day: 1, pnl: 10 }), makeTrade({ day: 2, pnl: 20 })])).toBe(0);
+    expect(computeMaxDrawdown([makeTrade({ date: '2026-07-01', pnl: 10 }), makeTrade({ date: '2026-07-02', pnl: 20 })])).toBe(0);
   });
 });
 
@@ -92,9 +92,9 @@ describe('buildCalendar', () => {
 
   it('aggregates real trades by day for the current month', () => {
     const cal = buildCalendar(0, [
-      makeTrade({ day: 3, pnl: 100 }),
-      makeTrade({ day: 3, pnl: -30 }),
-      makeTrade({ day: 10, pnl: 50 }),
+      makeTrade({ date: '2026-07-03', pnl: 100 }),
+      makeTrade({ date: '2026-07-03', pnl: -30 }),
+      makeTrade({ date: '2026-07-10', pnl: 50 }),
     ]);
     const day3 = cal.cells.find((c) => c.day === 3)!;
     expect(day3.hasData).toBe(true);
@@ -107,9 +107,14 @@ describe('buildCalendar', () => {
     expect(day4.pnl).toBeNull();
   });
 
-  it('shows other months as empty (data model only covers the current month)', () => {
-    const cal = buildCalendar(-1, trades);
-    expect(cal.monthIdx).toBe(5); // June
-    expect(cal.cells.every((c) => c.hasData === false)).toBe(true);
+  it('aggregates each month independently (cross-month works)', () => {
+    const mixed = [...trades, makeTrade({ date: '2026-06-15', pnl: 500 })];
+    const june = buildCalendar(-1, mixed);
+    expect(june.monthIdx).toBe(5); // June
+    const june15 = june.cells.find((c) => c.day === 15)!;
+    expect(june15.hasData).toBe(true);
+    expect(june15.pnl).toBe(500);
+    // 7 月的交易不出現在 6 月月曆
+    expect(june.cells.filter((c) => c.hasData)).toHaveLength(1);
   });
 });

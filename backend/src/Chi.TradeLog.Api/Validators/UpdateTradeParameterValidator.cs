@@ -28,7 +28,7 @@ public class UpdateTradeParameterValidator : AbstractValidator<UpdateTradeParame
         RuleFor(parameter => parameter.Qty)
             .GreaterThan(0).WithMessage("數量須大於 0。");
 
-        RuleFor(parameter => parameter.Day)
-            .InclusiveBetween(1, 31).WithMessage("日期須介於 1 到 31。");
+        RuleFor(parameter => parameter.Date)
+            .Must(date => date != default).WithMessage("交易日期為必填。");
     }
 }

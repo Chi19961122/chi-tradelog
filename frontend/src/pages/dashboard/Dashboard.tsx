@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useTrades } from '@/features/trades/useTrades';
 import { useKpiCards } from '@/features/kpi/useKpiCards';
 import { useUiStore } from '@/store/uiStore';
-import { currentMonthIdx, currentYear } from '@/lib/today';
+import { currentMonthIdx, currentYear, toISODate } from '@/lib/today';
 import { toMetricsLang } from '@/i18n';
 import { buildCalendar, computeKpis, type CalendarCell, type EquityRange } from '@/lib/metrics';
 import { CustomizePopover } from './CustomizePopover';
@@ -29,9 +29,9 @@ export function Dashboard() {
   const monthOffset = useUiStore((s) => s.monthOffset);
 
   const [equityRange, setEquityRange] = useState<EquityRange>('all');
-  const [dayDetail, setDayDetail] = useState<{ open: boolean; day: number | null; cell: CalendarCell | null }>({
+  const [dayDetail, setDayDetail] = useState<{ open: boolean; date: string | null; cell: CalendarCell | null }>({
     open: false,
-    day: null,
+    date: null,
     cell: null,
   });
   const [journal, setJournal] = useState<{ open: boolean; trade: Trade | null }>({ open: false, trade: null });
@@ -87,7 +87,9 @@ export function Dashboard() {
       <CalendarBlock
         weeks={calendar.weeks}
         cellMinHeight={96}
-        onDayClick={(day, cell) => setDayDetail({ open: true, day, cell })}
+        onDayClick={(day, cell) =>
+          setDayDetail({ open: true, date: toISODate(new Date(calendar.year, calendar.monthIdx, day)), cell })
+        }
       />
 
       {/* Recent trades */}
@@ -96,7 +98,7 @@ export function Dashboard() {
       <DayDetailModal
         open={dayDetail.open}
         onClose={() => setDayDetail((d) => ({ ...d, open: false }))}
-        day={dayDetail.day}
+        date={dayDetail.date}
         cell={dayDetail.cell}
         monthLabel={monthLabel}
         trades={trades}

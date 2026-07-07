@@ -1,5 +1,6 @@
 import type { Trade, TradeSide } from '@/types/trade';
 import { seededRand } from './seededTrades';
+import { todayISO } from './today';
 
 /** Add/Edit Trade 表單的輸入（選填欄位供券商報表匯入帶入原始值）。 */
 export interface TradeFormInput {
@@ -8,7 +9,8 @@ export interface TradeFormInput {
   entry: number;
   exit: number;
   qty: number;
-  day: number;
+  /** 交易日期（ISO <c>yyyy-MM-dd</c>）。 */
+  date: string;
   tags: string[];
   /** 明確帶入的淨損益（期貨等有合約乘數的商品；未帶入時以價差計算）。 */
   pnl?: number;
@@ -26,7 +28,7 @@ export const EMPTY_TRADE_FORM: TradeFormInput = {
   entry: 0,
   exit: 0,
   qty: 0,
-  day: 1,
+  date: '',
   tags: [],
 };
 
@@ -39,7 +41,7 @@ export function computeTradeFields(input: TradeFormInput): {
   r: number;
   holdingMinutes: number;
   tags: string[];
-  day: number;
+  date: string;
   sym: string;
   side: TradeSide;
 } {
@@ -48,13 +50,13 @@ export function computeTradeFields(input: TradeFormInput): {
   // 淨損益優先採用明確帶入的值（與後端 TradeService 一致）。
   const pnl = input.pnl ?? (side === 'Long' ? input.exit - input.entry : input.entry - input.exit) * input.qty;
   const r = Math.round((pnl / 100) * 100) / 100;
-  const day = Math.max(1, Math.min(31, input.day || 1));
+  const date = input.date || todayISO();
   // 持倉分鐘數優先由進／出場時間戳推導。
   const holdingMinutes = input.openedAt && input.closedAt
     ? Math.max(0, Math.round((new Date(input.closedAt).getTime() - new Date(input.openedAt).getTime()) / 60000))
     : 30 + Math.round(seededRand((input.entry + input.exit + input.qty) * 7.7) * 400);
   const tags = input.tags.map((tag) => tag.trim()).filter(Boolean);
-  return { pnl: Math.round(pnl * 100) / 100, r, holdingMinutes, tags: tags.length ? tags : ['manual'], day, sym, side };
+  return { pnl: Math.round(pnl * 100) / 100, r, holdingMinutes, tags: tags.length ? tags : ['manual'], date, sym, side };
 }
 
 /** 由表單輸入建立一筆新的 Trade（mock 模式用）。 */
@@ -68,7 +70,7 @@ export function buildMockTrade(accountId: string, input: TradeFormInput, id: str
     entry: input.entry,
     exit: input.exit,
     qty: input.qty,
-    day: c.day,
+    date: c.date,
     r: c.r,
     pnl: c.pnl,
     tags: c.tags,

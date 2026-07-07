@@ -10,30 +10,32 @@ import styles from './DayDetailModal.module.css';
 interface Props {
   open: boolean;
   onClose: () => void;
-  day: number | null;
+  /** 當日完整日期（ISO <c>yyyy-MM-dd</c>）。 */
+  date: string | null;
   cell: CalendarCell | null;
   monthLabel: string;
-  /** 真實交易清單（依 day 過濾出當日交易）。 */
+  /** 真實交易清單（依日期過濾出當日交易）。 */
   trades: Trade[];
   /** 點擊單筆交易列時觸發（跳到該筆日記）。 */
   onTradeClick?: (trade: Trade) => void;
 }
 
-export function DayDetailModal({ open, onClose, day, cell, monthLabel, trades, onTradeClick }: Props) {
+export function DayDetailModal({ open, onClose, date, cell, monthLabel, trades, onTradeClick }: Props) {
   const { t } = useTranslation();
 
   // 由真實交易過濾出當日明細。
   const dayTrades = useMemo(
-    () => (day != null ? trades.filter((tr) => tr.day === day) : []),
-    [day, trades],
+    () => (date ? trades.filter((tr) => tr.date === date) : []),
+    [date, trades],
   );
 
-  if (!cell || day == null) return null;
+  if (!cell || !date) return null;
 
+  const dayNum = Number(date.slice(8, 10));
   const winRate = cell.tradesCount ? (cell.wins / cell.tradesCount) * 100 : 0;
 
   return (
-    <Modal open={open} onClose={onClose} title={`${monthLabel} ${day}`} subtitle={t('dayDetail.hint')} width={480}>
+    <Modal open={open} onClose={onClose} title={`${monthLabel} ${dayNum}`} subtitle={t('dayDetail.hint')} width={480}>
       <div className={styles.summary}>
         <DonutRing fraction={winRate / 100} size={56} />
         <div className={styles.summaryStats}>

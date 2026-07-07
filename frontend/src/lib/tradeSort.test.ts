@@ -3,9 +3,9 @@ import { makeTrade } from '@/test/factories';
 import { nextSort, searchTrades, sortTrades } from './tradeSort';
 
 const trades = [
-  makeTrade({ id: 'a', sym: 'TSLA', day: 3, pnl: -50, tags: ['reversal'] }),
-  makeTrade({ id: 'b', sym: 'AAPL', day: 1, pnl: 100, tags: ['breakout'] }),
-  makeTrade({ id: 'c', sym: 'NVDA', day: 2, pnl: 200, tags: ['trend', 'news'] }),
+  makeTrade({ id: 'a', sym: 'TSLA', date: '2026-07-03', pnl: -50, tags: ['reversal'] }),
+  makeTrade({ id: 'b', sym: 'AAPL', date: '2026-07-01', pnl: 100, tags: ['breakout'] }),
+  makeTrade({ id: 'c', sym: 'NVDA', date: '2026-07-02', pnl: 200, tags: ['trend', 'news'] }),
 ];
 
 describe('sortTrades', () => {
@@ -21,7 +21,7 @@ describe('sortTrades', () => {
   it('returns original order when sort is null and does not mutate', () => {
     const result = sortTrades(trades, null);
     expect(result.map((t) => t.id)).toEqual(['a', 'b', 'c']);
-    sortTrades(trades, { key: 'day', dir: 'desc' });
+    sortTrades(trades, { key: 'date', dir: 'desc' });
     expect(trades[0].id).toBe('a'); // 原陣列未被改動
   });
 });

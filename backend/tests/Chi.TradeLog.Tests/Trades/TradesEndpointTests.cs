@@ -39,7 +39,7 @@ public class TradesEndpointTests : IClassFixture<TradesEndpointTests.TestApiFact
         var trade = trades![0];
         trade.Sym.Should().Be("NVDA");
         trade.Side.Should().Be("Short");
-        trade.Day.Should().Be(9);
+        trade.Date.Should().Be("2026-07-09");
         trade.Tags.Should().ContainSingle().Which.Should().Be("trend");
     }
 
@@ -66,7 +66,7 @@ public class TradesEndpointTests : IClassFixture<TradesEndpointTests.TestApiFact
             entry = 100m,
             exit = 110m,
             qty = 10,
-            day = 8,
+            date = "2026-07-08",
             tags = new[] { "breakout" },
         });
 
@@ -74,7 +74,7 @@ public class TradesEndpointTests : IClassFixture<TradesEndpointTests.TestApiFact
         var trade = await response.Content.ReadFromJsonAsync<TradeViewModelResponse>();
         trade!.Sym.Should().Be("AAPL");
         trade.Pnl.Should().Be(100m); // (110 - 100) * 10
-        trade.Day.Should().Be(8);
+        trade.Date.Should().Be("2026-07-08");
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public class TradesEndpointTests : IClassFixture<TradesEndpointTests.TestApiFact
             entry = 100m,
             exit = 110m,
             qty = 0, // 無效
-            day = 8,
+            date = "2026-07-08",
         });
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -211,7 +211,7 @@ public class TradesEndpointTests : IClassFixture<TradesEndpointTests.TestApiFact
         public decimal Entry { get; set; }
         public decimal Exit { get; set; }
         public int Qty { get; set; }
-        public int Day { get; set; }
+        public string Date { get; set; } = string.Empty;
         public List<string> Tags { get; set; } = [];
         public int HoldingMinutes { get; set; }
     }

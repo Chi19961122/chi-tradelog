@@ -18,9 +18,9 @@ public class SaveJournalParameter
     public string Symbol { get; init; } = string.Empty;
 
     /// <summary>
-    /// 當月第幾天（1–31）。
+    /// 日記日期。
     /// </summary>
-    public int Day { get; init; }
+    public DateOnly Date { get; init; }
 
     /// <summary>
     /// 筆記（HTML）。

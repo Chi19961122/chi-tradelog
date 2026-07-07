@@ -1,4 +1,5 @@
 import type { TradeFormInput } from './tradeForm';
+import { toISODate } from './today';
 
 /**
  * 「貼上智慧匯入」解析器：把券商報表複製出來的表格文字解析成新增交易輸入。
@@ -98,7 +99,7 @@ function parseRecord(lines: string[]): TradeFormInput | null {
     entry,
     exit,
     qty,
-    day: opened.getDate(),
+    date: toISODate(opened),
     tags: tags.length ? tags : ['manual'],
     pnl: Math.round(pnl * 100) / 100,
     charges: charges ?? undefined,

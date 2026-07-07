@@ -1,6 +1,6 @@
 import type { Trade } from '@/types/trade';
 import { fmtMoney } from './format';
-import { currentMonthIdx, currentYear } from './today';
+import { parseISODate } from './today';
 
 /* ------------------------------------------------------------------ */
 /* Win Rate by Weekday（真實：由交易日期推導星期）                      */
@@ -16,7 +16,7 @@ export function buildWeekdayWinRate(trades: Trade[]): WeekdayWinRate[] {
   const wins = Array<number>(7).fill(0);
   const total = Array<number>(7).fill(0);
   for (const tr of trades) {
-    const weekday = new Date(currentYear(), currentMonthIdx(), tr.day).getDay();
+    const weekday = parseISODate(tr.date).getDay();
     total[weekday] += 1;
     if (tr.pnl >= 0) wins[weekday] += 1;
   }
@@ -127,12 +127,20 @@ export interface MonthlyPerf {
 
 const MONTHS_EN_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-/** 每月績效：只呈現有真實資料的月份（目前為本月），不再合成歷史假月份。 */
+/** 每月績效：依交易的真實年月分組（僅呈現有資料的月份），由舊到新排序。 */
 export function buildMonthlyPerformance(trades: Trade[], lang: 'en' | 'zh'): MonthlyPerf[] {
-  const monthIdx = currentMonthIdx();
-  const label = lang === 'en' ? MONTHS_EN_SHORT[monthIdx] : `${monthIdx + 1}月`;
-  const currentPnl = trades.reduce((s, tr) => s + tr.pnl, 0);
-  return [{ label, pnl: Math.round(currentPnl) }];
+  const byMonth = new Map<string, number>(); // key: yyyy-MM
+  for (const tr of trades) {
+    const key = tr.date.slice(0, 7);
+    byMonth.set(key, (byMonth.get(key) ?? 0) + tr.pnl);
+  }
+  return [...byMonth.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, pnl]) => {
+      const monthIdx = Number(key.slice(5, 7)) - 1;
+      const label = lang === 'en' ? MONTHS_EN_SHORT[monthIdx] : `${monthIdx + 1}月`;
+      return { label, pnl: Math.round(pnl) };
+    });
 }
 
 /* ------------------------------------------------------------------ */

@@ -102,7 +102,7 @@ export function PasteImportModal({ open, onClose, onImport }: Props) {
               {parsed.map((row, i) =>
                 removed.has(i) ? null : (
                   <tr key={i}>
-                    <td className={styles.mono}>{row.day}</td>
+                    <td className={styles.mono}>{row.date}</td>
                     <td className={styles.sym}>{row.sym}</td>
                     <td>{row.side === 'Long' ? t('side.long') : t('side.short')}</td>
                     <td className={styles.mono}>{row.qty}</td>

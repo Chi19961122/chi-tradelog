@@ -18,7 +18,7 @@ public class ImportTradeRowValidator : AbstractValidator<ImportTradeRow>
         RuleFor(row => row.Entry).GreaterThan(0).WithMessage("進場價須大於 0。");
         RuleFor(row => row.Exit).GreaterThan(0).WithMessage("出場價須大於 0。");
         RuleFor(row => row.Qty).GreaterThan(0).WithMessage("數量須大於 0。");
-        RuleFor(row => row.Day).InclusiveBetween(1, 31).WithMessage("日期須介於 1 到 31。");
+        RuleFor(row => row.Date).Must(date => date != default).WithMessage("交易日期為必填。");
     }
 }
 

@@ -25,3 +25,21 @@ export function currentYear(): number {
 export function currentMonthIdx(): number {
   return today().getMonth();
 }
+
+/** Date → ISO 日期字串（yyyy-MM-dd，本地時區）。 */
+export function toISODate(date: Date): string {
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${m}-${d}`;
+}
+
+/** 今天的 ISO 日期字串。 */
+export function todayISO(): string {
+  return toISODate(today());
+}
+
+/** ISO 日期字串 → 本地 Date（避免 new Date('yyyy-MM-dd') 的 UTC 解讀時區偏移）。 */
+export function parseISODate(iso: string): Date {
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(y, (m || 1) - 1, d || 1);
+}

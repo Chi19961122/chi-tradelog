@@ -89,7 +89,7 @@ describe('parsePastedTrades（黃金案例）', () => {
     expect(rows).toHaveLength(5);
     expect(rows.map((r) => r.sym)).toEqual(['YM', 'MNQ', 'MNQ', 'YM', 'YM']);
     expect(rows.every((r) => r.side === 'Short')).toBe(true);
-    expect(rows.every((r) => r.day === 3)).toBe(true);
+    expect(rows.every((r) => r.date === '2026-07-03')).toBe(true);
     expect(rows.map((r) => r.qty)).toEqual([2, 5, 2, 1, 2]);
   });
 

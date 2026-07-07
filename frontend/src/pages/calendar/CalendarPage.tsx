@@ -8,6 +8,7 @@ import { buildCalendar, type CalendarCell } from '@/lib/metrics';
 import { ErrorState, LoadingState } from '@/components/QueryState/QueryState';
 import { useTrades } from '@/features/trades/useTrades';
 import { useUiStore } from '@/store/uiStore';
+import { toISODate } from '@/lib/today';
 import { toMetricsLang } from '@/i18n';
 import type { Trade } from '@/types/trade';
 import styles from './CalendarPage.module.css';
@@ -25,9 +26,9 @@ export function CalendarPage() {
   const activeAccountIds = useUiStore((s) => s.activeAccountIds);
   const { data: trades = [], isLoading, isError, refetch } = useTrades(activeAccountIds);
 
-  const [dayDetail, setDayDetail] = useState<{ open: boolean; day: number | null; cell: CalendarCell | null }>({
+  const [dayDetail, setDayDetail] = useState<{ open: boolean; date: string | null; cell: CalendarCell | null }>({
     open: false,
-    day: null,
+    date: null,
     cell: null,
   });
   const [journal, setJournal] = useState<{ open: boolean; trade: Trade | null }>({ open: false, trade: null });
@@ -66,13 +67,15 @@ export function CalendarPage() {
         subtitle={t('calendar.subtitle')}
         headerRight={monthNav}
         cellMinHeight={112}
-        onDayClick={(day, cell) => setDayDetail({ open: true, day, cell })}
+        onDayClick={(day, cell) =>
+          setDayDetail({ open: true, date: toISODate(new Date(calendar.year, calendar.monthIdx, day)), cell })
+        }
       />
 
       <DayDetailModal
         open={dayDetail.open}
         onClose={() => setDayDetail((d) => ({ ...d, open: false }))}
-        day={dayDetail.day}
+        date={dayDetail.date}
         cell={dayDetail.cell}
         monthLabel={shortMonth}
         trades={trades}

@@ -6,7 +6,7 @@ import { Dropdown } from '@/components/Dropdown/Dropdown';
 import { SegmentedControl } from '@/components/SegmentedControl/SegmentedControl';
 import { useUiStore } from '@/store/uiStore';
 import { useTradeMutations } from '@/features/trades/useTradeMutations';
-import { currentMonthIdx } from '@/lib/today';
+import { todayISO } from '@/lib/today';
 import type { Trade, TradeSide } from '@/types/trade';
 import styles from './AddEditTradeModal.module.css';
 
@@ -29,7 +29,7 @@ export function AddEditTradeModal({ open, onClose, editing }: Props) {
   const [entry, setEntry] = useState('');
   const [exit, setExit] = useState('');
   const [qty, setQty] = useState('');
-  const [day, setDay] = useState('');
+  const [date, setDate] = useState('');
   const [tag, setTag] = useState('');
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
@@ -41,7 +41,7 @@ export function AddEditTradeModal({ open, onClose, editing }: Props) {
       setEntry(String(editing.entry));
       setExit(String(editing.exit));
       setQty(String(editing.qty));
-      setDay(String(editing.day));
+      setDate(editing.date);
       setTag(editing.tags[0] ?? '');
     } else {
       setSym('');
@@ -49,13 +49,13 @@ export function AddEditTradeModal({ open, onClose, editing }: Props) {
       setEntry('');
       setExit('');
       setQty('');
-      setDay('');
+      setDate(todayISO());
       setTag('');
     }
   }, [open, editing]);
 
   const canSave =
-    sym.trim() !== '' && entry !== '' && exit !== '' && qty !== '' && Number(qty) > 0;
+    sym.trim() !== '' && entry !== '' && exit !== '' && qty !== '' && Number(qty) > 0 && date !== '';
 
   const handleSave = () => {
     if (!canSave) return;
@@ -65,7 +65,7 @@ export function AddEditTradeModal({ open, onClose, editing }: Props) {
       entry: parseFloat(entry) || 0,
       exit: parseFloat(exit) || 0,
       qty: parseInt(qty, 10) || 0,
-      day: parseInt(day, 10) || 1,
+      date,
       tags: tag ? [tag] : [],
     };
     if (editing) {
@@ -140,8 +140,8 @@ export function AddEditTradeModal({ open, onClose, editing }: Props) {
           <Field label={t('tradeForm.qty')}>
             <input className={styles.input} type="number" value={qty} onChange={(e) => setQty(e.target.value)} />
           </Field>
-          <Field label={t('tradeForm.day', { month: currentMonthIdx() + 1 })}>
-            <input className={styles.input} type="number" min={1} max={31} value={day} onChange={(e) => setDay(e.target.value)} />
+          <Field label={t('tradeForm.date')}>
+            <input className={styles.input} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </Field>
         </div>
 

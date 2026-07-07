@@ -49,7 +49,7 @@ public class JournalController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         var dto = await _journalService.GetJournalAsync(
-            CurrentUserId, parameter.AccountId, parameter.Symbol, parameter.Day, cancellationToken);
+            CurrentUserId, parameter.AccountId, parameter.Symbol, parameter.Date, cancellationToken);
         if (dto is null)
         {
             return NotFound();

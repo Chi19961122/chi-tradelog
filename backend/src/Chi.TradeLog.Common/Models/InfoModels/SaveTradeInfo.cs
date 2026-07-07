@@ -42,9 +42,9 @@ public class SaveTradeInfo
     public int Qty { get; set; }
 
     /// <summary>
-    /// 當月第幾天（1–31）。
+    /// 交易日期。
     /// </summary>
-    public int Day { get; set; }
+    public DateOnly TradedOn { get; set; }
 
     /// <summary>
     /// 標籤清單。

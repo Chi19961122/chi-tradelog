@@ -19,7 +19,7 @@ public class SaveJournalParameterValidator : AbstractValidator<SaveJournalParame
         RuleFor(parameter => parameter.Symbol)
             .NotEmpty().WithMessage("商品代號為必填。");
 
-        RuleFor(parameter => parameter.Day)
-            .InclusiveBetween(1, 31).WithMessage("日期須介於 1 到 31。");
+        RuleFor(parameter => parameter.Date)
+            .Must(date => date != default).WithMessage("日記日期為必填。");
     }
 }

@@ -1,4 +1,5 @@
 import type { Trade } from '@/types/trade';
+import { currentMonthIdx, currentYear, toISODate } from './today';
 
 /**
  * 確定性亂數與交易產生器 — 從設計原型（Trading Journal.dc.html）移植。
@@ -44,14 +45,16 @@ function buildTrades(seedOffset: number): Omit<Trade, 'accountId'>[] {
     const entry = 40 + seededRand(seed * 1.7) * 400;
     const exit = entry + (side === 'Long' ? pnl / 10 : -pnl / 10);
     const qty = 10 + Math.round(seededRand(seed * 4.4) * 90);
+    // 與後端 seed 一致：本月第 1–30 天（短月由 Date 自動進位無妨，僅 demo 用）。
     const day = 1 + Math.floor(seededRand(seed * 6.6) * 30);
+    const date = toISODate(new Date(currentYear(), currentMonthIdx(), day));
     const tags = [TAG_POOL[i % TAG_POOL.length]];
     const holdingMinutes = Math.round(
       3 + seededRand(seed * 11.3) * (seededRand(seed * 13.1) > 0.7 ? 600 : 90),
     );
-    trades.push({ id: String(i), sym, side, r, pnl, entry, exit, qty, day, tags, holdingMinutes });
+    trades.push({ id: String(i), sym, side, r, pnl, entry, exit, qty, date, tags, holdingMinutes });
   }
-  trades.sort((a, b) => b.day - a.day);
+  trades.sort((a, b) => b.date.localeCompare(a.date));
   return trades;
 }
 

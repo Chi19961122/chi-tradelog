@@ -13,9 +13,9 @@ export interface JournalEntry {
   mistakes: MistakeItem[];
 }
 
-/** 日記的唯一鍵：帳戶-商品-日期。 */
-export function journalKey(accountId: string, symbol: string, day: number): string {
-  return `${accountId}-${symbol}-${day}`;
+/** 日記的唯一鍵：帳戶-商品-完整日期（ISO）。 */
+export function journalKey(accountId: string, symbol: string, date: string): string {
+  return `${accountId}-${symbol}-${date}`;
 }
 
 const EMOTION_POOL_EN = ['Confident', 'Patient', 'Anxious', 'FOMO', 'Greedy', 'Calm', 'Hesitant', 'Excited'];

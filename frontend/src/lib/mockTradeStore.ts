@@ -19,8 +19,8 @@ function ensureAccount(accountId: string): Trade[] {
   return list;
 }
 
-function sortByDayDesc(trades: Trade[]): Trade[] {
-  return [...trades].sort((a, b) => b.day - a.day);
+function sortByDateDesc(trades: Trade[]): Trade[] {
+  return [...trades].sort((a, b) => b.date.localeCompare(a.date));
 }
 
 export const mockTradeStore = {
@@ -31,7 +31,7 @@ export const mockTradeStore = {
   create(accountId: string, input: TradeFormInput): Trade {
     const list = ensureAccount(accountId);
     const trade = buildMockTrade(accountId, input, `${accountId}#new${counter++}`);
-    storeByAccount.set(accountId, sortByDayDesc([trade, ...list]));
+    storeByAccount.set(accountId, sortByDateDesc([trade, ...list]));
     return trade;
   },
 
@@ -42,7 +42,7 @@ export const mockTradeStore = {
         const updated = buildMockTrade(accountId, input, id);
         storeByAccount.set(
           accountId,
-          sortByDayDesc(list.map((t) => (t.id === id ? updated : t))),
+          sortByDateDesc(list.map((t) => (t.id === id ? updated : t))),
         );
         return updated;
       }

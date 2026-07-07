@@ -218,7 +218,7 @@
     "entry": "進場價",
     "exit": "出場價",
     "qty": "數量",
-    "day": "日期（{{month}}月）",
+    "date": "日期",
     "tag": "標籤",
     "selectSymbol": "選擇商品",
     "selectTag": "選擇標籤",

@@ -16,7 +16,7 @@ public class JournalServiceTests
         var repository = new FakeJournalRepository { Stored = null };
         var service = new JournalService(repository);
 
-        var result = await service.GetJournalAsync(1, "a1", "AAPL", 5);
+        var result = await service.GetJournalAsync(1, "a1", "AAPL", new DateOnly(2026, 7, 5));
 
         result.Should().BeNull();
     }
@@ -30,7 +30,7 @@ public class JournalServiceTests
             {
                 AccountId = "a1",
                 Symbol = "AAPL",
-                Day = 5,
+                EntryDate = new DateOnly(2026, 7, 5),
                 Notes = "<b>note</b>",
                 Emotions = ["Calm"],
                 Mistakes = """[{"label":"Chased entry","checked":true}]""",
@@ -38,7 +38,7 @@ public class JournalServiceTests
         };
         var service = new JournalService(repository);
 
-        var result = await service.GetJournalAsync(1, "a1", "AAPL", 5);
+        var result = await service.GetJournalAsync(1, "a1", "AAPL", new DateOnly(2026, 7, 5));
 
         result.Should().NotBeNull();
         result!.Notes.Should().Be("<b>note</b>");
@@ -58,7 +58,7 @@ public class JournalServiceTests
             UserId = 1,
             AccountId = "a1",
             Symbol = "AAPL",
-            Day = 5,
+            Date = new DateOnly(2026, 7, 5),
             Notes = "n",
             Emotions = ["Confident"],
             Mistakes = [new Mistake { Label = "Oversized position", Checked = false }],
@@ -79,7 +79,7 @@ public class JournalServiceTests
         public JournalEntryDataModel? Upserted { get; private set; }
 
         public Task<JournalEntryDataModel?> GetAsync(
-            long userId, string accountId, string symbol, int day, CancellationToken cancellationToken = default)
+            long userId, string accountId, string symbol, DateOnly date, CancellationToken cancellationToken = default)
             => Task.FromResult(Stored);
 
         public Task UpsertAsync(JournalEntryDataModel entry, CancellationToken cancellationToken = default)

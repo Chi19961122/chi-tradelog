@@ -141,9 +141,6 @@ public class TradeService : ITradeService
         var symbol = info.Sym.Trim().ToUpperInvariant();
         var pnl = info.Pnl ?? (side == "Long" ? info.Exit - info.Entry : info.Entry - info.Exit) * info.Qty;
         var rMultiple = Math.Round(pnl / 100m, 2);
-        // day 對應「本月」第幾天（以執行當下的年月為基準，短月自動夾住）。
-        var now = DateTime.UtcNow;
-        var day = Math.Clamp(info.Day, 1, DateTime.DaysInMonth(now.Year, now.Month));
         var holdingMinutes = info.OpenedAt.HasValue && info.ClosedAt.HasValue
             ? Math.Max(0, (int)Math.Round((info.ClosedAt.Value - info.OpenedAt.Value).TotalMinutes))
             : 30 + (int)Math.Floor(
@@ -159,7 +156,7 @@ public class TradeService : ITradeService
             Quantity = info.Qty,
             Pnl = Math.Round(pnl, 2),
             RMultiple = rMultiple,
-            TradedOn = new DateOnly(now.Year, now.Month, day),
+            TradedOn = info.TradedOn,
             HoldingMinutes = holdingMinutes,
             Tags = tags.Length > 0 ? tags : ["manual"],
             Charges = info.Charges,

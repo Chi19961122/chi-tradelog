@@ -1,7 +1,7 @@
 import type { Trade } from '@/types/trade';
 
 /** 可排序的欄位。 */
-export type TradeSortKey = 'day' | 'sym' | 'entry' | 'exit' | 'qty' | 'pnl' | 'r';
+export type TradeSortKey = 'date' | 'sym' | 'entry' | 'exit' | 'qty' | 'pnl' | 'r';
 
 /** 排序狀態：欄位 + 方向。 */
 export interface TradeSort {

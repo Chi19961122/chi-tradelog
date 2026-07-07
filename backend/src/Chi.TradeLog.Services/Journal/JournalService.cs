@@ -28,9 +28,9 @@ public class JournalService : IJournalService
     /// 依使用者/帳戶/商品/日期取得日記，並將 mistakes JSON 反序列化為清單。
     /// </summary>
     public async Task<JournalDto?> GetJournalAsync(
-        long userId, string accountId, string symbol, int day, CancellationToken cancellationToken = default)
+        long userId, string accountId, string symbol, DateOnly date, CancellationToken cancellationToken = default)
     {
-        var data = await _repository.GetAsync(userId, accountId, symbol, day, cancellationToken);
+        var data = await _repository.GetAsync(userId, accountId, symbol, date, cancellationToken);
         if (data is null)
         {
             return null;
@@ -40,7 +40,7 @@ public class JournalService : IJournalService
         {
             AccountId = data.AccountId,
             Symbol = data.Symbol,
-            Day = data.Day,
+            Date = data.EntryDate,
             Notes = data.Notes,
             Emotions = data.Emotions,
             Mistakes = DeserializeMistakes(data.Mistakes),
@@ -57,7 +57,7 @@ public class JournalService : IJournalService
             UserId = info.UserId,
             AccountId = info.AccountId,
             Symbol = info.Symbol,
-            Day = info.Day,
+            EntryDate = info.Date,
             Notes = info.Notes,
             Emotions = info.Emotions.ToArray(),
             Mistakes = JsonSerializer.Serialize(info.Mistakes, JsonOptions),

@@ -1,6 +1,6 @@
 import type { Trade } from '@/types/trade';
 import { fmtMoney } from './format';
-import { currentMonthIdx, today } from './today';
+import { parseISODate, toISODate, today } from './today';
 
 /** Dashboard 用的核心 KPI 集合。 */
 export interface Kpis {
@@ -37,12 +37,12 @@ export function computeKpis(trades: Trade[], initialCapital: number): Kpis {
   const maxDrawdown = computeMaxDrawdown(trades);
 
   // 一致性：以「日」聚合損益，計算獲利日佔交易日的比例。
-  const pnlByDay = new Map<number, number>();
+  const pnlByDate = new Map<string, number>();
   for (const tr of trades) {
-    pnlByDay.set(tr.day, (pnlByDay.get(tr.day) ?? 0) + tr.pnl);
+    pnlByDate.set(tr.date, (pnlByDate.get(tr.date) ?? 0) + tr.pnl);
   }
-  const tradingDays = pnlByDay.size;
-  const profitableDays = [...pnlByDay.values()].filter((v) => v >= 0).length;
+  const tradingDays = pnlByDate.size;
+  const profitableDays = [...pnlByDate.values()].filter((v) => v >= 0).length;
   const consistency = tradingDays ? (profitableDays / tradingDays) * 100 : 0;
 
   // 恢復力：最大回撤佔總獲利的比例越小，恢復力越高。
@@ -66,9 +66,9 @@ export function computeKpis(trades: Trade[], initialCapital: number): Kpis {
   };
 }
 
-/** 依交易日序累積權益，回傳最大回撤（負值）。 */
+/** 依交易日期序累積權益，回傳最大回撤（負值）。 */
 export function computeMaxDrawdown(trades: Trade[]): number {
-  const ordered = [...trades].sort((a, b) => a.day - b.day);
+  const ordered = [...trades].sort((a, b) => a.date.localeCompare(b.date));
   let running = 0;
   let peak = 0;
   let maxDd = 0;
@@ -95,27 +95,39 @@ export interface EquityPoint {
 const MONTHS_EN_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const MONTHS_ZH = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
 
-/**
- * 由真實交易組出損益序列，按日排序。
- * 資料模型僅含本月（Trade.day），故各區間目前呈現相同的本月序列；
- * 不再合成歷史月份假資料。
- */
+/** 區間起始日（ISO）；all 回傳 null 代表不過濾。 */
+function rangeStartISO(rangeKey: EquityRange): string | null {
+  const now = today();
+  switch (rangeKey) {
+    case 'month':
+      return toISODate(new Date(now.getFullYear(), now.getMonth(), 1));
+    case 'quarter': {
+      const qStartMonth = Math.floor(now.getMonth() / 3) * 3;
+      return toISODate(new Date(now.getFullYear(), qStartMonth, 1));
+    }
+    case 'year':
+      return toISODate(new Date(now.getFullYear(), 0, 1));
+    default:
+      return null;
+  }
+}
+
+/** 由真實交易組出損益序列（依區間過濾、按日期排序）。 */
 function buildRangeEntries(
-  _rangeKey: EquityRange,
+  rangeKey: EquityRange,
   trades: Trade[],
   lang: 'en' | 'zh',
-): { absDay: number; pnl: number; label: string }[] {
+): { date: string; pnl: number; label: string }[] {
   const months = lang === 'en' ? MONTHS_EN_SHORT : MONTHS_ZH;
-  const monthName = months[currentMonthIdx()];
+  const start = rangeStartISO(rangeKey);
 
-  const entries = trades.map((tr) => ({
-    absDay: tr.day,
-    pnl: tr.pnl,
-    label: `${monthName} ${tr.day}`,
-  }));
-
-  entries.sort((a, b) => a.absDay - b.absDay);
-  return entries;
+  return trades
+    .filter((tr) => start === null || tr.date >= start)
+    .map((tr) => {
+      const d = parseISODate(tr.date);
+      return { date: tr.date, pnl: tr.pnl, label: `${months[d.getMonth()]} ${d.getDate()}` };
+    })
+    .sort((a, b) => a.date.localeCompare(b.date));
 }
 
 /** 累積權益資料點，供 Recharts 使用。首點為 0（起始資金基準）。 */
@@ -203,7 +215,7 @@ export interface CalendarWeek {
 
 /**
  * 月曆（週日開頭，依月份長度 4–6 週 + 週統計），由真實交易依日聚合。
- * monthOffset 0 = 本月；資料模型僅含本月（Trade.day），其他月份為空。
+ * monthOffset 0 = 本月；只聚合「顯示中的年月」的交易，任何月份都有真資料。
  */
 export function buildCalendar(monthOffset = 0, trades: Trade[] = []): {
   cells: CalendarCell[];
@@ -214,20 +226,23 @@ export function buildCalendar(monthOffset = 0, trades: Trade[] = []): {
   const now = today();
   const base = new Date(now.getFullYear(), now.getMonth(), 1);
   base.setMonth(base.getMonth() + monthOffset);
+  const year = base.getFullYear();
+  const monthIdx = base.getMonth();
   const firstDow = base.getDay(); // 0 = Sunday
-  const daysInMonth = new Date(base.getFullYear(), base.getMonth() + 1, 0).getDate();
+  const daysInMonth = new Date(year, monthIdx + 1, 0).getDate();
   const weeksCount = Math.ceil((firstDow + daysInMonth) / 7);
 
-  // 依日聚合真實交易（僅本月有資料）。
+  // 依日聚合「顯示中的年月」的真實交易。
+  const monthPrefix = `${year}-${String(monthIdx + 1).padStart(2, '0')}-`;
   const byDay = new Map<number, { pnl: number; tradesCount: number; wins: number }>();
-  if (monthOffset === 0) {
-    for (const tr of trades) {
-      const agg = byDay.get(tr.day) ?? { pnl: 0, tradesCount: 0, wins: 0 };
-      agg.pnl += tr.pnl;
-      agg.tradesCount += 1;
-      if (tr.pnl >= 0) agg.wins += 1;
-      byDay.set(tr.day, agg);
-    }
+  for (const tr of trades) {
+    if (tr.date.startsWith(monthPrefix) === false) continue;
+    const dayNum = Number(tr.date.slice(8, 10));
+    const agg = byDay.get(dayNum) ?? { pnl: 0, tradesCount: 0, wins: 0 };
+    agg.pnl += tr.pnl;
+    agg.tradesCount += 1;
+    if (tr.pnl >= 0) agg.wins += 1;
+    byDay.set(dayNum, agg);
   }
 
   const cells: CalendarCell[] = [];
@@ -259,5 +274,5 @@ export function buildCalendar(monthOffset = 0, trades: Trade[] = []): {
     return { cells: wk, stat: { pnl, tradesCount, wins, winRate, hasData: withData.length > 0 } };
   });
 
-  return { cells, weeks, year: base.getFullYear(), monthIdx: base.getMonth() };
+  return { cells, weeks, year, monthIdx };
 }
