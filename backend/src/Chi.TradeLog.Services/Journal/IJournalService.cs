@@ -18,4 +18,14 @@ public interface IJournalService
     /// 儲存日記（新增或更新）。
     /// </summary>
     Task SaveJournalAsync(SaveJournalInfo info, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 取得指定使用者的日記範本；未設定時回傳 <c>null</c>。
+    /// </summary>
+    Task<string?> GetTemplateAsync(long userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 儲存指定使用者的日記範本。
+    /// </summary>
+    Task SaveTemplateAsync(long userId, string template, CancellationToken cancellationToken = default);
 }

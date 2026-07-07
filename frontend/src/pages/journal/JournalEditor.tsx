@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Icon } from '@/components/Icon/Icon';
 import { useJournal } from '@/features/journal/useJournal';
 import { useJournalMutation } from '@/features/journal/useJournalMutation';
+import { useJournalTemplate, useJournalTemplateMutation } from '@/features/journal/useJournalTemplate';
 import {
   defaultJournalEntry,
   defaultTemplate,
@@ -13,9 +14,6 @@ import { fmtFullDate, fmtMoney } from '@/lib/format';
 import { toMetricsLang } from '@/i18n';
 import type { Trade } from '@/types/trade';
 import styles from './JournalEditor.module.css';
-
-// 「Set Template」設定的範本，於 session 內跨日記共用。
-let sessionTemplate: string | null = null;
 
 interface Props {
   trade: Trade;
@@ -39,6 +37,9 @@ export function JournalEditor({ trade, variant = 'modal' }: Props) {
 
   const { data: stored, isFetched } = useJournal(accountId, symbol, date, true);
   const mutation = useJournalMutation();
+  // 範本持久化（後端 app_settings / mock localStorage），重新整理不消失。
+  const { data: savedTemplate } = useJournalTemplate();
+  const templateMutation = useJournalTemplateMutation();
 
   const [emotions, setEmotions] = useState<string[]>([]);
   const [mistakes, setMistakes] = useState<MistakeItem[]>([]);
@@ -139,12 +140,12 @@ export function JournalEditor({ trade, variant = 'modal' }: Props) {
   };
 
   const applyTemplate = () => {
-    const tpl = sessionTemplate ?? defaultTemplate(lang);
+    const tpl = savedTemplate || defaultTemplate(lang);
     if (notesRef.current) notesRef.current.innerHTML = tpl;
     syncNotes();
   };
   const setTemplate = () => {
-    sessionTemplate = notesRef.current?.innerHTML ?? '';
+    templateMutation.mutate(notesRef.current?.innerHTML ?? '');
   };
   const clearNotes = () => {
     if (notesRef.current) notesRef.current.innerHTML = '';

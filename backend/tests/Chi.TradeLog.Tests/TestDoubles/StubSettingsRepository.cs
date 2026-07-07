@@ -66,6 +66,26 @@ public class StubSettingsRepository : ISettingsRepository
         => Task.FromResult(1);
 
     /// <summary>
+    /// 儲存的日記範本（測試可讀寫）。
+    /// </summary>
+    public string? JournalTemplate { get; set; }
+
+    /// <summary>
+    /// 回傳 <see cref="JournalTemplate"/>。
+    /// </summary>
+    public Task<string?> GetJournalTemplateAsync(long userId, CancellationToken cancellationToken = default)
+        => Task.FromResult(JournalTemplate);
+
+    /// <summary>
+    /// 寫入 <see cref="JournalTemplate"/>。
+    /// </summary>
+    public Task<int> UpdateJournalTemplateAsync(long userId, string template, CancellationToken cancellationToken = default)
+    {
+        JournalTemplate = template;
+        return Task.FromResult(1);
+    }
+
+    /// <summary>
     /// 依 <see cref="PlatformExists"/> 回傳。
     /// </summary>
     public Task<bool> PlatformExistsAsync(string id, long userId, CancellationToken cancellationToken = default)

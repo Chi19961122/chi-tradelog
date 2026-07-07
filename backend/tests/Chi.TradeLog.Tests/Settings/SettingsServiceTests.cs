@@ -124,6 +124,12 @@ public class SettingsServiceTests
         public Task<bool> PlatformExistsAsync(string id, long userId, CancellationToken cancellationToken = default)
             => Task.FromResult(PlatformExists);
 
+        public Task<string?> GetJournalTemplateAsync(long userId, CancellationToken cancellationToken = default)
+            => Task.FromResult<string?>(null);
+
+        public Task<int> UpdateJournalTemplateAsync(long userId, string template, CancellationToken cancellationToken = default)
+            => Task.FromResult(1);
+
         public Task<bool> AccountExistsAsync(string id, long userId, CancellationToken cancellationToken = default)
             => Task.FromResult(true);
 

@@ -93,6 +93,31 @@ public class SettingsRepository : ISettingsRepository
     }
 
     /// <summary>
+    /// 取得指定使用者的日記範本；未設定時回傳 <c>null</c>。
+    /// </summary>
+    public async Task<string?> GetJournalTemplateAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        return await connection.ExecuteScalarAsync<string?>(new CommandDefinition(
+            "SELECT journal_template FROM app_settings WHERE user_id = @userId;",
+            new { userId }, cancellationToken: cancellationToken));
+    }
+
+    /// <summary>
+    /// 更新指定使用者的日記範本（該列不存在時以預設初始資金一併建立），回傳受影響列數。
+    /// </summary>
+    public async Task<int> UpdateJournalTemplateAsync(long userId, string template, CancellationToken cancellationToken = default)
+    {
+        await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        return await connection.ExecuteAsync(new CommandDefinition(
+            """
+            INSERT INTO app_settings (user_id, initial_capital, journal_template) VALUES (@userId, 10000, @template)
+            ON CONFLICT (user_id) DO UPDATE SET journal_template = EXCLUDED.journal_template;
+            """,
+            new { userId, template }, cancellationToken: cancellationToken));
+    }
+
+    /// <summary>
     /// 判斷指定使用者是否擁有該平台。
     /// </summary>
     public async Task<bool> PlatformExistsAsync(string id, long userId, CancellationToken cancellationToken = default)

@@ -4,24 +4,44 @@ using Chi.TradeLog.Common.Models.DataModels;
 using Chi.TradeLog.Common.Models.Dtos;
 using Chi.TradeLog.Common.Models.InfoModels;
 using Chi.TradeLog.Repositories.Journal;
+using Chi.TradeLog.Repositories.Settings;
 
 namespace Chi.TradeLog.Services.Journal;
 
 /// <summary>
-/// 交易日記 Service 實作。負責 <c>mistakes</c> 於 JSON 字串與物件清單間的轉換。
+/// 交易日記 Service 實作。負責 <c>mistakes</c> 於 JSON 字串與物件清單間的轉換，
+/// 以及每位使用者日記範本的讀寫（儲存在 app_settings）。
 /// </summary>
 public class JournalService : IJournalService
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     private readonly IJournalRepository _repository;
+    private readonly ISettingsRepository _settingsRepository;
 
     /// <summary>
     /// 建立交易日記 Service。
     /// </summary>
-    public JournalService(IJournalRepository repository)
+    public JournalService(IJournalRepository repository, ISettingsRepository settingsRepository)
     {
         _repository = repository;
+        _settingsRepository = settingsRepository;
+    }
+
+    /// <summary>
+    /// 取得指定使用者的日記範本；未設定時回傳 <c>null</c>。
+    /// </summary>
+    public async Task<string?> GetTemplateAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        return await _settingsRepository.GetJournalTemplateAsync(userId, cancellationToken);
+    }
+
+    /// <summary>
+    /// 儲存指定使用者的日記範本。
+    /// </summary>
+    public async Task SaveTemplateAsync(long userId, string template, CancellationToken cancellationToken = default)
+    {
+        await _settingsRepository.UpdateJournalTemplateAsync(userId, template, cancellationToken);
     }
 
     /// <summary>

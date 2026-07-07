@@ -38,6 +38,16 @@ public interface ISettingsRepository
     Task<int> UpdateInitialCapitalAsync(long userId, decimal value, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 取得指定使用者的日記範本；未設定時回傳 <c>null</c>。
+    /// </summary>
+    Task<string?> GetJournalTemplateAsync(long userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新指定使用者的日記範本（該列不存在時建立），回傳受影響列數。
+    /// </summary>
+    Task<int> UpdateJournalTemplateAsync(long userId, string template, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 判斷指定使用者是否擁有該平台。
     /// </summary>
     Task<bool> PlatformExistsAsync(string id, long userId, CancellationToken cancellationToken = default);

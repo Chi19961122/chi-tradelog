@@ -4,6 +4,8 @@ import { Icon } from '@/components/Icon/Icon';
 import { useOutsideClick } from '@/lib/useOutsideClick';
 import { useUiStore, NAME_TRANSLATIONS } from '@/store/uiStore';
 import { useAuthStore } from '@/store/authStore';
+import { useTrades } from '@/features/trades/useTrades';
+import { useJournalReminder } from '@/features/journal/useJournalReminder';
 import { toMetricsLang } from '@/i18n';
 import styles from './Topbar.module.css';
 
@@ -57,8 +59,9 @@ export function Topbar() {
         ))}
       </nav>
 
-      {/* Right: lang, theme, user */}
+      {/* Right: reminder, lang, theme, user */}
       <div className={styles.right}>
+        <JournalReminder />
         <button type="button" className={styles.langBtn} onClick={toggleLang}>
           {t('shell.langToggle')}
         </button>
@@ -68,6 +71,30 @@ export function Topbar() {
         <UserMenu />
       </div>
     </header>
+  );
+}
+
+/** 日記提醒：今天有交易但還沒寫日記時顯示鈴鐺與數量，點擊跳交易日誌。 */
+function JournalReminder() {
+  const { t } = useTranslation();
+  const activeAccountIds = useUiStore((s) => s.activeAccountIds);
+  const setTab = useUiStore((s) => s.setTab);
+  const { data: trades = [] } = useTrades(activeAccountIds);
+  const { data: missing = 0 } = useJournalReminder(trades);
+
+  if (missing === 0) return null;
+
+  return (
+    <button
+      type="button"
+      className={styles.reminderBtn}
+      title={t('journal.reminder', { count: missing })}
+      aria-label={t('journal.reminder', { count: missing })}
+      onClick={() => setTab('tradelog')}
+    >
+      <Icon name="bell" size={15} />
+      <span className={styles.reminderDot}>{missing}</span>
+    </button>
   );
 }
 

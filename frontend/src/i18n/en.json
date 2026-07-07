@@ -95,7 +95,8 @@
     "saved": "Saved",
     "editing": "Editing…",
     "openFullPage": "Open full page",
-    "back": "Back"
+    "back": "Back",
+    "reminder": "{{count}} of today's trades have no journal yet — tap to review"
   },
   "tradelog": {
     "title": "Trade Log",

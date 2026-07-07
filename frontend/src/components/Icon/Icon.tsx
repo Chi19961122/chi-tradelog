@@ -9,7 +9,8 @@ export type IconName =
   | 'moon'
   | 'gear'
   | 'check'
-  | 'expand';
+  | 'expand'
+  | 'bell';
 
 interface Props {
   name: IconName;
@@ -95,6 +96,13 @@ export function Icon({ name, size = 16, className, style }: Props) {
           <polyline points="9 21 3 21 3 15" />
           <line x1="21" y1="3" x2="14" y2="10" />
           <line x1="3" y1="21" x2="10" y2="14" />
+        </svg>
+      );
+    case 'bell':
+      return (
+        <svg {...common} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
         </svg>
       );
   }

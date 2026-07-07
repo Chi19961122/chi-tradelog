@@ -276,3 +276,39 @@
     flex-wrap: wrap;
   }
 }
+
+/* 日記提醒鈴鐺（有未寫日記時顯示） */
+.reminderBtn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--pill);
+  color: var(--sub);
+}
+
+.reminderBtn:hover {
+  color: var(--ink);
+}
+
+.reminderDot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--red);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+}

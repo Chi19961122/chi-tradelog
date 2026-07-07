@@ -75,6 +75,7 @@
 | `tags.(user_id, name)` | bigint, varchar(64) | 複合 PK（`pk_tags`） | 每位使用者自有標籤清單 |
 | `app_settings.user_id` | bigint | PK（`pk_app_settings`；原 `id` 欄已移除） | 每位使用者一列 |
 | `app_settings.initial_capital` | numeric(18,2) | NOT NULL | 初始資金（無列時後端以 10000 為預設） |
+| `app_settings.journal_template` | text | NULL | 日記範本（Migration 0011；未設定時前端用內建預設） |
 
 ### journal_entries（Migration 0005；0010 改完整日期）
 以（`user_id`, `account_id`, `symbol`, `entry_date`）為唯一鍵；無 seed（前端在無資料時以確定性演算法產生預設情緒/檢討）。

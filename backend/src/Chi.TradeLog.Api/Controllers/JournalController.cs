@@ -82,4 +82,34 @@ public class JournalController : ApiControllerBase
         await _journalService.SaveJournalAsync(info, cancellationToken);
         return NoContent();
     }
+
+    /// <summary>
+    /// 取得自己的日記範本；未設定時回傳空範本。
+    /// </summary>
+    /// <param name="cancellationToken">取消權杖。</param>
+    /// <returns>範本內容。</returns>
+    /// <response code="200">查詢成功（未設定時 template 為 null）。</response>
+    [HttpGet("template")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetTemplateAsync(CancellationToken cancellationToken)
+    {
+        var template = await _journalService.GetTemplateAsync(CurrentUserId, cancellationToken);
+        return Ok(new { template });
+    }
+
+    /// <summary>
+    /// 儲存自己的日記範本（跨裝置持久化）。
+    /// </summary>
+    /// <param name="parameter">範本內容。</param>
+    /// <param name="cancellationToken">取消權杖。</param>
+    /// <response code="204">儲存成功。</response>
+    [HttpPut("template")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> SaveTemplateAsync(
+        [FromBody] SaveTemplateParameter parameter,
+        CancellationToken cancellationToken)
+    {
+        await _journalService.SaveTemplateAsync(CurrentUserId, parameter.Template, cancellationToken);
+        return NoContent();
+    }
 }

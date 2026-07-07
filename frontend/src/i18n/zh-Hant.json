@@ -95,7 +95,8 @@
     "saved": "已儲存",
     "editing": "編輯中…",
     "openFullPage": "整頁編輯",
-    "back": "返回"
+    "back": "返回",
+    "reminder": "今天有 {{count}} 筆交易還沒寫日記——點擊前往"
   },
   "tradelog": {
     "title": "交易日誌",

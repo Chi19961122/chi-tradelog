@@ -3,6 +3,7 @@ using Chi.TradeLog.Common.Models.DataModels;
 using Chi.TradeLog.Common.Models.InfoModels;
 using Chi.TradeLog.Repositories.Journal;
 using Chi.TradeLog.Services.Journal;
+using Chi.TradeLog.Tests.TestDoubles;
 using FluentAssertions;
 using Xunit;
 
@@ -14,7 +15,7 @@ public class JournalServiceTests
     public async Task GetJournalAsync_ReturnsNull_WhenNotFound()
     {
         var repository = new FakeJournalRepository { Stored = null };
-        var service = new JournalService(repository);
+        var service = new JournalService(repository, new StubSettingsRepository());
 
         var result = await service.GetJournalAsync(1, "a1", "AAPL", new DateOnly(2026, 7, 5));
 
@@ -36,7 +37,7 @@ public class JournalServiceTests
                 Mistakes = """[{"label":"Chased entry","checked":true}]""",
             },
         };
-        var service = new JournalService(repository);
+        var service = new JournalService(repository, new StubSettingsRepository());
 
         var result = await service.GetJournalAsync(1, "a1", "AAPL", new DateOnly(2026, 7, 5));
 
@@ -52,7 +53,7 @@ public class JournalServiceTests
     public async Task SaveJournalAsync_SerializesMistakesToJson()
     {
         var repository = new FakeJournalRepository();
-        var service = new JournalService(repository);
+        var service = new JournalService(repository, new StubSettingsRepository());
         var info = new SaveJournalInfo
         {
             UserId = 1,
@@ -71,6 +72,18 @@ public class JournalServiceTests
         repository.Upserted.Mistakes.Should().Contain("Oversized position");
         repository.Upserted.Mistakes.Should().Contain("checked");
         repository.Upserted.UserId.Should().Be(1); // 寫入帶入使用者範圍
+    }
+
+    [Fact]
+    public async Task Template_SaveAndGet_RoundTrips()
+    {
+        var settings = new StubSettingsRepository();
+        var service = new JournalService(new FakeJournalRepository(), settings);
+
+        await service.SaveTemplateAsync(1, "<p>my template</p>");
+        var template = await service.GetTemplateAsync(1);
+
+        template.Should().Be("<p>my template</p>");
     }
 
     private class FakeJournalRepository : IJournalRepository
