@@ -68,19 +68,19 @@ public class JournalService : IJournalService
     }
 
     /// <summary>
-    /// 取得指定使用者的全部日記（notes 為空字串），供行為分析聚合。
+    /// 取得指定使用者的全部日記；預設 notes 為空字串（行為分析聚合用），匯出時帶入完整內容。
     /// </summary>
     public async Task<IReadOnlyList<JournalDto>> GetAllJournalsAsync(
-        long userId, CancellationToken cancellationToken = default)
+        long userId, bool includeNotes = false, CancellationToken cancellationToken = default)
     {
-        var rows = await _repository.GetAllByUserAsync(userId, cancellationToken);
+        var rows = await _repository.GetAllByUserAsync(userId, includeNotes, cancellationToken);
         return rows
             .Select(data => new JournalDto
             {
                 AccountId = data.AccountId,
                 Symbol = data.Symbol,
                 Date = data.EntryDate,
-                Notes = string.Empty,
+                Notes = data.Notes,
                 Emotions = data.Emotions,
                 Mistakes = DeserializeMistakes(data.Mistakes),
             })

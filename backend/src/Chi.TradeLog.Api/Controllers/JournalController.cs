@@ -68,7 +68,7 @@ public class JournalController : ApiControllerBase
     public async Task<ActionResult<IReadOnlyList<JournalSummaryViewModel>>> GetAllJournalsAsync(
         CancellationToken cancellationToken)
     {
-        var dtos = await _journalService.GetAllJournalsAsync(CurrentUserId, cancellationToken);
+        var dtos = await _journalService.GetAllJournalsAsync(CurrentUserId, cancellationToken: cancellationToken);
         return Ok(_mapper.Map<IReadOnlyList<JournalSummaryViewModel>>(dtos));
     }
 

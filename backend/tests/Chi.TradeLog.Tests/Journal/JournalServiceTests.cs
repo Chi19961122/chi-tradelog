@@ -132,7 +132,7 @@ public class JournalServiceTests
         }
 
         public Task<IReadOnlyList<JournalEntryDataModel>> GetAllByUserAsync(
-            long userId, CancellationToken cancellationToken = default)
+            long userId, bool includeNotes = false, CancellationToken cancellationToken = default)
             => Task.FromResult(AllStored);
     }
 }

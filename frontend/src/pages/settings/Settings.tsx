@@ -7,7 +7,12 @@ import { useUiStore, NAME_TRANSLATIONS } from '@/store/uiStore';
 import { useAuthStore } from '@/store/authStore';
 import { useSettingsController } from '@/features/settings/useSettingsController';
 import { useDisciplineRules, useDisciplineRulesMutation } from '@/features/settings/useDisciplineRules';
+import { useTrades } from '@/features/trades/useTrades';
 import { API_BASE_URL } from '@/lib/apiConfig';
+import { apiFetch } from '@/lib/apiClient';
+import { downloadTextFile } from '@/lib/csv';
+import { mockJournalStore } from '@/lib/mockJournalStore';
+import { todayISO } from '@/lib/today';
 import { toMetricsLang } from '@/i18n';
 import { ChangePasswordSection, ProfileSection, UserManagementSection } from './AccountSecuritySections';
 import styles from './Settings.module.css';
@@ -116,6 +121,9 @@ export function Settings() {
       {/* 紀律規則 */}
       <DisciplineSection />
 
+      {/* 全資料匯出 */}
+      <DataExportSection />
+
       {/* Symbols */}
       <Section title={t('settings.symbolsTitle')} subtitle={t('settings.symbolsSubtitle')}>
         <ChipEditor
@@ -217,6 +225,55 @@ function DisciplineSection() {
           {t('settings.saveRules')}
         </button>
         {saved && <span className={styles.ruleSaved}>{t('settings.rulesSaved')}</span>}
+      </div>
+    </Section>
+  );
+}
+
+/** 全資料匯出卡：下載本人全部資料 JSON（API 模式打 /api/export；mock 模式彙整本地狀態）。 */
+function DataExportSection() {
+  const { t } = useTranslation();
+  const platforms = useUiStore((s) => s.platforms);
+  const initialCapital = useUiStore((s) => s.initialCapital);
+  const symbolsList = useUiStore((s) => s.symbolsList);
+  const tagsList = useUiStore((s) => s.tagsList);
+  const allAccountIds = platforms.flatMap((p) => p.accounts.map((a) => a.id));
+  const { data: trades = [] } = useTrades(allAccountIds);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(false);
+
+  const handleExport = async () => {
+    setBusy(true);
+    setError(false);
+    try {
+      let payload: unknown;
+      if (API_BASE_URL) {
+        const res = await apiFetch('/api/export');
+        if (res.ok === false) throw new Error(`匯出失敗：${res.status}`);
+        payload = await res.json();
+      } else {
+        payload = {
+          exportedAt: new Date().toISOString(),
+          settings: { initialCapital, platforms, symbols: symbolsList, tags: tagsList },
+          trades,
+          journals: mockJournalStore.entries(),
+        };
+      }
+      downloadTextFile(`chi-tradelog-export-${todayISO()}.json`, JSON.stringify(payload, null, 2));
+    } catch {
+      setError(true);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Section title={t('settings.exportTitle')} subtitle={t('settings.exportSubtitle')}>
+      <div className={styles.ruleActions}>
+        <button type="button" className={styles.ruleSaveBtn} onClick={() => void handleExport()} disabled={busy}>
+          {busy ? t('settings.exporting') : t('settings.exportBtn')}
+        </button>
+        {error && <span className={styles.exportError}>{t('settings.exportError')}</span>}
       </div>
     </Section>
   );
