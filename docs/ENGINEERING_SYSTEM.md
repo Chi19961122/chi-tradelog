@@ -133,9 +133,10 @@
 `TradeService.BuildDataModel`（C#）與 `lib/tradeForm.computeTradeFields`（TS）**必須維持相同語意**：
 
 - `pnl = 明確帶入值 ?? (Long ? exit-entry : entry-exit) × qty`（帶入值優先——期貨合約乘數，見 3.1）
-- `r = round(pnl / 100, 2)`（近似值，無停損資料）
+- `r = 有停損 ? round(pnl / (|entry − stopLoss| × qty), 2) : round(pnl / 100, 2)`
+  （真實風險優先；無停損維持近似值 fallback。風險為 0——停損 = 進場價——也走 fallback）
 - `holdingMinutes = 有 openedAt+closedAt ? 兩者差的分鐘數 : 確定性亂數 fallback`
-- `day` 夾在 1..當月天數；`tags` 空 → `['manual']`；`sym` 大寫
+- 交易日期直接採用輸入的完整日期（前端 ISO 字串 / 後端 DateOnly）；`tags` 空 → `['manual']`；`sym` 大寫
 
 改任何一邊的公式，另一邊與雙方測試（`TradeServiceWriteTests` / `tradeForm` 相關測試）同步改。
 
@@ -167,16 +168,16 @@ YM 每點 $5、MNQ 每點 $2（各商品乘數不同）。`(exit−entry)×qty` 
 → `lib/pasteImport.ts` 的定案處理：**盈虧方向由「價差×方向」推導、金額取報表值**；
 報表值本身帶 `-` 或括號則直接視為虧損。
 
-### 3.3 Trade「day-only」日期模型是最大結構債（Backlog #1）
+### 3.3 Trade「day-only」日期模型（已於 2026-07-07 修復）
 
-前端 `Trade` 只有 `day`（當月第幾天），整個 app 假設所有交易都在「本月」。
-**跨月的瞬間，所有既有交易會集體錯位到新月份**（月曆、報表、CSV 匯出全錯）。
-後端 `trades.traded_on` 其實存了完整日期——遷移要點見第 6 節。
-在此之前：**不要再寫任何新的「假設本月」邏輯**；新程式碼若碰日期，優先用完整日期思考。
+歷史陷阱：前端 `Trade` 曾只有 `day`（當月第幾天），跨月時所有交易會集體錯位。
+**現況：已全面遷移為完整日期**——前端 `Trade.date` 為 ISO 字串、後端 DateOnly，
+journal 唯一鍵也改為 `entry_date`（Migration 0010）。留此節作歷史教訓：
+**任何新程式碼不得寫「假設本月」邏輯**；碰日期一律用完整日期 + `lib/today.ts`。
 
 ### 3.4 其他領域事實
 
-- Journal key = `(user, accountId, symbol, day)`：同商品同日**共用一篇日記**，是設計不是 bug。
+- Journal key = `(user, accountId, symbol, entry_date)`：同商品同日**共用一篇日記**，是設計不是 bug。
 - Journal 筆記是 HTML、貼圖以 base64 data URL 存進 DB text 欄位（大圖會膨脹，見第 6 節）。
 - `charges`/`opened_at`/`closed_at` 只有「貼上匯入」會填；手動輸入為 NULL；
   Net P&L 已是扣除手續費後淨值（charges 僅供顯示，不參與計算）。
@@ -227,16 +228,16 @@ Git Bash 中多行 `python -c` 管線會異常（exit 49），改用檔案或內
 
 ## 6. 結構債 Backlog（依優先序，動工前先在 docs/plans/ 開計畫）
 
-1. **完整日期模型遷移**（最高優先，跨月即爆）：計畫已就緒 →
-   **`docs/plans/2026-07-date-model-migration.md`**（含探索發現的 Journal 唯一鍵連鎖遷移，
-   接手者照該檔實作）。新功能優先序另見 `docs/plans/2026-07-product-roadmap.md`。
-2. **Playwright 冒煙測試**：把 1.3 的 checklist 自動化（登入 → 六頁載入 → 新增交易 → 日記存讀
+1. **Playwright 冒煙測試**：把 1.3 的 checklist 自動化（登入 → 六頁載入 → 新增交易 → 日記存讀
    → mock/API 兩模式），CI 掛 mock 模式即可先行。完成後 1.3 降級為備援。
-3. **編輯交易保留明確 pnl**：編輯表單帶回原 pnl，或後端 update 時「entry/exit/qty 未變就不重算」。
-4. **Journal 貼圖出 DB**：base64 → 物件儲存或至少限制大小，避免 text 欄位無限膨脹。
-5. **Token 撤銷**：登出/改密碼不使既有 token 失效（12h 內仍有效）；需黑名單或 token 版本號。
-6. **忘記密碼自助流程**：現靠 admin 重設；自助需寄信基礎設施。
-7. **admin 改 email 的 session 失效**（見第 5 節）：可在回應中提示使用者重新登入，或發事件通知。
+2. **編輯交易保留明確 pnl**：編輯表單帶回原 pnl，或後端 update 時「entry/exit/qty 未變就不重算」。
+3. **Journal 貼圖出 DB**：base64 → 物件儲存或至少限制大小，避免 text 欄位無限膨脹。
+4. **Token 撤銷**：登出/改密碼不使既有 token 失效（12h 內仍有效）；需黑名單或 token 版本號。
+5. **忘記密碼自助流程**：現靠 admin 重設；自助需寄信基礎設施。
+6. **admin 改 email 的 session 失效**（見第 5 節）：可在回應中提示使用者重新登入，或發事件通知。
+
+> ~~完整日期模型遷移~~：**已於 2026-07-07 完成**（`docs/plans/2026-07-date-model-migration.md`）。
+> 2026-07 產品路線圖八項（範本持久化→週報）亦已全數完成（`docs/plans/2026-07-product-roadmap.md`）。
 
 ---
 

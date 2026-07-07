@@ -1,7 +1,8 @@
 # 2026-07 Settings 排版優化 + 個人檔案
 
-> 狀態：**規劃中（已設計、未實作）** ｜ 分支：`feature/系統優化調整`
-> 交接備註：需求已確認、關鍵設計已定案（見下），程式碼**尚未動工**。接手者照本檔實作即可。
+> 狀態：**已完成（2026-07-07）** ｜ 分支：`feature/系統優化調整`
+> 完成紀錄：PUT /api/auth/profile（email 變更後 RefreshAsync 換發新 token、撞 email → 409）、
+> ProfileSection（mock/API 皆可用）、Settings 雙欄 grid（≤900px 退單欄）。已通過測試與瀏覽器驗證。
 
 ## Context
 使用者需求：(1) Settings 頁重新排版優化；(2) 新增「個人檔案」——使用者自行修改顯示名稱與 email。
