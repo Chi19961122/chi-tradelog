@@ -38,6 +38,36 @@ describe('computeKpis', () => {
     expect(kpis.tradesCount).toBe(0);
     expect(kpis.netPnl).toBe(0);
     expect(kpis.balance).toBe(10000);
+    expect(kpis.expectancy).toBe(0);
+    expect(kpis.currentStreak).toBe(0);
+    expect(kpis.bestDay).toBeNull();
+    expect(kpis.worstDay).toBeNull();
+  });
+
+  it('computes expectancy, streaks, and best/worst day', () => {
+    // 順序（依日期）：+100、-50、+200 → 目前連勝 1、最長連勝 1、最長連敗 1
+    const kpis = computeKpis(trades, 10000);
+    // 期望值 = 2/3×150 − 1/3×50 = 83.33
+    expect(kpis.expectancy).toBeCloseTo(83.33, 1);
+    expect(kpis.currentStreak).toBe(1);
+    expect(kpis.maxWinStreak).toBe(1);
+    expect(kpis.maxLossStreak).toBe(1);
+    expect(kpis.bestDay).toEqual({ date: '2026-07-03', pnl: 200 });
+    expect(kpis.worstDay).toEqual({ date: '2026-07-02', pnl: -50 });
+  });
+
+  it('tracks streaks across dates in chronological order', () => {
+    const seq = [
+      makeTrade({ date: '2026-07-05', pnl: -10 }), // 亂序輸入：排序後為 1,2,3,4,5
+      makeTrade({ date: '2026-07-01', pnl: 10 }),
+      makeTrade({ date: '2026-07-02', pnl: 20 }),
+      makeTrade({ date: '2026-07-03', pnl: 30 }),
+      makeTrade({ date: '2026-07-04', pnl: -5 }),
+    ];
+    const kpis = computeKpis(seq, 10000);
+    expect(kpis.maxWinStreak).toBe(3); // 7/1–7/3
+    expect(kpis.maxLossStreak).toBe(2); // 7/4–7/5
+    expect(kpis.currentStreak).toBe(-2); // 目前連敗 2
   });
 });
 

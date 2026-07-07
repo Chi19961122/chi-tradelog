@@ -18,6 +18,18 @@ export interface Kpis {
   consistency: number;
   /** 恢復力：總獲利對最大回撤的覆蓋程度（0–100）。 */
   recovery: number;
+  /** 期望值：每筆交易的期望損益（勝率×平均獲利 − 敗率×平均虧損）。 */
+  expectancy: number;
+  /** 目前連勝（正）或連敗（負）筆數；0 代表無交易。 */
+  currentStreak: number;
+  /** 最長連勝筆數。 */
+  maxWinStreak: number;
+  /** 最長連敗筆數。 */
+  maxLossStreak: number;
+  /** 最佳交易日（依日聚合損益；無交易時為 null）。 */
+  bestDay: { date: string; pnl: number } | null;
+  /** 最差交易日（依日聚合損益；無交易時為 null）。 */
+  worstDay: { date: string; pnl: number } | null;
 }
 
 /** 由交易陣列計算 KPI。maxDrawdown 依累積權益曲線的高點至低點計算。 */
@@ -50,6 +62,31 @@ export function computeKpis(trades: Trade[], initialCapital: number): Kpis {
     ? Math.max(0, Math.min(100, (1 - Math.abs(maxDrawdown) / grossWin) * 100))
     : 0;
 
+  // 期望值：勝率×平均獲利 − 敗率×平均虧損。
+  const lossRate = tradesCount ? (tradesCount - wins.length) / tradesCount : 0;
+  const expectancy = tradesCount ? (winRate / 100) * avgWin - lossRate * avgLoss : 0;
+
+  // 連勝/連敗：依日期由舊到新掃描（同日維持原順序）。
+  const ordered = [...trades].sort((a, b) => a.date.localeCompare(b.date));
+  let currentStreak = 0;
+  let maxWinStreak = 0;
+  let maxLossStreak = 0;
+  for (const tr of ordered) {
+    currentStreak = tr.pnl >= 0
+      ? (currentStreak > 0 ? currentStreak + 1 : 1)
+      : (currentStreak < 0 ? currentStreak - 1 : -1);
+    if (currentStreak > maxWinStreak) maxWinStreak = currentStreak;
+    if (-currentStreak > maxLossStreak) maxLossStreak = -currentStreak;
+  }
+
+  // 最佳/最差交易日：沿用上面的日聚合結果。
+  let bestDay: { date: string; pnl: number } | null = null;
+  let worstDay: { date: string; pnl: number } | null = null;
+  for (const [date, pnl] of pnlByDate) {
+    if (bestDay === null || pnl > bestDay.pnl) bestDay = { date, pnl };
+    if (worstDay === null || pnl < worstDay.pnl) worstDay = { date, pnl };
+  }
+
   return {
     netPnl,
     winRate,
@@ -63,6 +100,12 @@ export function computeKpis(trades: Trade[], initialCapital: number): Kpis {
     winsCount: wins.length,
     consistency,
     recovery,
+    expectancy,
+    currentStreak,
+    maxWinStreak,
+    maxLossStreak,
+    bestDay,
+    worstDay,
   };
 }
 

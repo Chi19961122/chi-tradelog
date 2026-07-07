@@ -17,6 +17,8 @@ export interface KpiVisibility {
   avgwl: boolean;
   maxdd: boolean;
   balance: boolean;
+  expectancy: boolean;
+  streak: boolean;
 }
 
 const DEFAULT_PLATFORMS: Platform[] = [
@@ -93,7 +95,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   platforms: DEFAULT_PLATFORMS,
   activeAccountIds: ['a1'],
   initialCapital: 10000,
-  kpiVisible: { netpnl: true, winrate: true, pf: true, avgwl: true, maxdd: true, balance: false },
+  kpiVisible: { netpnl: true, winrate: true, pf: true, avgwl: true, maxdd: true, balance: false, expectancy: false, streak: false },
   monthOffset: 0,
   symbolsList: [...SYMBOLS_LIST],
   tagsList: [...DEFAULT_TAGS],

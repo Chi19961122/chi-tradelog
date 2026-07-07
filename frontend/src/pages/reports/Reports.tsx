@@ -16,13 +16,14 @@ import { useUiStore } from '@/store/uiStore';
 import { computeKpis } from '@/lib/metrics';
 import {
   buildHoldingDistribution,
+  buildHourlyStats,
   buildMonthlyPerformance,
   buildRDistribution,
   buildStrategyStats,
   buildSymbolPnl,
   buildWeekdayWinRate,
 } from '@/lib/reports';
-import { fmtMoney } from '@/lib/format';
+import { fmtMoney, fmtShortDate } from '@/lib/format';
 import { toMetricsLang } from '@/i18n';
 import { KpiCard } from '@/pages/dashboard/KpiCard';
 import { EmptyState, ErrorState, LoadingState } from '@/components/QueryState/QueryState';
@@ -108,6 +109,38 @@ export function Reports() {
 
   const strategy = useMemo(() => buildStrategyStats(trades), [trades]);
 
+  const hourly = useMemo(() => buildHourlyStats(trades), [trades]);
+  const hourlyData = useMemo<BarDatum[]>(
+    () =>
+      hourly.buckets.map((b) => ({
+        label: `${b.hour}:00`,
+        value: b.pnl,
+        color: b.pnl >= 0 ? 'var(--green)' : 'var(--red)',
+        display: `${fmtMoney(b.pnl)} · ${b.winRate}% (${b.count})`,
+      })),
+    [hourly],
+  );
+
+  // 進階統計卡的列（連勝連敗、期望值、最佳/最差日）。
+  const streakText = (n: number) =>
+    n === 0 ? '—' : n > 0 ? t('reports.streakWin', { n }) : t('reports.streakLoss', { n: -n });
+  const advancedRows: { label: string; value: string; color?: string }[] = [
+    { label: t('reports.currentStreak'), value: streakText(kpis.currentStreak), color: kpis.currentStreak >= 0 ? 'var(--green)' : 'var(--red)' },
+    { label: t('reports.maxWinStreak'), value: kpis.maxWinStreak ? t('reports.streakWin', { n: kpis.maxWinStreak }) : '—', color: 'var(--green)' },
+    { label: t('reports.maxLossStreak'), value: kpis.maxLossStreak ? t('reports.streakLoss', { n: kpis.maxLossStreak }) : '—', color: 'var(--red)' },
+    { label: t('reports.expectancy'), value: fmtMoney(kpis.expectancy), color: kpis.expectancy >= 0 ? 'var(--green)' : 'var(--red)' },
+    {
+      label: t('reports.bestDay'),
+      value: kpis.bestDay ? `${fmtShortDate(kpis.bestDay.date, metricsLang)} · ${fmtMoney(kpis.bestDay.pnl)}` : '—',
+      color: 'var(--green)',
+    },
+    {
+      label: t('reports.worstDay'),
+      value: kpis.worstDay ? `${fmtShortDate(kpis.worstDay.date, metricsLang)} · ${fmtMoney(kpis.worstDay.pnl)}` : '—',
+      color: 'var(--red)',
+    },
+  ];
+
   if (isLoading) return <LoadingState />;
   if (isError) return <ErrorState onRetry={() => void refetch()} />;
   if (trades.length === 0) return <EmptyState />;
@@ -120,9 +153,12 @@ export function Reports() {
       </div>
 
       <div className={styles.kpiRow}>
-        {kpiCards.map((vm) => (
-          <KpiCard key={vm.key} vm={vm} />
-        ))}
+        {/* 期望值/連勝為 Dashboard KPI 卡候選；Reports 已有進階統計卡呈現，避免重複。 */}
+        {kpiCards
+          .filter((vm) => vm.key !== 'expectancy' && vm.key !== 'streak')
+          .map((vm) => (
+            <KpiCard key={vm.key} vm={vm} />
+          ))}
       </div>
 
       <div className={styles.grid}>
@@ -147,6 +183,36 @@ export function Reports() {
         </ChartCard>
         <ChartCard title={t('reports.monthly')}>
           <BarBlock data={monthly} />
+        </ChartCard>
+        <ChartCard title={t('reports.advanced')}>
+          <table className={styles.table}>
+            <tbody>
+              {advancedRows.map((row) => (
+                <tr key={row.label}>
+                  <td>{row.label}</td>
+                  <td className={styles.num}>
+                    <span className={styles.mono} style={row.color ? { color: row.color } : undefined}>
+                      {row.value}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </ChartCard>
+        <ChartCard
+          title={t('reports.hourly')}
+          headerRight={
+            <span className={styles.avgHolding}>
+              {t('reports.hourlySample', { n: hourly.sampleCount, total: hourly.totalCount })}
+            </span>
+          }
+        >
+          {hourly.sampleCount > 0 ? (
+            <BarBlock data={hourlyData} />
+          ) : (
+            <div className={styles.chartEmpty}>{t('reports.hourlyEmpty')}</div>
+          )}
         </ChartCard>
         <ChartCard title={t('reports.strategy')}>
           <table className={styles.table}>

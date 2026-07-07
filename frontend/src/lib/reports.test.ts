@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { makeTrade } from '@/test/factories';
 import {
   buildHoldingDistribution,
+  buildHourlyStats,
   buildMonthlyPerformance,
   buildRDistribution,
   buildStrategyStats,
@@ -35,6 +36,30 @@ describe('buildRDistribution', () => {
     const buckets = buildRDistribution(trades);
     const total = buckets.reduce((s, b) => s + b.count, 0);
     expect(total).toBe(trades.length);
+  });
+});
+
+describe('buildHourlyStats', () => {
+  it('buckets only timestamped trades by entry hour and excludes the rest', () => {
+    const mixed = [
+      makeTrade({ pnl: 100, openedAt: '2026-07-03T09:15:00' }),
+      makeTrade({ pnl: -40, openedAt: '2026-07-03T09:45:00' }),
+      makeTrade({ pnl: 60, openedAt: '2026-07-03T14:05:00' }),
+      makeTrade({ pnl: 999 }), // 無時間戳 → 排除
+    ];
+    const stats = buildHourlyStats(mixed);
+    expect(stats.sampleCount).toBe(3);
+    expect(stats.totalCount).toBe(4);
+    expect(stats.buckets).toEqual([
+      { hour: 9, count: 2, winRate: 50, pnl: 60 }, // 100 - 40
+      { hour: 14, count: 1, winRate: 100, pnl: 60 },
+    ]);
+  });
+
+  it('returns empty buckets when no trades have timestamps', () => {
+    const stats = buildHourlyStats(trades);
+    expect(stats.sampleCount).toBe(0);
+    expect(stats.buckets).toEqual([]);
   });
 });
 

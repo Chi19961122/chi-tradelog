@@ -5,7 +5,7 @@ import { useOutsideClick } from '@/lib/useOutsideClick';
 import { useUiStore, type KpiVisibility } from '@/store/uiStore';
 import styles from './CustomizePopover.module.css';
 
-const KPI_KEYS: (keyof KpiVisibility)[] = ['netpnl', 'winrate', 'pf', 'avgwl', 'maxdd', 'balance'];
+const KPI_KEYS: (keyof KpiVisibility)[] = ['netpnl', 'winrate', 'pf', 'avgwl', 'maxdd', 'balance', 'expectancy', 'streak'];
 
 export function CustomizePopover() {
   const { t } = useTranslation();

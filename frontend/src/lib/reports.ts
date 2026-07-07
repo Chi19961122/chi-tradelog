@@ -144,6 +144,49 @@ export function buildMonthlyPerformance(trades: Trade[], lang: 'en' | 'zh'): Mon
 }
 
 /* ------------------------------------------------------------------ */
+/* Entry Hour Analysis（真實：只統計有 openedAt 時間戳的交易）          */
+/* ------------------------------------------------------------------ */
+
+export interface HourlyBucket {
+  hour: number; // 0–23（本地時間）
+  count: number;
+  winRate: number; // 0–100
+  pnl: number;
+}
+
+export interface HourlyStats {
+  /** 只含有交易的時段，依小時排序。 */
+  buckets: HourlyBucket[];
+  /** 有進場時間戳的交易數（統計母體）。 */
+  sampleCount: number;
+  /** 全部交易數（供標示排除了多少筆）。 */
+  totalCount: number;
+}
+
+/** 進場時段分析：依 openedAt 的小時分桶統計筆數/勝率/損益；無時間戳的交易明確排除。 */
+export function buildHourlyStats(trades: Trade[]): HourlyStats {
+  const withTs = trades.filter((tr) => tr.openedAt);
+  const byHour = new Map<number, { count: number; wins: number; pnl: number }>();
+  for (const tr of withTs) {
+    const hour = new Date(tr.openedAt as string).getHours();
+    const agg = byHour.get(hour) ?? { count: 0, wins: 0, pnl: 0 };
+    agg.count += 1;
+    if (tr.pnl >= 0) agg.wins += 1;
+    agg.pnl += tr.pnl;
+    byHour.set(hour, agg);
+  }
+  const buckets = [...byHour.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([hour, agg]) => ({
+      hour,
+      count: agg.count,
+      winRate: Math.round((agg.wins / agg.count) * 100),
+      pnl: Math.round(agg.pnl),
+    }));
+  return { buckets, sampleCount: withTs.length, totalCount: trades.length };
+}
+
+/* ------------------------------------------------------------------ */
 /* Strategy Tag Performance（真實：依標籤分組）                         */
 /* ------------------------------------------------------------------ */
 
