@@ -24,6 +24,45 @@
   margin-top: 4px;
 }
 
+.weeklyHint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--line);
+  background: var(--card);
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.weeklyHintActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.weeklyHintView {
+  padding: 7px 14px;
+  border-radius: var(--radius-input);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--nav-active-text);
+  background: var(--nav-active-bg);
+}
+
+.weeklyHintDismiss {
+  padding: 7px 12px;
+  border-radius: var(--radius-input);
+  border: 1px solid var(--line);
+  background: var(--pill);
+  color: var(--sub);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
 .kpiRow {
   display: grid;
   gap: 16px;

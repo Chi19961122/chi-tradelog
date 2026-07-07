@@ -26,7 +26,10 @@
     "high": "High",
     "low": "Low",
     "week": "Week",
-    "win": "win"
+    "win": "win",
+    "weeklyHint": "Your weekly review for last week is ready",
+    "weeklyHintView": "View review",
+    "weeklyHintDismiss": "Dismiss"
   },
   "range": {
     "all": "All",
@@ -177,7 +180,17 @@
     "colRule": "Rule",
     "colDetail": "Detail",
     "ruleOvertrade": "Overtrading",
-    "ruleRevenge": "Revenge trade"
+    "ruleRevenge": "Revenge trade",
+    "weekly": "Weekly Review",
+    "weeklyEmpty": "No trades in this week",
+    "weeklySummary": "Trades · Net P&L · Win rate",
+    "weeklyBest": "Best trade",
+    "weeklyWorst": "Worst trade",
+    "weeklyMistakes": "Mistakes recap",
+    "weeklyEmotions": "Emotions",
+    "weeklyViolations": "Discipline violations",
+    "weeklyCopy": "Copy Markdown",
+    "weeklyCopied": "Copied!"
   },
   "calendar": {
     "title": "Calendar",

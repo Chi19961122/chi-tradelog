@@ -26,7 +26,10 @@
     "high": "最高",
     "low": "最低",
     "week": "第",
-    "win": "勝"
+    "win": "勝",
+    "weeklyHint": "上週的週回顧已就緒",
+    "weeklyHintView": "查看回顧",
+    "weeklyHintDismiss": "略過"
   },
   "range": {
     "all": "全部",
@@ -177,7 +180,17 @@
     "colRule": "規則",
     "colDetail": "明細",
     "ruleOvertrade": "過度交易",
-    "ruleRevenge": "報復性交易"
+    "ruleRevenge": "報復性交易",
+    "weekly": "週回顧",
+    "weeklyEmpty": "本週區間沒有交易",
+    "weeklySummary": "筆數 · 淨損益 · 勝率",
+    "weeklyBest": "最佳交易",
+    "weeklyWorst": "最差交易",
+    "weeklyMistakes": "錯誤 recap",
+    "weeklyEmotions": "情緒分佈",
+    "weeklyViolations": "紀律違規",
+    "weeklyCopy": "複製 Markdown",
+    "weeklyCopied": "已複製！"
   },
   "calendar": {
     "title": "日曆",

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Bar,
@@ -26,7 +26,9 @@ import {
 } from '@/lib/reports';
 import { buildEmotionStats, buildMistakeCosts } from '@/lib/behavior';
 import { detectViolations } from '@/lib/discipline';
+import { buildWeeklyReport, weekRange, weeklyReportMarkdown, WEEKLY_READ_KEY } from '@/lib/weeklyReport';
 import { useDisciplineRules } from '@/features/settings/useDisciplineRules';
+import { Icon } from '@/components/Icon/Icon';
 import { fmtMoney, fmtShortDate } from '@/lib/format';
 import { toMetricsLang } from '@/i18n';
 import { KpiCard } from '@/pages/dashboard/KpiCard';
@@ -168,6 +170,35 @@ export function Reports() {
     [trades, rules],
   );
 
+  // 週回顧：預設上週；瀏覽上週即標記已讀（Dashboard 提示據此消失）。
+  const [weekOffset, setWeekOffset] = useState(-1);
+  const [copied, setCopied] = useState(false);
+  const currentWeek = useMemo(() => weekRange(weekOffset), [weekOffset]);
+  const weekly = useMemo(
+    () => buildWeeklyReport(trades, journals, violations, currentWeek),
+    [trades, journals, violations, currentWeek],
+  );
+  useEffect(() => {
+    if (weekOffset === -1) localStorage.setItem(WEEKLY_READ_KEY, currentWeek.from);
+  }, [weekOffset, currentWeek.from]);
+  const handleCopyWeekly = () => {
+    const text = weeklyReportMarkdown(weekly, metricsLang);
+    const markCopied = () => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    };
+    navigator.clipboard.writeText(text).then(markCopied).catch(() => {
+      // 剪貼簿 API 不可用（未聚焦/權限不足）時退回 textarea + execCommand。
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      if (ok) markCopied();
+    });
+  };
+
   if (isLoading) return <LoadingState />;
   if (isError) return <ErrorState onRetry={() => void refetch()} />;
   if (trades.length === 0) return <EmptyState />;
@@ -189,6 +220,95 @@ export function Reports() {
       </div>
 
       <div className={styles.grid}>
+        <ChartCard
+          title={t('reports.weekly')}
+          headerRight={
+            <div className={styles.weekNav}>
+              <button
+                type="button"
+                className={styles.weekNavBtn}
+                onClick={() => setWeekOffset((o) => o - 1)}
+                aria-label="Previous week"
+              >
+                <Icon name="chevronLeft" size={14} />
+              </button>
+              <span className={`${styles.mono} ${styles.weekLabel}`}>
+                {weekly.range.from} – {weekly.range.to}
+              </span>
+              <button
+                type="button"
+                className={styles.weekNavBtn}
+                onClick={() => setWeekOffset((o) => Math.min(0, o + 1))}
+                disabled={weekOffset >= 0}
+                aria-label="Next week"
+              >
+                <Icon name="chevronRight" size={14} />
+              </button>
+            </div>
+          }
+        >
+          {weekly.tradesCount === 0 ? (
+            <div className={styles.chartEmpty}>{t('reports.weeklyEmpty')}</div>
+          ) : (
+            <>
+              <table className={styles.table}>
+                <tbody>
+                  <tr>
+                    <td>{t('reports.weeklySummary')}</td>
+                    <td className={styles.num}>
+                      <span className={styles.mono}>
+                        {weekly.tradesCount} · {fmtMoney(weekly.netPnl)} · {weekly.winRate}%
+                      </span>
+                    </td>
+                  </tr>
+                  {weekly.bestTrade && (
+                    <tr>
+                      <td>{t('reports.weeklyBest')}</td>
+                      <td className={styles.num}>
+                        <span className={styles.mono} style={{ color: 'var(--green)' }}>
+                          {weekly.bestTrade.sym} {fmtMoney(weekly.bestTrade.pnl)}
+                        </span>
+                      </td>
+                    </tr>
+                  )}
+                  {weekly.worstTrade && (
+                    <tr>
+                      <td>{t('reports.weeklyWorst')}</td>
+                      <td className={styles.num}>
+                        <span className={styles.mono} style={{ color: 'var(--red)' }}>
+                          {weekly.worstTrade.sym} {fmtMoney(weekly.worstTrade.pnl)}
+                        </span>
+                      </td>
+                    </tr>
+                  )}
+                  {weekly.mistakes.length > 0 && (
+                    <tr>
+                      <td>{t('reports.weeklyMistakes')}</td>
+                      <td className={styles.num}>{weekly.mistakes.map((m) => `${m.label} ×${m.count}`).join(', ')}</td>
+                    </tr>
+                  )}
+                  {weekly.emotions.length > 0 && (
+                    <tr>
+                      <td>{t('reports.weeklyEmotions')}</td>
+                      <td className={styles.num}>{weekly.emotions.map((e) => `${e.emotion} ×${e.count}`).join(', ')}</td>
+                    </tr>
+                  )}
+                  <tr>
+                    <td>{t('reports.weeklyViolations')}</td>
+                    <td className={styles.num}>
+                      <span className={styles.mono}>{weekly.violationsCount}</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div className={styles.weeklyActions}>
+                <button type="button" className={styles.copyBtn} onClick={handleCopyWeekly}>
+                  {copied ? t('reports.weeklyCopied') : t('reports.weeklyCopy')}
+                </button>
+              </div>
+            </>
+          )}
+        </ChartCard>
         <ChartCard title={t('reports.winrateWeekday')}>
           <BarBlock data={weekday} />
         </ChartCard>

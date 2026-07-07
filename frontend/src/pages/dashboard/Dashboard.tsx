@@ -4,6 +4,8 @@ import { useTrades } from '@/features/trades/useTrades';
 import { useKpiCards } from '@/features/kpi/useKpiCards';
 import { useUiStore } from '@/store/uiStore';
 import { currentMonthIdx, currentYear, toISODate } from '@/lib/today';
+import { isoInRange } from '@/lib/dateRange';
+import { weekRange, WEEKLY_READ_KEY } from '@/lib/weeklyReport';
 import { toMetricsLang } from '@/i18n';
 import { buildCalendar, computeKpis, type CalendarCell, type EquityRange } from '@/lib/metrics';
 import { CustomizePopover } from './CustomizePopover';
@@ -27,6 +29,7 @@ export function Dashboard() {
   const initialCapital = useUiStore((s) => s.initialCapital);
   const kpiVisible = useUiStore((s) => s.kpiVisible);
   const monthOffset = useUiStore((s) => s.monthOffset);
+  const setTab = useUiStore((s) => s.setTab);
 
   const [equityRange, setEquityRange] = useState<EquityRange>('all');
   const [dayDetail, setDayDetail] = useState<{ open: boolean; date: string | null; cell: CalendarCell | null }>({
@@ -43,6 +46,15 @@ export function Dashboard() {
 
   const kpiCards = useKpiCards(kpis);
   const visibleKpis = kpiCards.filter((k) => kpiVisible[k.key as keyof typeof kpiVisible]);
+
+  // 週報提示：上週有交易且尚未在 Reports 看過上週回顧 → 顯示提示。
+  const lastWeek = useMemo(() => weekRange(-1), []);
+  const [weeklyRead, setWeeklyRead] = useState(() => localStorage.getItem(WEEKLY_READ_KEY) === lastWeek.from);
+  const weeklyHintVisible = weeklyRead === false && trades.some((tr) => isoInRange(tr.date, lastWeek));
+  const dismissWeeklyHint = () => {
+    localStorage.setItem(WEEKLY_READ_KEY, lastWeek.from);
+    setWeeklyRead(true);
+  };
 
   const isZh = toMetricsLang(i18n.language) === 'zh';
   const months = isZh ? MONTHS_ZH : MONTHS_EN;
@@ -69,6 +81,28 @@ export function Dashboard() {
         </div>
         <CustomizePopover />
       </div>
+
+      {/* 週報未讀提示（上週有交易且未讀過上週回顧） */}
+      {weeklyHintVisible && (
+        <div className={styles.weeklyHint}>
+          <span>{t('dashboard.weeklyHint')}</span>
+          <div className={styles.weeklyHintActions}>
+            <button
+              type="button"
+              className={styles.weeklyHintView}
+              onClick={() => {
+                dismissWeeklyHint();
+                setTab('reports');
+              }}
+            >
+              {t('dashboard.weeklyHintView')}
+            </button>
+            <button type="button" className={styles.weeklyHintDismiss} onClick={dismissWeeklyHint}>
+              {t('dashboard.weeklyHintDismiss')}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* KPI row — repeat(N,1fr) 讓隱藏卡片自動補滿 */}
       <div className={styles.kpiRow} style={{ gridTemplateColumns: `repeat(${Math.max(1, visibleKpis.length)}, 1fr)` }}>
