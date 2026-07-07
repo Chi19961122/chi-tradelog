@@ -86,6 +86,26 @@ public class StubSettingsRepository : ISettingsRepository
     }
 
     /// <summary>
+    /// 儲存的紀律規則 JSON（測試可讀寫）。
+    /// </summary>
+    public string? DisciplineRules { get; set; }
+
+    /// <summary>
+    /// 回傳 <see cref="DisciplineRules"/>。
+    /// </summary>
+    public Task<string?> GetDisciplineRulesAsync(long userId, CancellationToken cancellationToken = default)
+        => Task.FromResult(DisciplineRules);
+
+    /// <summary>
+    /// 寫入 <see cref="DisciplineRules"/>。
+    /// </summary>
+    public Task<int> UpdateDisciplineRulesAsync(long userId, string rulesJson, CancellationToken cancellationToken = default)
+    {
+        DisciplineRules = rulesJson;
+        return Task.FromResult(1);
+    }
+
+    /// <summary>
     /// 依 <see cref="PlatformExists"/> 回傳。
     /// </summary>
     public Task<bool> PlatformExistsAsync(string id, long userId, CancellationToken cancellationToken = default)

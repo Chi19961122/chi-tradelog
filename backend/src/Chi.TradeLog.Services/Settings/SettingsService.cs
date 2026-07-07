@@ -66,6 +66,22 @@ public class SettingsService : ISettingsService
     }
 
     /// <summary>
+    /// 取得指定使用者的紀律規則 JSON；未設定時回傳 <c>null</c>。
+    /// </summary>
+    public async Task<string?> GetDisciplineRulesAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        return await _repository.GetDisciplineRulesAsync(userId, cancellationToken);
+    }
+
+    /// <summary>
+    /// 儲存指定使用者的紀律規則 JSON。
+    /// </summary>
+    public async Task SaveDisciplineRulesAsync(long userId, string rulesJson, CancellationToken cancellationToken = default)
+    {
+        await _repository.UpdateDisciplineRulesAsync(userId, rulesJson, cancellationToken);
+    }
+
+    /// <summary>
     /// 為指定使用者新增平台：產生新 id 並寫入，回傳含空帳戶清單的平台。
     /// </summary>
     public async Task<PlatformDto> CreatePlatformAsync(long userId, CreatePlatformInfo info, CancellationToken cancellationToken = default)

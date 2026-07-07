@@ -91,6 +91,18 @@ public class SettingsServiceTests
         repository.InsertedSymbol.Should().Be("AAPL");
     }
 
+    [Fact]
+    public async Task DisciplineRules_SaveAndGet_RoundTrips()
+    {
+        var repository = new FakeSettingsRepository();
+        var service = new SettingsService(repository);
+
+        await service.SaveDisciplineRulesAsync(UserId, """{"maxTradesPerDay":5,"revengeMinutes":30}""");
+        var rules = await service.GetDisciplineRulesAsync(UserId);
+
+        rules.Should().Be("""{"maxTradesPerDay":5,"revengeMinutes":30}""");
+    }
+
     private class FakeSettingsRepository : ISettingsRepository
     {
         public IReadOnlyList<PlatformDataModel> Platforms { get; set; } = [];
@@ -129,6 +141,17 @@ public class SettingsServiceTests
 
         public Task<int> UpdateJournalTemplateAsync(long userId, string template, CancellationToken cancellationToken = default)
             => Task.FromResult(1);
+
+        public string? DisciplineRules { get; set; }
+
+        public Task<string?> GetDisciplineRulesAsync(long userId, CancellationToken cancellationToken = default)
+            => Task.FromResult(DisciplineRules);
+
+        public Task<int> UpdateDisciplineRulesAsync(long userId, string rulesJson, CancellationToken cancellationToken = default)
+        {
+            DisciplineRules = rulesJson;
+            return Task.FromResult(1);
+        }
 
         public Task<bool> AccountExistsAsync(string id, long userId, CancellationToken cancellationToken = default)
             => Task.FromResult(true);

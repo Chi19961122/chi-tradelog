@@ -19,6 +19,16 @@ public interface ISettingsService
     Task UpdateInitialCapitalAsync(long userId, decimal initialCapital, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 取得指定使用者的紀律規則 JSON；未設定時回傳 <c>null</c>。
+    /// </summary>
+    Task<string?> GetDisciplineRulesAsync(long userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 儲存指定使用者的紀律規則 JSON。
+    /// </summary>
+    Task SaveDisciplineRulesAsync(long userId, string rulesJson, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 為指定使用者新增平台，回傳建立後的平台（含空帳戶清單）。
     /// </summary>
     Task<PlatformDto> CreatePlatformAsync(long userId, CreatePlatformInfo info, CancellationToken cancellationToken = default);

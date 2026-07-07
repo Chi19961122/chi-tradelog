@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { Icon } from '@/components/Icon/Icon';
 import type { CalendarCell, CalendarWeek } from '@/lib/metrics';
 import { fmtMoney } from '@/lib/format';
 import { toMetricsLang } from '@/i18n';
@@ -19,6 +20,8 @@ interface Props {
   headerRight?: React.ReactNode;
   /** 覆寫每格最小高度（px）；整頁 Calendar 可調高。預設 74。 */
   cellMinHeight?: number;
+  /** 有紀律違規的日（本月的 day 數字集合），該格顯示警示 icon。 */
+  violationDays?: Set<number>;
 }
 
 /** 日曆格子的語意色淡填充。 */
@@ -42,7 +45,7 @@ function statStyle(stat: CalendarWeek['stat']): React.CSSProperties {
   return { background: `rgb(${rgb} / 0.18)`, border: `1px solid rgb(${rgb} / 0.38)` };
 }
 
-export function CalendarBlock({ weeks, onDayClick, title, subtitle, headerRight, cellMinHeight }: Props) {
+export function CalendarBlock({ weeks, onDayClick, title, subtitle, headerRight, cellMinHeight, violationDays }: Props) {
   const { t, i18n } = useTranslation();
   const isZh = toMetricsLang(i18n.language) === 'zh';
   const weekdays = isZh ? WEEKDAYS_ZH : WEEKDAYS_EN;
@@ -84,6 +87,9 @@ export function CalendarBlock({ weeks, onDayClick, title, subtitle, headerRight,
                     style={{ color: cell.hasData ? 'var(--ink)' : 'var(--faint)' }}
                   >
                     {cell.day}
+                    {typeof cell.day === 'number' && violationDays?.has(cell.day) && (
+                      <Icon name="warning" size={11} className={styles.violationIcon} />
+                    )}
                   </span>
                   {cell.hasData && (
                     <>

@@ -5,8 +5,10 @@ import { CalendarBlock } from '@/pages/dashboard/CalendarBlock';
 import { DayDetailModal } from '@/pages/dashboard/DayDetailModal';
 import { JournalModal } from '@/pages/journal/JournalModal';
 import { buildCalendar, type CalendarCell } from '@/lib/metrics';
+import { detectViolations, violationDates } from '@/lib/discipline';
 import { ErrorState, LoadingState } from '@/components/QueryState/QueryState';
 import { useTrades } from '@/features/trades/useTrades';
+import { useDisciplineRules } from '@/features/settings/useDisciplineRules';
 import { useUiStore } from '@/store/uiStore';
 import { toISODate } from '@/lib/today';
 import { toMetricsLang } from '@/i18n';
@@ -34,6 +36,17 @@ export function CalendarPage() {
   const [journal, setJournal] = useState<{ open: boolean; trade: Trade | null }>({ open: false, trade: null });
 
   const calendar = useMemo(() => buildCalendar(monthOffset, trades), [monthOffset, trades]);
+
+  // 紀律違規：顯示中月份的違規日 → day 數字集合（供格子警示 icon）。
+  const { data: rules } = useDisciplineRules();
+  const violationDays = useMemo(() => {
+    if (!rules) return undefined;
+    const monthPrefix = `${calendar.year}-${String(calendar.monthIdx + 1).padStart(2, '0')}-`;
+    const dates = violationDates(detectViolations(trades, rules));
+    return new Set(
+      [...dates].filter((d) => d.startsWith(monthPrefix)).map((d) => Number(d.slice(8, 10))),
+    );
+  }, [rules, trades, calendar.year, calendar.monthIdx]);
   const monthLabel = isZh
     ? `${calendar.year} 年 ${calendar.monthIdx + 1} 月`
     : `${MONTHS_EN[calendar.monthIdx]} ${calendar.year}`;
@@ -67,6 +80,7 @@ export function CalendarPage() {
         subtitle={t('calendar.subtitle')}
         headerRight={monthNav}
         cellMinHeight={112}
+        violationDays={violationDays}
         onDayClick={(day, cell) =>
           setDayDetail({ open: true, date: toISODate(new Date(calendar.year, calendar.monthIdx, day)), cell })
         }

@@ -25,6 +25,8 @@ import {
   buildWeekdayWinRate,
 } from '@/lib/reports';
 import { buildEmotionStats, buildMistakeCosts } from '@/lib/behavior';
+import { detectViolations } from '@/lib/discipline';
+import { useDisciplineRules } from '@/features/settings/useDisciplineRules';
 import { fmtMoney, fmtShortDate } from '@/lib/format';
 import { toMetricsLang } from '@/i18n';
 import { KpiCard } from '@/pages/dashboard/KpiCard';
@@ -158,6 +160,14 @@ export function Reports() {
   );
   const mistakeCosts = useMemo(() => buildMistakeCosts(trades, journals), [trades, journals]);
 
+  // 紀律檢核：依使用者規則列出違規（未設定規則時顯示提示）。
+  const { data: rules } = useDisciplineRules();
+  const rulesActive = rules != null && (rules.maxTradesPerDay !== null || rules.revengeMinutes !== null);
+  const violations = useMemo(
+    () => (rules ? detectViolations(trades, rules) : []),
+    [trades, rules],
+  );
+
   if (isLoading) return <LoadingState />;
   if (isError) return <ErrorState onRetry={() => void refetch()} />;
   if (trades.length === 0) return <EmptyState />;
@@ -268,6 +278,41 @@ export function Reports() {
             </table>
           ) : (
             <div className={styles.chartEmpty}>{t('reports.behaviorEmpty')}</div>
+          )}
+        </ChartCard>
+        <ChartCard
+          title={t('reports.discipline')}
+          headerRight={
+            rulesActive ? (
+              <span className={styles.avgHolding}>{t('reports.disciplineCount', { n: violations.length })}</span>
+            ) : undefined
+          }
+        >
+          {rulesActive === false ? (
+            <div className={styles.chartEmpty}>{t('reports.disciplineNoRules')}</div>
+          ) : violations.length === 0 ? (
+            <div className={styles.chartEmpty}>{t('reports.disciplineClean')}</div>
+          ) : (
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>{t('reports.colDate')}</th>
+                  <th>{t('reports.colRule')}</th>
+                  <th className={styles.num}>{t('reports.colDetail')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {violations.map((v, i) => (
+                  <tr key={i}>
+                    <td className={styles.mono}>{fmtShortDate(v.date, metricsLang)}</td>
+                    <td>{t(v.rule === 'overtrade' ? 'reports.ruleOvertrade' : 'reports.ruleRevenge')}</td>
+                    <td className={styles.num}>
+                      <span className={styles.mono}>{v.detail}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </ChartCard>
         <ChartCard title={t('reports.strategy')}>

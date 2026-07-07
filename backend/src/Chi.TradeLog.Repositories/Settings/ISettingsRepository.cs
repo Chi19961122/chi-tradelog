@@ -48,6 +48,16 @@ public interface ISettingsRepository
     Task<int> UpdateJournalTemplateAsync(long userId, string template, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 取得指定使用者的紀律規則 JSON；未設定時回傳 <c>null</c>。
+    /// </summary>
+    Task<string?> GetDisciplineRulesAsync(long userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新指定使用者的紀律規則 JSON（該列不存在時建立），回傳受影響列數。
+    /// </summary>
+    Task<int> UpdateDisciplineRulesAsync(long userId, string rulesJson, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 判斷指定使用者是否擁有該平台。
     /// </summary>
     Task<bool> PlatformExistsAsync(string id, long userId, CancellationToken cancellationToken = default);

@@ -87,6 +87,43 @@ public class SettingsController : ApiControllerBase
     }
 
     /// <summary>
+    /// 取得自己的紀律規則；未設定時 rules 為 null。
+    /// </summary>
+    /// <param name="cancellationToken">取消權杖。</param>
+    /// <returns>規則 JSON。</returns>
+    /// <response code="200">查詢成功。</response>
+    [HttpGet("discipline")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetDisciplineRulesAsync(CancellationToken cancellationToken)
+    {
+        var rules = await _settingsService.GetDisciplineRulesAsync(CurrentUserId, cancellationToken);
+        return Ok(new { rules });
+    }
+
+    /// <summary>
+    /// 儲存自己的紀律規則（JSON 字串）。
+    /// </summary>
+    /// <param name="parameter">規則參數。</param>
+    /// <param name="cancellationToken">取消權杖。</param>
+    /// <response code="204">儲存成功。</response>
+    /// <response code="400">參數驗證失敗。</response>
+    [HttpPut("discipline")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> SaveDisciplineRulesAsync(
+        [FromBody] SaveDisciplineRulesParameter parameter,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(parameter.Rules))
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "規則內容為必填。");
+        }
+
+        await _settingsService.SaveDisciplineRulesAsync(CurrentUserId, parameter.Rules, cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>
     /// 新增平台。
     /// </summary>
     /// <param name="parameter">平台參數。</param>

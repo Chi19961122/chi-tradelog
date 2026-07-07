@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '@/components/Icon/Icon';
 import { ChipEditor } from '@/components/ChipEditor/ChipEditor';
@@ -6,6 +6,7 @@ import { ConfirmDialog } from '@/components/ConfirmDialog/ConfirmDialog';
 import { useUiStore, NAME_TRANSLATIONS } from '@/store/uiStore';
 import { useAuthStore } from '@/store/authStore';
 import { useSettingsController } from '@/features/settings/useSettingsController';
+import { useDisciplineRules, useDisciplineRulesMutation } from '@/features/settings/useDisciplineRules';
 import { API_BASE_URL } from '@/lib/apiConfig';
 import { toMetricsLang } from '@/i18n';
 import { ChangePasswordSection, ProfileSection, UserManagementSection } from './AccountSecuritySections';
@@ -112,6 +113,9 @@ export function Settings() {
         <AddInput placeholder={t('settings.addPlatform')} onAdd={(name) => void controller.addPlatform(name)} />
       </Section>
 
+      {/* 紀律規則 */}
+      <DisciplineSection />
+
       {/* Symbols */}
       <Section title={t('settings.symbolsTitle')} subtitle={t('settings.symbolsSubtitle')}>
         <ChipEditor
@@ -151,6 +155,70 @@ export function Settings() {
         onCancel={() => setConfirming(null)}
       />
     </div>
+  );
+}
+
+/** 紀律規則設定卡：單日最大筆數與報復性交易間隔（留空 = 停用）。 */
+function DisciplineSection() {
+  const { t } = useTranslation();
+  const { data: rules } = useDisciplineRules();
+  const mutation = useDisciplineRulesMutation();
+  const [maxTrades, setMaxTrades] = useState('');
+  const [revengeMin, setRevengeMin] = useState('');
+  const [saved, setSaved] = useState(false);
+
+  // 讀到已儲存規則時帶入表單。
+  useEffect(() => {
+    if (!rules) return;
+    setMaxTrades(rules.maxTradesPerDay !== null ? String(rules.maxTradesPerDay) : '');
+    setRevengeMin(rules.revengeMinutes !== null ? String(rules.revengeMinutes) : '');
+  }, [rules]);
+
+  const handleSave = () => {
+    const maxTradesPerDay = maxTrades !== '' && Number(maxTrades) > 0 ? Math.floor(Number(maxTrades)) : null;
+    const revengeMinutes = revengeMin !== '' && Number(revengeMin) > 0 ? Math.floor(Number(revengeMin)) : null;
+    mutation.mutate(
+      { maxTradesPerDay, revengeMinutes },
+      {
+        onSuccess: () => {
+          setSaved(true);
+          setTimeout(() => setSaved(false), 2500);
+        },
+      },
+    );
+  };
+
+  return (
+    <Section title={t('settings.disciplineTitle')} subtitle={t('settings.disciplineSubtitle')}>
+      <label className={styles.field}>
+        <span className={styles.fieldLabel}>{t('settings.maxTradesPerDay')}</span>
+        <input
+          className={styles.ruleInput}
+          type="number"
+          min={1}
+          value={maxTrades}
+          placeholder={t('settings.ruleDisabled')}
+          onChange={(e) => setMaxTrades(e.target.value)}
+        />
+      </label>
+      <label className={styles.field}>
+        <span className={styles.fieldLabel}>{t('settings.revengeMinutes')}</span>
+        <input
+          className={styles.ruleInput}
+          type="number"
+          min={1}
+          value={revengeMin}
+          placeholder={t('settings.ruleDisabled')}
+          onChange={(e) => setRevengeMin(e.target.value)}
+        />
+      </label>
+      <div className={styles.ruleActions}>
+        <button type="button" className={styles.ruleSaveBtn} onClick={handleSave} disabled={mutation.isPending}>
+          {t('settings.saveRules')}
+        </button>
+        {saved && <span className={styles.ruleSaved}>{t('settings.rulesSaved')}</span>}
+      </div>
+    </Section>
   );
 }
 

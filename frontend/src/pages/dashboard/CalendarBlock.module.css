@@ -59,6 +59,14 @@
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.violationIcon {
+  color: var(--amber);
+  flex-shrink: 0;
 }
 
 .cellPnl {
