@@ -74,13 +74,14 @@ export function Topbar() {
   );
 }
 
-/** 日記提醒：今天有交易但還沒寫日記時顯示鈴鐺與數量，點擊跳交易日誌。 */
+/** 日記提醒：今天有交易但還沒寫日記時顯示鈴鐺與數量，點擊直接開啟第一筆缺日記的交易。 */
 function JournalReminder() {
   const { t } = useTranslation();
   const activeAccountIds = useUiStore((s) => s.activeAccountIds);
-  const setTab = useUiStore((s) => s.setTab);
+  const openJournalPage = useUiStore((s) => s.openJournalPage);
   const { data: trades = [] } = useTrades(activeAccountIds);
-  const { data: missing = 0 } = useJournalReminder(trades);
+  const { data } = useJournalReminder(trades);
+  const missing = data?.missingCount ?? 0;
 
   if (missing === 0) return null;
 
@@ -90,7 +91,10 @@ function JournalReminder() {
       className={styles.reminderBtn}
       title={t('journal.reminder', { count: missing })}
       aria-label={t('journal.reminder', { count: missing })}
-      onClick={() => setTab('tradelog')}
+      onClick={() => {
+        const first = data?.missingTrades[0];
+        if (first) openJournalPage(first);
+      }}
     >
       <Icon name="bell" size={15} />
       <span className={styles.reminderDot}>{missing}</span>
