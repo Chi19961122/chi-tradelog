@@ -49,6 +49,8 @@ export function useJournalMutation() {
         ['journal', journalKey(vars.accountId, vars.symbol, vars.date)],
         vars.entry,
       );
+      // 行為分析聚合依賴全部日記，儲存後失效重取。
+      void queryClient.invalidateQueries({ queryKey: ['journalAll'] });
     },
   });
 }

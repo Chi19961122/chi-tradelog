@@ -42,6 +42,7 @@ public class ApiMappingProfile : Profile
         // 交易日記：Parameter → InfoModel、Dto → ViewModel
         CreateMap<SaveJournalParameter, SaveJournalInfo>();
         CreateMap<JournalDto, JournalViewModel>();
+        CreateMap<JournalDto, JournalSummaryViewModel>();
 
         // 認證：Dto → ViewModel
         CreateMap<UserDto, UserViewModel>();

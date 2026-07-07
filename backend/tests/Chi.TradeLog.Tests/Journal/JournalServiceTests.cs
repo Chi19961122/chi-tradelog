@@ -75,6 +75,35 @@ public class JournalServiceTests
     }
 
     [Fact]
+    public async Task GetAllJournalsAsync_ReturnsSummariesWithoutNotes()
+    {
+        var repository = new FakeJournalRepository
+        {
+            AllStored =
+            [
+                new JournalEntryDataModel
+                {
+                    AccountId = "a1",
+                    Symbol = "AAPL",
+                    EntryDate = new DateOnly(2026, 7, 5),
+                    Notes = string.Empty, // Repository 已固定回空字串
+                    Emotions = ["FOMO"],
+                    Mistakes = """[{"label":"Chased entry","checked":true}]""",
+                },
+            ],
+        };
+        var service = new JournalService(repository, new StubSettingsRepository());
+
+        var result = await service.GetAllJournalsAsync(1);
+
+        result.Should().ContainSingle();
+        result[0].Symbol.Should().Be("AAPL");
+        result[0].Notes.Should().BeEmpty();
+        result[0].Emotions.Should().ContainSingle().Which.Should().Be("FOMO");
+        result[0].Mistakes.Should().ContainSingle().Which.Checked.Should().BeTrue();
+    }
+
+    [Fact]
     public async Task Template_SaveAndGet_RoundTrips()
     {
         var settings = new StubSettingsRepository();
@@ -90,6 +119,7 @@ public class JournalServiceTests
     {
         public JournalEntryDataModel? Stored { get; set; }
         public JournalEntryDataModel? Upserted { get; private set; }
+        public IReadOnlyList<JournalEntryDataModel> AllStored { get; set; } = [];
 
         public Task<JournalEntryDataModel?> GetAsync(
             long userId, string accountId, string symbol, DateOnly date, CancellationToken cancellationToken = default)
@@ -100,5 +130,9 @@ public class JournalServiceTests
             Upserted = entry;
             return Task.CompletedTask;
         }
+
+        public Task<IReadOnlyList<JournalEntryDataModel>> GetAllByUserAsync(
+            long userId, CancellationToken cancellationToken = default)
+            => Task.FromResult(AllStored);
     }
 }

@@ -13,4 +13,8 @@ export const mockJournalStore = {
   save(key: string, entry: JournalEntry): void {
     store.set(key, entry);
   },
+  /** 列舉全部日記（供行為分析聚合；key 由呼叫端解析）。 */
+  entries(): { key: string; entry: JournalEntry }[] {
+    return [...store.entries()].map(([key, entry]) => ({ key, entry }));
+  },
 };

@@ -58,6 +58,21 @@ public class JournalController : ApiControllerBase
     }
 
     /// <summary>
+    /// 取得自己的全部日記摘要（不含 notes），供行為分析聚合。
+    /// </summary>
+    /// <param name="cancellationToken">取消權杖。</param>
+    /// <returns>日記摘要清單。</returns>
+    /// <response code="200">查詢成功。</response>
+    [HttpGet("all")]
+    [ProducesResponseType(typeof(IReadOnlyList<JournalSummaryViewModel>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<JournalSummaryViewModel>>> GetAllJournalsAsync(
+        CancellationToken cancellationToken)
+    {
+        var dtos = await _journalService.GetAllJournalsAsync(CurrentUserId, cancellationToken);
+        return Ok(_mapper.Map<IReadOnlyList<JournalSummaryViewModel>>(dtos));
+    }
+
+    /// <summary>
     /// 儲存日記（新增或更新）。
     /// </summary>
     /// <param name="parameter">日記內容。</param>

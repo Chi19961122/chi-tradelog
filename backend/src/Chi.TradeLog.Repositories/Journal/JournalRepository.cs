@@ -23,6 +23,20 @@ public class JournalRepository : IJournalRepository
         WHERE user_id = @UserId AND account_id = @AccountId AND symbol = @Symbol AND entry_date = @EntryDate;
         """;
 
+    // 行為分析用：notes（HTML 含截圖 data URL）可能很大，這裡固定回空字串。
+    private const string SelectAllByUserSql = """
+        SELECT user_id     AS UserId,
+               account_id  AS AccountId,
+               symbol      AS Symbol,
+               entry_date  AS EntryDate,
+               ''          AS Notes,
+               emotions    AS Emotions,
+               mistakes::text AS Mistakes
+        FROM journal_entries
+        WHERE user_id = @UserId
+        ORDER BY entry_date;
+        """;
+
     private const string UpsertSql = """
         INSERT INTO journal_entries (user_id, account_id, symbol, entry_date, notes, emotions, mistakes, updated_at)
         VALUES (@UserId, @AccountId, @Symbol, @EntryDate, @Notes, @Emotions, @Mistakes::jsonb, now())
@@ -62,5 +76,18 @@ public class JournalRepository : IJournalRepository
         await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         var command = new CommandDefinition(UpsertSql, entry, cancellationToken: cancellationToken);
         await connection.ExecuteAsync(command);
+    }
+
+    /// <summary>
+    /// 取得指定使用者的全部日記（不含 notes），依日期由舊到新排序。
+    /// </summary>
+    public async Task<IReadOnlyList<JournalEntryDataModel>> GetAllByUserAsync(
+        long userId, CancellationToken cancellationToken = default)
+    {
+        await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        var command = new CommandDefinition(
+            SelectAllByUserSql, new { UserId = userId }, cancellationToken: cancellationToken);
+        var rows = await connection.QueryAsync<JournalEntryDataModel>(command);
+        return rows.AsList();
     }
 }

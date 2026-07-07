@@ -17,4 +17,10 @@ public interface IJournalRepository
     /// 新增或更新日記（以使用者/帳戶/商品/日期為唯一鍵 upsert）。
     /// </summary>
     Task UpsertAsync(JournalEntryDataModel entry, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 取得指定使用者的全部日記（輕量：不含 notes，供行為分析聚合）。
+    /// </summary>
+    Task<IReadOnlyList<JournalEntryDataModel>> GetAllByUserAsync(
+        long userId, CancellationToken cancellationToken = default);
 }

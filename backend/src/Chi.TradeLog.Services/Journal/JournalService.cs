@@ -68,6 +68,26 @@ public class JournalService : IJournalService
     }
 
     /// <summary>
+    /// 取得指定使用者的全部日記（notes 為空字串），供行為分析聚合。
+    /// </summary>
+    public async Task<IReadOnlyList<JournalDto>> GetAllJournalsAsync(
+        long userId, CancellationToken cancellationToken = default)
+    {
+        var rows = await _repository.GetAllByUserAsync(userId, cancellationToken);
+        return rows
+            .Select(data => new JournalDto
+            {
+                AccountId = data.AccountId,
+                Symbol = data.Symbol,
+                Date = data.EntryDate,
+                Notes = string.Empty,
+                Emotions = data.Emotions,
+                Mistakes = DeserializeMistakes(data.Mistakes),
+            })
+            .ToList();
+    }
+
+    /// <summary>
     /// 儲存日記，並將 mistakes 清單序列化為 JSON 後 upsert。
     /// </summary>
     public async Task SaveJournalAsync(SaveJournalInfo info, CancellationToken cancellationToken = default)

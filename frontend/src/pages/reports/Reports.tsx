@@ -11,6 +11,7 @@ import {
   YAxis,
 } from 'recharts';
 import { useTrades } from '@/features/trades/useTrades';
+import { useAllJournals } from '@/features/journal/useAllJournals';
 import { useKpiCards } from '@/features/kpi/useKpiCards';
 import { useUiStore } from '@/store/uiStore';
 import { computeKpis } from '@/lib/metrics';
@@ -23,6 +24,7 @@ import {
   buildSymbolPnl,
   buildWeekdayWinRate,
 } from '@/lib/reports';
+import { buildEmotionStats, buildMistakeCosts } from '@/lib/behavior';
 import { fmtMoney, fmtShortDate } from '@/lib/format';
 import { toMetricsLang } from '@/i18n';
 import { KpiCard } from '@/pages/dashboard/KpiCard';
@@ -45,6 +47,7 @@ export function Reports() {
   const activeAccountIds = useUiStore((s) => s.activeAccountIds);
   const initialCapital = useUiStore((s) => s.initialCapital);
   const { data: trades = [], isLoading, isError, refetch } = useTrades(activeAccountIds);
+  const { data: journals = [] } = useAllJournals();
 
   const kpis = useMemo(() => computeKpis(trades, initialCapital), [trades, initialCapital]);
   const kpiCards = useKpiCards(kpis);
@@ -141,6 +144,20 @@ export function Reports() {
     },
   ];
 
+  // 行為分析：情緒 × 績效（平均損益長條）與錯誤成本（樣本 <3 標灰）。
+  const emotionStats = useMemo(() => buildEmotionStats(trades, journals), [trades, journals]);
+  const emotionData = useMemo<BarDatum[]>(
+    () =>
+      emotionStats.map((s) => ({
+        label: s.emotion,
+        value: s.avgPnl,
+        color: s.count < 3 ? 'var(--faint)' : s.avgPnl >= 0 ? 'var(--green)' : 'var(--red)',
+        display: `${fmtMoney(s.avgPnl)} avg · ${fmtMoney(s.totalPnl)} (${s.count})`,
+      })),
+    [emotionStats],
+  );
+  const mistakeCosts = useMemo(() => buildMistakeCosts(trades, journals), [trades, journals]);
+
   if (isLoading) return <LoadingState />;
   if (isError) return <ErrorState onRetry={() => void refetch()} />;
   if (trades.length === 0) return <EmptyState />;
@@ -212,6 +229,45 @@ export function Reports() {
             <BarBlock data={hourlyData} />
           ) : (
             <div className={styles.chartEmpty}>{t('reports.hourlyEmpty')}</div>
+          )}
+        </ChartCard>
+        <ChartCard
+          title={t('reports.emotionPerf')}
+          headerRight={<span className={styles.avgHolding}>{t('reports.behaviorSample', { n: journals.length })}</span>}
+        >
+          {emotionData.length > 0 ? (
+            <BarBlock data={emotionData} />
+          ) : (
+            <div className={styles.chartEmpty}>{t('reports.behaviorEmpty')}</div>
+          )}
+        </ChartCard>
+        <ChartCard title={t('reports.mistakeCost')}>
+          {mistakeCosts.length > 0 ? (
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>{t('reports.colMistake')}</th>
+                  <th className={styles.num}>{t('reports.colTimes')}</th>
+                  <th className={styles.num}>{t('reports.colTotalPnl')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {mistakeCosts.map((m) => (
+                  <tr key={m.label} style={m.count < 3 ? { color: 'var(--faint)' } : undefined}>
+                    <td>{m.label}</td>
+                    <td className={styles.mono}>{m.count}</td>
+                    <td
+                      className={styles.mono}
+                      style={m.count >= 3 ? { color: m.totalPnl >= 0 ? 'var(--green)' : 'var(--red)' } : undefined}
+                    >
+                      {fmtMoney(m.totalPnl)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className={styles.chartEmpty}>{t('reports.behaviorEmpty')}</div>
           )}
         </ChartCard>
         <ChartCard title={t('reports.strategy')}>

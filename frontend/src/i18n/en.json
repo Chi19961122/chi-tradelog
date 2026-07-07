@@ -161,7 +161,14 @@
     "streakLoss": "{{n}} losses",
     "hourly": "Entry Hour Analysis",
     "hourlySample": "Sample {{n}} / {{total}} trades",
-    "hourlyEmpty": "No trades with entry timestamps yet — import broker reports via Paste Import to enable this analysis"
+    "hourlyEmpty": "No trades with entry timestamps yet — import broker reports via Paste Import to enable this analysis",
+    "emotionPerf": "Emotion × Performance",
+    "mistakeCost": "Mistake Cost",
+    "behaviorSample": "{{n}} journal entries",
+    "behaviorEmpty": "No journal entries linked to trades yet — write journals from the Trade Log to enable this analysis",
+    "colMistake": "Mistake",
+    "colTimes": "Times",
+    "colTotalPnl": "Total P&L"
   },
   "calendar": {
     "title": "Calendar",

@@ -20,6 +20,11 @@ public interface IJournalService
     Task SaveJournalAsync(SaveJournalInfo info, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 取得指定使用者的全部日記（輕量：notes 為空字串，供行為分析聚合）。
+    /// </summary>
+    Task<IReadOnlyList<JournalDto>> GetAllJournalsAsync(long userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 取得指定使用者的日記範本；未設定時回傳 <c>null</c>。
     /// </summary>
     Task<string?> GetTemplateAsync(long userId, CancellationToken cancellationToken = default);
