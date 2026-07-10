@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { API_BASE_URL } from '@/lib/apiConfig';
-import { apiFetch, AUTH_TOKEN_KEY, AUTH_USER_KEY, getStoredToken } from '@/lib/apiClient';
+import { apiFetch, AUTH_TOKEN_KEY, AUTH_USER_KEY, getStoredToken, setUnauthorizedHandler } from '@/lib/apiClient';
 
 export interface AuthUser {
   name: string;
@@ -209,6 +209,13 @@ async function doRefresh() {
     refreshTimer = setTimeout(() => void doRefresh(), 30_000);
   }
 }
+
+// 任一 API 呼叫帶權杖仍被 401 拒絕（本機只驗過期、驗不了簽章，金鑰輪替時會發生）：登出回登入頁。
+setUnauthorizedHandler(() => {
+  if (useAuthStore.getState().isAuthenticated) {
+    useAuthStore.getState().logout();
+  }
+});
 
 // 載入時若已有有效工作階段，排定自動換發。
 if (API_BASE_URL && useAuthStore.getState().isAuthenticated) {
