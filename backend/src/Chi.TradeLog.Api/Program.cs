@@ -79,10 +79,14 @@ builder.Services.AddDatabaseInfrastructure(connectionString);
 
 var app = builder.Build();
 
-// 正式環境仍使用開發用簽章金鑰時發出明顯警告（金鑰應以環境變數 Jwt__Key 或 compose 的 JWT_KEY 覆寫）。
+// 正式環境仍使用開發用簽章金鑰時直接拒絕啟動（fail-fast）：
+// 該金鑰已公開於版控歷史，繼續啟動等於任何人都能偽造 JWT（含 admin claim）。
+// 金鑰須以環境變數 Jwt__Key 或 compose 的 JWT_KEY 覆寫（至少 32 bytes 隨機字串）。
 if (app.Environment.IsProduction() && jwtOptions.Key.StartsWith("dev-only", StringComparison.Ordinal))
 {
-    app.Logger.LogWarning("Jwt:Key 仍為開發用預設金鑰，正式環境請以環境變數 Jwt__Key 覆寫（至少 32 bytes 隨機字串）。");
+    throw new InvalidOperationException(
+        "Jwt:Key 仍為開發用預設金鑰。正式環境請以環境變數 Jwt__Key（或 compose 的 JWT_KEY）" +
+        "設定至少 32 bytes 的隨機字串後再啟動。");
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
