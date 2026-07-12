@@ -219,6 +219,7 @@ journal 唯一鍵也改為 `entry_date`（Migration 0010）。留此節作歷史
 | 測試裡的今天 | 前端測試用 `setTodayForTesting(new Date(2026,6,4))` 注入；後端測試用 `DateTime.UtcNow` 動態推期望值，不寫死日期 |
 | 貼上匯入解析器 | 券商名若剛好等於表頭標籤（如 "Broker"）會被剝除——極端 edge，測試資料避開即可 |
 | demo DB 殘留 | 驗證會留下測試使用者/交易/日記；用 psql 清理或重建 volume（`docker compose down -v`）|
+| AutoMapper 15 授權警告 | **已評估、接受，勿降版**：12.x 有未修補的 DoS 弱點（GHSA-rvv3-g6hj-g44x），community key 需年續。復議時優先考慮移除手寫（全案僅 20 個 CreateMap），詳見 `docs/plans/2026-07-healthcheck-fixes.md` |
 
 **Windows 本機環境**：Docker Desktop 可能未啟動（啟動後要輪詢 `docker ps` 等 ready）；
 連接埠：前端 dev 5173、後端 5079、容器前端 8080、postgres 5432；

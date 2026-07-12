@@ -1,6 +1,6 @@
 # 2026-07 健檢修正：日記假資料污染 + AutoMapper 授權
 
-**狀態：進行中**
+**狀態：已完成**（項目 1 已修復並驗證至 L4；項目 2 經評估後決策為「接受警告」，見下）
 
 ## Context
 
@@ -22,10 +22,22 @@
 - `journal.test.ts`：改測空白起手不變量——「新日記不得產生任何會被統計的內容」。
 - 影響評估：行為分析（`behavior.ts`）只統計已儲存日記，不受影響；mock 日記存放區為記憶體空起手，demo 展示無回歸。
 
-### 2. AutoMapper 降版 12.x
+### 2. AutoMapper 授權警告（決策紀錄：接受警告，勿降版）
 
-- 兩個 csproj：`15.1.3` → `12.0.1`；Api 專案補 `AutoMapper.Extensions.Microsoft.DependencyInjection 12.0.1`（v12 的 `AddAutoMapper` 在獨立套件）。
-- `Program.cs`：`AddAutoMapper(_ => { }, assemblies)` → v12 簽章 `AddAutoMapper(assemblies)`。
+原方案「降版 12.x（最後的 MIT 版）」實作時被事實否決：
+
+- NuGet 稽核回報 12.0.1 落在 **GHSA-rvv3-g6hj-g44x**（遞迴 DoS，CVSS 7.5）受影響範圍；修補版本只有 15.1.1+ / 16.1.1+——Lucky Penny 未回頭修補免費舊版。
+- 降版等於「用授權警告換高嚴重性安全警告」，不划算，已回復 15.1.3（已修補版）。
+
+三選項評估後使用者決策（2026-07-12）：**接受授權警告**。
+
+| 選項 | 評估 |
+| --- | --- |
+| 移除 AutoMapper 手寫映射（全案僅 20 個 CreateMap） | 一次工永久解決，但使用者選擇不做 |
+| 申請 Lucky Penny 免費 community key | 需註冊＋年續，行政負擔 |
+| **接受警告（採用）** | 15.1.3 功能正常且無安全弱點；警告僅為 log 噪音 |
+
+若未來要復議，優先考慮「移除手寫」；**不要降版 12.x**（安全弱點無修補）。
 
 ## 驗證方式
 

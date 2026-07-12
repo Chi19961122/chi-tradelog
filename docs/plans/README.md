@@ -15,4 +15,4 @@
 | [2026-07 Settings 排版 + 個人檔案](2026-07-settings-profile.md) | Settings 雙欄排版；使用者自助修改名稱/email（含 token 換發設計） | 已完成 |
 | [2026-07 完整日期模型遷移](2026-07-date-model-migration.md) | 修跨月炸彈：Trade 改完整日期 + Journal 唯一鍵連鎖遷移 | 已完成 |
 | [2026-07 產品路線圖](2026-07-product-roadmap.md) | 八項已排序：範本持久化 → 日記提醒 → 真實 R → 進階統計 → 行為分析（情緒×績效/錯誤成本）→ 紀律檢核 → 全資料匯出 → 週報 | 已完成 |
-| [2026-07 健檢修正](2026-07-healthcheck-fixes.md) | 去除日記假資料污染（空白起手）+ AutoMapper 授權降版 12.x | 進行中 |
+| [2026-07 健檢修正](2026-07-healthcheck-fixes.md) | 去除日記假資料污染（空白起手）+ AutoMapper 授權決策（接受警告，勿降版） | 已完成 |
