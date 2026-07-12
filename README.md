@@ -1,5 +1,7 @@
 # Chi.TradeLog
 
+[![CI](https://github.com/Chi19961122/chi-tradelog/actions/workflows/ci.yml/badge.svg)](https://github.com/Chi19961122/chi-tradelog/actions/workflows/ci.yml)
+
 **一個幫你把「交易紀錄」變成「交易能力」的交易日記 / 績效分析 Web App。**
 
 多數交易者輸在同樣的錯誤重複發生——追高、凹單、報復性交易。Chi.TradeLog 的核心理念很簡單：**把每一筆交易記下來、每一天檢討自己，讓數據告訴你問題出在哪。**
