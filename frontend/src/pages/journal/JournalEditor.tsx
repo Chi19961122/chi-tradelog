@@ -5,8 +5,8 @@ import { useJournal } from '@/features/journal/useJournal';
 import { useJournalMutation } from '@/features/journal/useJournalMutation';
 import { useJournalTemplate, useJournalTemplateMutation } from '@/features/journal/useJournalTemplate';
 import {
-  defaultJournalEntry,
   defaultTemplate,
+  emptyJournalEntry,
   journalKey,
   type MistakeItem,
 } from '@/lib/journal';
@@ -62,7 +62,8 @@ export function JournalEditor({ trade, variant = 'modal' }: Props) {
   useEffect(() => {
     if (!isFetched) return;
     if (initedKeyRef.current === key) return;
-    const base = stored ?? defaultJournalEntry(key, lang);
+    // 無已存日記時空白起手：不得預填任何會被行為分析統計的內容。
+    const base = stored ?? emptyJournalEntry(lang);
     setEmotions(base.emotions);
     setMistakes(base.mistakes);
     setNotes(base.notes);

@@ -1,28 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { defaultEmotions, defaultJournalEntry, defaultMistakes, defaultTemplate } from './journal';
+import { defaultTemplate, emptyJournalEntry, standardMistakes } from './journal';
 
-const EMOTION_POOL_EN = ['Confident', 'Patient', 'Anxious', 'FOMO', 'Greedy', 'Calm', 'Hesitant', 'Excited'];
-
-describe('defaultEmotions', () => {
-  it('is deterministic and returns 1–3 emotions from the pool', () => {
-    const a = defaultEmotions('a1-AAPL-5', 'en');
-    const b = defaultEmotions('a1-AAPL-5', 'en');
-    expect(a).toEqual(b);
-    expect(a.length).toBeGreaterThanOrEqual(1);
-    expect(a.length).toBeLessThanOrEqual(3);
-    for (const emo of a) expect(EMOTION_POOL_EN).toContain(emo);
-  });
-});
-
-describe('defaultMistakes', () => {
-  it('is deterministic and returns 6 items with boolean checked', () => {
-    const a = defaultMistakes('a1-TSLA-9', 'en');
-    expect(a).toEqual(defaultMistakes('a1-TSLA-9', 'en'));
-    expect(a).toHaveLength(6);
-    for (const m of a) {
+describe('standardMistakes', () => {
+  it('returns 6 standard items, all unchecked, per language', () => {
+    const en = standardMistakes('en');
+    expect(en).toHaveLength(6);
+    for (const m of en) {
       expect(typeof m.label).toBe('string');
-      expect(typeof m.checked).toBe('boolean');
+      expect(m.checked).toBe(false);
     }
+    const zh = standardMistakes('zh');
+    expect(zh).toHaveLength(6);
+    expect(zh.map((m) => m.label)).toContain('報復性交易');
   });
 });
 
@@ -33,11 +22,21 @@ describe('defaultTemplate', () => {
   });
 });
 
-describe('defaultJournalEntry', () => {
-  it('bundles empty notes with default emotions and mistakes', () => {
-    const entry = defaultJournalEntry('a1-AAPL-5', 'en');
+describe('emptyJournalEntry', () => {
+  it('starts blank: no notes, no emotions, no checked mistakes', () => {
+    const entry = emptyJournalEntry('en');
     expect(entry.notes).toBe('');
-    expect(entry.emotions).toEqual(defaultEmotions('a1-AAPL-5', 'en'));
-    expect(entry.mistakes).toEqual(defaultMistakes('a1-AAPL-5', 'en'));
+    expect(entry.emotions).toEqual([]);
+    expect(entry.mistakes).toHaveLength(6);
+    expect(entry.mistakes.every((m) => m.checked === false)).toBe(true);
+  });
+
+  it('never produces content that behavior analytics would count', () => {
+    // 不變量：新日記存檔後，情緒 × 績效與錯誤成本統計都必須為零貢獻。
+    for (const lang of ['en', 'zh'] as const) {
+      const entry = emptyJournalEntry(lang);
+      expect(entry.emotions).toHaveLength(0);
+      expect(entry.mistakes.filter((m) => m.checked)).toHaveLength(0);
+    }
   });
 });
